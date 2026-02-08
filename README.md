@@ -111,6 +111,7 @@ Center-stage notebook:
 ### Ingest notebooks
 - Notebook index: `docs/NOTEBOOK_INDEX.md`
 - These notebooks are ingest-facing and can write/populate tables.
+- Includes adapted templates from original `tobiasr` ingest workflows and original notebook 20 cleanup intent.
 
 ### Batch ingest templates
 - Templates: `examples/batch_ingest/`
@@ -147,3 +148,5 @@ CI runs lint and pytest on Python 3.10 and 3.11.
 ## Additional docs
 - Split audit: `docs/SPLIT_AUDIT.md`
 - Path migration: `MIGRATION.md`
+- Tobiasr ingest adaptation map: `docs/TOBIASR_INGEST_ADAPTATION.md`
+- Tobiasr full notebook catalog: `docs/TOBIASR_NOTEBOOK_CATALOG.md`

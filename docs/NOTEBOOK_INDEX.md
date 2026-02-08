@@ -17,6 +17,11 @@ All notebooks below are ingest-facing examples. Run them only against a database
 | `notebooks/10_batch_dlc_eye_ingestion.ipynb` | Batch DLC + eye ingest orchestration | DLC + eye tracking/gaze tables |
 | `notebooks/11_optitrack_gaze_repopulation.ipynb` | OptiTrack + gaze repopulation | `virtual_markers_optitrack`, `pupil_tracking` |
 | `notebooks/12_slam_worldcam_minimal.ipynb` | Minimal SLAM/worldcam ingest path | worldcam/gaze-aligned ingest tables |
+| `notebooks/13_batch_eye_optitrack_ingest_template.ipynb` | Batch eye + optitrack ingest planning (adapted from tobiasr) | `behavior`, `mocap`, `virtual_markers_optitrack`, `pupil_tracking` |
+| `notebooks/14_camera_sync_ingest_qc_template.ipynb` | Camera sync ingest QC before population (adapted from tobiasr) | `event`, `behavior.CamSyncRecording`, `model.VideoRecordingNew` |
+| `notebooks/15_optitrack_redo_repopulation_template.ipynb` | OptiTrack re-do/repopulation triage (adapted from tobiasr) | `mocap.MotionCapture`, `virtual_markers_optitrack.RigidMouseTracking` |
+| `notebooks/16_timestamp_alignment_batch_qc_template.ipynb` | Batch timestamp/alignment QC (adapted from Natasha sync workflows) | `trial.TrialEvent`, `event.Event`, `behavior.CamSyncRecording` |
+| `notebooks/20_routine_quick_job_cleanup_template.ipynb` | Routine job cleanup triage template (derived from original notebook 20) | `schema.jobs`, `imaging/model/denoising` task triage |
 
 Script exports generated from notebooks:
 - `notebooks/py_scripts/*.py`
