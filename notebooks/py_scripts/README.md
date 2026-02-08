@@ -1,12 +1,16 @@
+# Notebook Python Script Exports
 
-The DataJoint team has started using Jupytext internally to facilitate code review
-the involves Jupyter notebooks. This package auto-generates py scripts that sync with 
-notebooks. We keep these in a subdirectory of `notebooks/` to be ignored by most users,
-while still highlighting differences on code review. If installed as a package within
-Jupyter, these will autosync on save.
+`notebooks/py_scripts/` stores plain Python exports of notebooks for easier review and diffing.
+
+The exported scripts are not the primary execution path; they are a review artifact.
+
+## Refresh exports with Jupytext
+From the repository root:
 
 ```bash
-pip install jupytext
-jupytext --to py notebooks/*ipynb 
-mv notebooks/*py notebooks/py_scripts/
+python -m pip install jupytext
+jupytext --to py notebooks/*.ipynb
+mv notebooks/*.py notebooks/py_scripts/
 ```
+
+If you use the Jupytext Jupyter extension, notebook/script pairs can also be synced automatically on save.
