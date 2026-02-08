@@ -1,0 +1,18 @@
+name: datajoint
+dependencies:
+  - python=3.8
+  - numpy
+  - pandas
+  - matplotlib
+  - spyder
+  - pywin32
+  - pip
+  - graphviz
+  - git
+  - pip:
+    - notebook
+    - datajoint==0.14.1
+    - rspace-client==1.6.0
+    - ipywidgets
+    - ipysheet
+    - opencv-python

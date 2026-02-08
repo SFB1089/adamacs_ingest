@@ -1,0 +1,53 @@
+{
+    "database.host": "172.26.128.53",
+    "database.password": "",
+    "database.user": "tobiasr",
+    "database.port": 3306,
+    "database.reconnect": true,
+    "connection.init_function": null,
+    "connection.charset": "",
+    "loglevel": "INFO",
+    "safemode": true,
+    "fetch_format": "array",
+    "display.limit": 50,
+    "display.width": 14,
+    "display.show_tuple_count": true,
+    "database.use_tls": null,
+    "enable_python_native_blobs": true,
+    "filepath_checksum_size_limit": null,
+    "database.ingest_filename_short": "",
+    "database.ingest_filename_full": "",
+    "custom": {
+        "database.prefix": "tobiasr_",
+        "dlc_root_data_dir": [
+            "/datajoint-data/data/tobiasr/Dir1",
+            "/datajoint-data/data/tobiasr/Dir2"
+        ],
+        "dlc_output_dir": "/My/Local/Dir3/optional",
+        "imaging_root_data_dir": [
+            "/datajoint-data/data/tobiasr"
+        ],
+        "exp_root_data_dir": [
+            "/datajoint-data/data/tobiasr"
+        ],
+        "suite2p_fast_tmp": [
+            "/home/tobiasr/tmp/"
+        ],
+        "suite2p_tif_tmp": [
+            "/home/tobiasr/s2p_tiff/"
+        ],          
+        "pyrat_user_token": "",
+        "pyrat_client_token": "",
+        "rspace_URL": "https://rspace.rhrz.uni-bonn.de/",
+        "rspace_API_key": ""},
+    "stores": {
+        "external": {"access_key": "1234567",
+            "bucket": "testbucket",
+            "endpoint": "s3.amazonaws.com:9000",
+            "location": "datajoint-projects/lab1",
+            "protocol": "s3",
+            "secret_key": "foaf1234"},
+        "external-raw": {   
+            "location": "/datajoint-db/blobs/adamacs",
+            "protocol": "file"}}
+}

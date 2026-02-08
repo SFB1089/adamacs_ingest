@@ -1,0 +1,71 @@
+name: datajoint_new
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - git
+  - numpy>=1.26
+  - scipy>=1.11
+  - pandas>=2.2
+  - matplotlib>=3.8
+  - seaborn>=0.13
+  - natsort>=8.4
+  - h5py>=3.10
+  - numba>=0.59
+  - jupyterlab>=4
+  - ipywidgets>=8
+  - graphviz
+  - python-graphviz
+  - ffmpeg
+  - tqdm
+  - openssl
+  - ca-certificates
+  - llvm-openmp
+  - numactl
+  - cmake
+  - make
+  - pkg-config
+  - libstdcxx-ng
+  - libgcc-ng
+  - pip:
+    - datajoint
+    - PyMySQL>=1.1.0
+    - requests>=2.32
+    - ruamel.yaml>=0.18
+    - natsort>=8.4
+    - rspace-client==2.5.0
+    - opencv-python>=4.9
+    - scikit-image>=0.22
+    - tifffile>=2024.2
+    - tqdm>=4.66
+    - imageio>=2.34
+    - python-dateutil>=2.9
+    - ipysheet>=0.7
+    - IPython>=8
+    - pyyaml>=6.0
+    - numexpr>=2.10
+    - "suite2p @ git+https://github.com/MouseLand/suite2p.git"
+    - "element-interface @ git+https://github.com/SFB1089/element-interface.git@main"
+    - "element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main"
+    - "element-session @ git+https://github.com/SFB1089/element-session.git@main"
+    - "element-event @ git+https://github.com/SFB1089/element-event.git@master"
+    - "element-deeplabcut @ git+https://github.com/SFB1089/element-deeplabcut.git@reverted"
+    - "pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git"
+    - "scanreader @ git+https://github.com/SFB1089/scanreader.git"
+    - scanimage-tiff-reader==1.4.1.4
+    - torch>=2.3,<3
+    - torchvision>=0.18,<1
+    - plotly>=5.22
+    - "dask[distributed]>=2024.5"
+    - GPUtil>=1.4
+
+variables:
+  OMP_NUM_THREADS: "64"           # EPYC 7702P has 64 physical cores
+  OPENBLAS_NUM_THREADS: "64"
+  MKL_NUM_THREADS: "64"
+  NUMEXPR_NUM_THREADS: "64"
+  OMP_PROC_BIND: "close"          # keep threads close to improve locality
+  OMP_PLACES: "cores"
+  OMP_DYNAMIC: "false"
