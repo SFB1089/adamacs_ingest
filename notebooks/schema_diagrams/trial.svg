@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1587pt" height="184pt" viewBox="0.00 0.00 1587.00 184.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 179.68)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-179.68 1583.25,-179.68 1583.25,4 -4,4"/>
+<!-- `roselab_analysis`.`__time_to_orientation_target` -->
+<g id="node1" class="node">
+<title>`roselab_analysis`.`__time_to_orientation_target`</title>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="249.62" cy="-17.28" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="249.62" y="-13.01" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">`roselab_analysis`.`__time_to_orientation_target`</text>
+</g>
+<!-- `roselab_analysis`.`__target_to_correct_port_latency` -->
+<g id="node2" class="node">
+<title>`roselab_analysis`.`__target_to_correct_port_latency`</title>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="555.62" cy="-17.28" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="555.62" y="-13.01" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">`roselab_analysis`.`__target_to_correct_port_latency`</text>
+</g>
+<!-- `roselab_analysis`.`__latency_difference` -->
+<g id="node3" class="node">
+<title>`roselab_analysis`.`__latency_difference`</title>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="841.62" cy="-17.28" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="841.62" y="-13.01" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">`roselab_analysis`.`__latency_difference`</text>
+</g>
+<!-- `roselab_analysis`.`__trial_duration` -->
+<g id="node4" class="node">
+<title>`roselab_analysis`.`__trial_duration`</title>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1081.62" cy="-17.28" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="1081.62" y="-13.01" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">`roselab_analysis`.`__trial_duration`</text>
+</g>
+<!-- trial.BlockTrial -->
+<g id="node5" class="node">
+<title>trial.BlockTrial</title>
+<g id="a_node5"><a xlink:title="→ trial.Block→ trial.Trial">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1401.62" cy="-17.28" rx="59.95" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1401.62" y="-13.01" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.BlockTrial</text>
+</a>
+</g>
+</g>
+<!-- trial.Trial.Attribute -->
+<g id="node6" class="node">
+<title>trial.Trial.Attribute</title>
+<g id="a_node6"><a xlink:title="→ trial.Trialattribute_name       ------------------------------attribute_value      ">
+<polygon fill="none" stroke="none" points="93.25,-27.28 0,-27.28 0,-7.28 93.25,-7.28 93.25,-27.28"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-14.78" font-family="arial" text-decoration="underline" font-size="10.00">trial.Trial.Attribute</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording -->
+<g id="node7" class="node">
+<title>event.BehaviorRecording</title>
+<g id="a_node7"><a xlink:title="→ pl.Session→ pl.Scan------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1339.5,-175.68 1187.75,-175.68 1187.75,-141.12 1339.5,-141.12 1339.5,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="1263.62" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">event.BehaviorRecording</text>
+</a>
+</g>
+</g>
+<!-- trial.Block -->
+<g id="node10" class="node">
+<title>trial.Block</title>
+<g id="a_node10"><a xlink:title="→ event.BehaviorRecordingblock_id             ------------------------------block_start_time     block_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1401.62" cy="-87.84" rx="44.76" ry="17.28"/>
+<text xml:space="preserve" text-anchor="start" x="1375.38" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.Block</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;trial.Block -->
+<g id="edge1" class="edge">
+<title>event.BehaviorRecording-&gt;trial.Block</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1297.38,-140.63C1321.32,-128.74 1353,-113 1375.12,-102.01"/>
+</g>
+<!-- trial.Trial -->
+<g id="node11" class="node">
+<title>trial.Trial</title>
+<g id="a_node11"><a xlink:title="→ event.BehaviorRecordingtrial_id             ------------------------------→ trial.TrialTypetrial_start_time     trial_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="961.62" cy="-87.84" rx="40.35" ry="17.28"/>
+<text xml:space="preserve" text-anchor="start" x="938.75" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.Trial</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;trial.Trial -->
+<g id="edge2" class="edge">
+<title>event.BehaviorRecording-&gt;trial.Trial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1189.75,-140.63C1128.28,-126.67 1043.51,-107.43 996.53,-96.76"/>
+</g>
+<!-- event.Event -->
+<g id="node12" class="node">
+<title>event.Event</title>
+<g id="a_node12"><a xlink:title="→ event.BehaviorRecording→ event.EventTypeevent_start_time     ------------------------------event_end_time=null  ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1263.62" cy="-87.84" rx="51.62" ry="17.28"/>
+<text xml:space="preserve" text-anchor="start" x="1232.12" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">event.Event</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;event.Event -->
+<g id="edge3" class="edge">
+<title>event.BehaviorRecording-&gt;event.Event</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1263.62,-140.8C1263.62,-130.02 1263.62,-116.03 1263.62,-105.28"/>
+</g>
+<!-- trial.TrialEvent -->
+<g id="node8" class="node">
+<title>trial.TrialEvent</title>
+<g id="a_node8"><a xlink:title="→ trial.Trial→ event.Event">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1263.62" cy="-17.28" rx="60.44" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1263.62" y="-13.01" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.TrialEvent</text>
+</a>
+</g>
+</g>
+<!-- trial.Block.Attribute -->
+<g id="node9" class="node">
+<title>trial.Block.Attribute</title>
+<g id="a_node9"><a xlink:title="→ trial.Blockattribute_name       ------------------------------attribute_value      ">
+<polygon fill="none" stroke="none" points="1579.25,-27.28 1480,-27.28 1480,-7.28 1579.25,-7.28 1579.25,-27.28"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-14.78" font-family="arial" text-decoration="underline" font-size="10.00">trial.Block.Attribute</text>
+</a>
+</g>
+</g>
+<!-- trial.Block&#45;&gt;trial.BlockTrial -->
+<g id="edge4" class="edge">
+<title>trial.Block-&gt;trial.BlockTrial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1401.62,-70.24C1401.62,-59.46 1401.62,-45.47 1401.62,-34.72"/>
+</g>
+<!-- trial.Block&#45;&gt;trial.Block.Attribute -->
+<g id="edge5" class="edge">
+<title>trial.Block-&gt;trial.Block.Attribute</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1426.91,-73.29C1452.41,-59.64 1491.05,-38.94 1512.94,-27.22"/>
+</g>
+<!-- trial.Trial&#45;&gt;`roselab_analysis`.`__time_to_orientation_target` -->
+<g id="edge6" class="edge">
+<title>trial.Trial-&gt;`roselab_analysis`.`__time_to_orientation_target`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M922.21,-83.44C830.16,-75.44 593.86,-54.61 396.62,-34.56 346.81,-29.5 287.59,-22.7 262.2,-19.75"/>
+</g>
+<!-- trial.Trial&#45;&gt;`roselab_analysis`.`__target_to_correct_port_latency` -->
+<g id="edge7" class="edge">
+<title>trial.Trial-&gt;`roselab_analysis`.`__target_to_correct_port_latency`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M924.52,-80.57C837.21,-65.83 622.09,-29.5 568.08,-20.38"/>
+</g>
+<!-- trial.Trial&#45;&gt;`roselab_analysis`.`__latency_difference` -->
+<g id="edge8" class="edge">
+<title>trial.Trial-&gt;`roselab_analysis`.`__latency_difference`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M938.2,-73.46C912.28,-58.65 871.64,-35.43 852.4,-24.44"/>
+</g>
+<!-- trial.Trial&#45;&gt;`roselab_analysis`.`__trial_duration` -->
+<g id="edge9" class="edge">
+<title>trial.Trial-&gt;`roselab_analysis`.`__trial_duration`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M985.05,-73.46C1010.97,-58.65 1051.61,-35.43 1070.85,-24.44"/>
+</g>
+<!-- trial.Trial&#45;&gt;trial.BlockTrial -->
+<g id="edge10" class="edge">
+<title>trial.Trial-&gt;trial.BlockTrial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1000.54,-82.55C1068.31,-74.81 1212.28,-57.19 1332.62,-34.56 1340.73,-33.04 1349.32,-31.19 1357.58,-29.31"/>
+</g>
+<!-- trial.Trial&#45;&gt;trial.Trial.Attribute -->
+<g id="edge11" class="edge">
+<title>trial.Trial-&gt;trial.Trial.Attribute</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M921.27,-85.6C773.52,-80.88 262.29,-62.84 101.62,-34.56 91.92,-32.85 81.49,-30.03 72.36,-27.21"/>
+</g>
+<!-- trial.Trial&#45;&gt;trial.TrialEvent -->
+<g id="edge12" class="edge">
+<title>trial.Trial-&gt;trial.TrialEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M996.78,-79.08C1042.42,-68.97 1124.53,-50.69 1194.62,-34.56 1202.3,-32.79 1210.45,-30.89 1218.36,-29.03"/>
+</g>
+<!-- event.Event&#45;&gt;trial.TrialEvent -->
+<g id="edge13" class="edge">
+<title>event.Event-&gt;trial.TrialEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1263.62,-70.24C1263.62,-59.46 1263.62,-45.47 1263.62,-34.72"/>
+</g>
+<!-- trial.TrialType -->
+<g id="node13" class="node">
+<title>trial.TrialType</title>
+<g id="a_node13"><a xlink:title="trial_type           ------------------------------trial_type_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="998.88,-175.68 924.38,-175.68 924.38,-141.12 998.88,-141.12 998.88,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="932.38" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">trial.TrialType</text>
+</a>
+</g>
+</g>
+<!-- trial.TrialType&#45;&gt;trial.Trial -->
+<g id="edge14" class="edge">
+<title>trial.TrialType-&gt;trial.Trial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M961.62,-141.15C961.62,-130.38 961.62,-116.29 961.62,-105.45"/>
+</g>
+</g>
+</svg>

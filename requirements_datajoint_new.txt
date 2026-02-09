@@ -15,11 +15,15 @@ scikit-image>=0.22
 tifffile>=2024.2
 requests>=2.32
 ruamel.yaml>=0.18
-python-graphviz>=0.20
+packaging>=24
+setuptools>=65,<81
+graphviz>=0.21
+networkx>=3.4.2
+pydot>=4.0.1
 rspace-client==2.5.0
 
-# Database (latest)
-datajoint
+# Database (latest pre-2.0 stable)
+datajoint==0.14.8
 PyMySQL>=1.1.0
 
 # Suite2p (latest upstream)
@@ -33,9 +37,9 @@ element-event @ git+https://github.com/SFB1089/element-event.git@master
 element-deeplabcut @ git+https://github.com/SFB1089/element-deeplabcut.git@reverted
 
 # Lab forks
-pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git
+# NOTE: install pywavesurfer separately with --no-deps to avoid packaging pin conflicts.
 scanreader @ git+https://github.com/SFB1089/scanreader.git
-scanimage-tiff-reader==1.4.1.4
+# scanimage-tiff-reader==1.4.1.4  # install separately (see README)
 
 # PyTorch CPU with multithreading control
 torch>=2.3,<3

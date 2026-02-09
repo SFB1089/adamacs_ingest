@@ -1,3 +1,20 @@
+import logging
+import warnings
+
+logging.getLogger("datajoint").setLevel(logging.WARNING)
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API.*",
+    category=UserWarning,
+)
+
+from adamacs.notebook_runtime import bootstrap_ingest_notebook
+
+ctx = bootstrap_ingest_notebook(verbose=False)
+repo_root = ctx.repo_root
+
+import datajoint as dj
+
 # ---
 # jupyter:
 #   jupytext:
@@ -38,7 +55,7 @@
 #     "display.limit": 12,
 #     "display.width": 14,
 #     "display.show_tuple_count": true,
-#     "database.use_tls": null,
+#     "database.use_tls": false,
 #     "enable_python_native_blobs": true,
 #     "database.ingest_filename_short": "",
 #     "database.ingest_filename_full": "",
@@ -95,4 +112,3 @@ dj.Diagram(session) + dj.Diagram(subject)
 dj.Diagram(subject) + dj.Diagram(behavior) 
 
 dj.Diagram(subject) + dj.Diagram(model)
-

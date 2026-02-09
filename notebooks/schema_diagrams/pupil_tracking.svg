@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2019pt" height="246pt" viewBox="0.00 0.00 2019.00 246.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 241.6)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-241.6 2015.25,-241.6 2015.25,4 -4,4"/>
+<!-- `roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving` -->
+<g id="node1" class="node">
+<title>`roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`</title>
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="864.38,-237.6 570.88,-237.6 570.88,-203.04 864.38,-203.04 864.38,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="578.88" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">`roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`</text>
+</g>
+<!-- pupil_tracking.PupilEllipseFittingFreeMoving -->
+<g id="node6" class="node">
+<title>pupil_tracking.PupilEllipseFittingFreeMoving</title>
+<g id="a_node6"><a xlink:title="→ `roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`→ pupil_tracking.PoseEstimationNew------------------------------ellipse_dict         cam_center           eye_center           pupil_center         scale                theta                phi                  diameter             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="775.62" cy="-149.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="775.62" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.PupilEllipseFittingFreeMoving</text>
+</a>
+</g>
+</g>
+<!-- `roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`&#45;&gt;pupil_tracking.PupilEllipseFittingFreeMoving -->
+<g id="edge1" class="edge">
+<title>`roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`-&gt;pupil_tracking.PupilEllipseFittingFreeMoving</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M731.37,-203.07C742.76,-189.61 758.54,-170.96 767.85,-159.95"/>
+</g>
+<!-- `roselab_pupil_tracking`.`#eye_cam_timestamp_source` -->
+<g id="node2" class="node">
+<title>`roselab_pupil_tracking`.`#eye_cam_timestamp_source`</title>
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1554.75,-237.6 1296.5,-237.6 1296.5,-203.04 1554.75,-203.04 1554.75,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="1304.5" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">`roselab_pupil_tracking`.`#eye_cam_timestamp_source`</text>
+</g>
+<!-- `roselab_pupil_tracking`.`parent` -->
+<g id="node3" class="node">
+<title>`roselab_pupil_tracking`.`parent`</title>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1762.25,-237.6 1573,-237.6 1573,-203.04 1762.25,-203.04 1762.25,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="1581" y="-217.04" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">`roselab_pupil_tracking`.`parent`</text>
+</g>
+<!-- pupil_tracking.TorsionCalibManual -->
+<g id="node4" class="node">
+<title>pupil_tracking.TorsionCalibManual</title>
+<g id="a_node4"><a xlink:title="→ pl.Subject------------------------------param_coeff          param_intercept      ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="201.25,-96.48 0,-96.48 0,-61.92 201.25,-61.92 201.25,-96.48"/>
+<text xml:space="preserve" text-anchor="middle" x="100.62" y="-74.92" font-family="arial" font-size="12.00" fill="darkgreen">pupil_tracking.TorsionCalibManual</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.GazeReconstruction3D -->
+<g id="node11" class="node">
+<title>pupil_tracking.GazeReconstruction3D</title>
+<g id="a_node11"><a xlink:title="→ pupil_tracking.PupilRotationOptiTrack→ pupil_tracking.TorsionCalibManual→ pupil_tracking.RigidMouseTracking→ pupil_tracking.EyeModel------------------------------gaze_in_head         gaze_in_space        torsion              ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="435.62" cy="-12.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="435.62" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.GazeReconstruction3D</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.TorsionCalibManual&#45;&gt;pupil_tracking.GazeReconstruction3D -->
+<g id="edge2" class="edge">
+<title>pupil_tracking.TorsionCalibManual-&gt;pupil_tracking.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M187.77,-61.49C269.77,-45.76 385.45,-23.58 423.19,-16.34"/>
+</g>
+<!-- pupil_tracking.EyeCamTimeSource -->
+<g id="node5" class="node">
+<title>pupil_tracking.EyeCamTimeSource</title>
+<g id="a_node5"><a xlink:title="eyecam_time_source   ------------------------------event_suffix         description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="629.5,-167.04 459.75,-167.04 459.75,-132.48 629.5,-132.48 629.5,-167.04"/>
+<text xml:space="preserve" text-anchor="start" x="467.75" y="-147.26" font-family="arial" text-decoration="underline" font-size="10.00">pupil_tracking.EyeCamTimeSource</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PupilRotationOptiTrack -->
+<g id="node14" class="node">
+<title>pupil_tracking.PupilRotationOptiTrack</title>
+<g id="a_node14"><a xlink:title="→ pupil_tracking.PupilEllipseFittingFreeMoving→ pupil_tracking.EyeCamTimeSource------------------------------theta_opt            phi_opt              diameter_opt         ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="550.62" cy="-79.2" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="550.62" y="-74.92" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.PupilRotationOptiTrack</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.EyeCamTimeSource&#45;&gt;pupil_tracking.PupilRotationOptiTrack -->
+<g id="edge3" class="edge">
+<title>pupil_tracking.EyeCamTimeSource-&gt;pupil_tracking.PupilRotationOptiTrack</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M546.05,-132.51C547.14,-120 548.63,-103.01 549.61,-91.83"/>
+</g>
+<!-- pupil_tracking.PupilEllipseFittingFreeMoving&#45;&gt;pupil_tracking.PupilRotationOptiTrack -->
+<g id="edge4" class="edge">
+<title>pupil_tracking.PupilEllipseFittingFreeMoving-&gt;pupil_tracking.PupilRotationOptiTrack</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M763.84,-145.17C725.05,-133.35 601.57,-95.73 562.56,-83.84"/>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="node7" class="node">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<g id="a_node7"><a xlink:title="→ pl.Subject------------------------------eye_left             eye_right            nose                 world_cam            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="437.12,-167.04 160.12,-167.04 160.12,-132.48 437.12,-132.48 437.12,-167.04"/>
+<text xml:space="preserve" text-anchor="middle" x="298.62" y="-145.48" font-family="arial" font-size="12.00" fill="darkgreen">virtual_markers_optitrack.EyeNoseCamPosCalib</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.RigidMouseTracking -->
+<g id="node10" class="node">
+<title>pupil_tracking.RigidMouseTracking</title>
+<g id="a_node10"><a xlink:title="→ pl.Scan→ virtual_markers_optitrack.EyeNoseCamPosCalib→ mocap.MotionCaptureTask------------------------------pivot_eye_center_global yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_global      eye_right_global     nose_global          world_cam_global     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="321.62" cy="-79.2" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="321.62" y="-74.92" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.RigidMouseTracking</text>
+</a>
+</g>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge5" class="edge">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M304.19,-132.16C308.45,-119.48 314.19,-102.35 317.9,-91.29"/>
+</g>
+<!-- pl.Subject -->
+<g id="node8" class="node">
+<title>pl.Subject</title>
+<g id="a_node8"><a xlink:title="subject              ------------------------------earmark              sex                  birth_date           death_date=null      generation=&quot;&quot;        parent_ids           → pl.Experimenter.proj(owner_id=&quot;user_id&quot;)→ pl.Experimenter.proj(responsible_id=&quot;user_id&quot;)→ subject.Line→ subject.Protocol">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="250.25,-237.6 181,-237.6 181,-203.04 250.25,-203.04 250.25,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="189" y="-217.04" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Subject</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;pupil_tracking.TorsionCalibManual -->
+<g id="edge6" class="edge">
+<title>pl.Subject-&gt;pupil_tracking.TorsionCalibManual</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M190.6,-202.61C177.67,-193.17 162.21,-180.57 150.62,-167.04 131.85,-145.1 116.4,-115.1 107.86,-96.72"/>
+</g>
+<!-- pl.Subject&#45;&gt;virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="edge7" class="edge">
+<title>pl.Subject-&gt;virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M235.72,-202.72C248.67,-192.02 265.46,-178.16 278.43,-167.44"/>
+</g>
+<!-- pupil_tracking.PoseEstimationNew -->
+<g id="node9" class="node">
+<title>pupil_tracking.PoseEstimationNew</title>
+<g id="a_node9"><a xlink:title="→ model.PoseEstimationTaskNew------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="983.62" cy="-220.32" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="983.62" y="-216.04" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.PoseEstimationNew</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PoseEstimationNew&#45;&gt;pupil_tracking.PupilEllipseFittingFreeMoving -->
+<g id="edge8" class="edge">
+<title>pupil_tracking.PoseEstimationNew-&gt;pupil_tracking.PupilEllipseFittingFreeMoving</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M971.85,-215.44C935.32,-203.4 824.23,-166.78 787.53,-154.68"/>
+</g>
+<!-- pupil_tracking.PupilEllipseFitting -->
+<g id="node15" class="node">
+<title>pupil_tracking.PupilEllipseFitting</title>
+<g id="a_node15"><a xlink:title="→ pupil_tracking.PupilEllipseParameter→ pupil_tracking.PoseEstimationNew------------------------------ellipse_dict         cam_center           eye_center           scale                theta                phi                  diameter             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1132.62" cy="-149.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="1132.62" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.PupilEllipseFitting</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PoseEstimationNew&#45;&gt;pupil_tracking.PupilEllipseFitting -->
+<g id="edge9" class="edge">
+<title>pupil_tracking.PoseEstimationNew-&gt;pupil_tracking.PupilEllipseFitting</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M994.82,-214.17C1022.44,-201.46 1093.55,-168.74 1121.3,-155.97"/>
+</g>
+<!-- pupil_tracking.RigidMouseTracking&#45;&gt;pupil_tracking.GazeReconstruction3D -->
+<g id="edge10" class="edge">
+<title>pupil_tracking.RigidMouseTracking-&gt;pupil_tracking.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M332.15,-72.27C353.75,-60.1 402.93,-32.38 424.8,-20.06"/>
+</g>
+<!-- pupil_tracking.PupilEllipseParameter -->
+<g id="node12" class="node">
+<title>pupil_tracking.PupilEllipseParameter</title>
+<g id="a_node12"><a xlink:title="parameter_id         ------------------------------likelihood_thres     exclude_ir_std       ellipticity_thres    description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1278.12,-237.6 1103.12,-237.6 1103.12,-203.04 1278.12,-203.04 1278.12,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="1111.12" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">pupil_tracking.PupilEllipseParameter</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PupilEllipseParameter&#45;&gt;pupil_tracking.PupilEllipseFitting -->
+<g id="edge11" class="edge">
+<title>pupil_tracking.PupilEllipseParameter-&gt;pupil_tracking.PupilEllipseFitting</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1176.88,-203.07C1165.49,-189.61 1149.71,-170.96 1140.4,-159.95"/>
+</g>
+<!-- pupil_tracking.PupilEllipseParametersFreeMoving -->
+<g id="node13" class="node">
+<title>pupil_tracking.PupilEllipseParametersFreeMoving</title>
+<g id="a_node13"><a xlink:title="parameter_id         ------------------------------thres_llh_pupil      thres_llh_ir         thres_llh_corner     pupil_min_dots       exclude_ir_std       thres_ellipticity    description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="2011.25,-237.6 1780,-237.6 1780,-203.04 2011.25,-203.04 2011.25,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="1788" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">pupil_tracking.PupilEllipseParametersFreeMoving</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PupilRotationOptiTrack&#45;&gt;pupil_tracking.GazeReconstruction3D -->
+<g id="edge12" class="edge">
+<title>pupil_tracking.PupilRotationOptiTrack-&gt;pupil_tracking.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M540.01,-72.27C518.1,-60.03 468.1,-32.1 446.21,-19.87"/>
+</g>
+<!-- pupil_tracking.EyeModel -->
+<g id="node16" class="node">
+<title>pupil_tracking.EyeModel</title>
+<g id="a_node16"><a xlink:title="eye_model_id         ------------------------------eye_model_azimuth    eye_model_elevation  reference            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="825.62,-96.48 677.62,-96.48 677.62,-61.92 825.62,-61.92 825.62,-96.48"/>
+<text xml:space="preserve" text-anchor="start" x="685.62" y="-75.92" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pupil_tracking.EyeModel</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.EyeModel&#45;&gt;pupil_tracking.GazeReconstruction3D -->
+<g id="edge13" class="edge">
+<title>pupil_tracking.EyeModel-&gt;pupil_tracking.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M677.14,-63.06C599.95,-47.37 485.46,-24.09 447.98,-16.47"/>
+</g>
+</g>
+</svg>

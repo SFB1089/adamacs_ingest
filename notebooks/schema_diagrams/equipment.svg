@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="697pt" height="184pt" viewBox="0.00 0.00 697.00 184.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 179.68)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-179.68 692.88,-179.68 692.88,4 -4,4"/>
+<!-- pl.Scan -->
+<g id="node1" class="node">
+<title>pl.Scan</title>
+<g id="a_node1"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="313.75,-105.12 257.25,-105.12 257.25,-70.56 313.75,-70.56 313.75,-105.12"/>
+<text xml:space="preserve" text-anchor="start" x="265.25" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- model.DLCliveRecording -->
+<g id="node2" class="node">
+<title>model.DLCliveRecording</title>
+<g id="a_node2"><a xlink:title="→ pl.Scanrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="151,-34.56 0,-34.56 0,0 151,0 151,-34.56"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.DLCliveRecording</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan&#45;&gt;model.DLCliveRecording -->
+<g id="edge1" class="edge">
+<title>pl.Scan-&gt;model.DLCliveRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M257.18,-77.59C223.82,-66.7 167.74,-48.4 126.7,-35"/>
+</g>
+<!-- model.VideoRecordingNew -->
+<g id="node5" class="node">
+<title>model.VideoRecordingNew</title>
+<g id="a_node5"><a xlink:title="→ pl.Scanrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="332,-34.56 169,-34.56 169,0 332,0 332,-34.56"/>
+<text xml:space="preserve" text-anchor="start" x="177" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.VideoRecordingNew</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan&#45;&gt;model.VideoRecordingNew -->
+<g id="edge2" class="edge">
+<title>pl.Scan-&gt;model.VideoRecordingNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M277.03,-70.24C271.52,-59.46 264.38,-45.47 258.89,-34.72"/>
+</g>
+<!-- mocap.MocapRecording -->
+<g id="node9" class="node">
+<title>mocap.MocapRecording</title>
+<g id="a_node9"><a xlink:title="→ pl.Scan------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="496.75,-34.56 350.25,-34.56 350.25,0 496.75,0 496.75,-34.56"/>
+<text xml:space="preserve" text-anchor="middle" x="423.5" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">mocap.MocapRecording</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan&#45;&gt;mocap.MocapRecording -->
+<g id="edge3" class="edge">
+<title>pl.Scan-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M314.09,-72.63C336.12,-61.69 366.63,-46.53 389.83,-35.01"/>
+</g>
+<!-- model.VideoRecording -->
+<g id="node3" class="node">
+<title>model.VideoRecording</title>
+<g id="a_node3"><a xlink:title="→ pl.Sessionrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="652.62,-34.56 514.38,-34.56 514.38,0 652.62,0 652.62,-34.56"/>
+<text xml:space="preserve" text-anchor="start" x="522.38" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.VideoRecording</text>
+</a>
+</g>
+</g>
+<!-- equipment.SetupRestraint -->
+<g id="node4" class="node">
+<title>equipment.SetupRestraint</title>
+<g id="a_node4"><a xlink:title="setup_restraint      ------------------------------setup_restraint_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="688.88,-175.68 534.12,-175.68 534.12,-141.12 688.88,-141.12 688.88,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="542.12" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">equipment.SetupRestraint</text>
+</a>
+</g>
+</g>
+<!-- scan.AcquisitionSoftware -->
+<g id="node6" class="node">
+<title>scan.AcquisitionSoftware</title>
+<g id="a_node6"><a xlink:title="acq_software         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="391,-175.68 264,-175.68 264,-141.12 391,-141.12 391,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="272" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">scan.AcquisitionSoftware</text>
+</a>
+</g>
+</g>
+<!-- scan.AcquisitionSoftware&#45;&gt;pl.Scan -->
+<g id="edge4" class="edge">
+<title>scan.AcquisitionSoftware-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M317.55,-141.15C310.95,-130.38 302.32,-116.29 295.67,-105.45"/>
+</g>
+<!-- pl.Device -->
+<g id="node7" class="node">
+<title>pl.Device</title>
+<g id="a_node7"><a xlink:title="scanner              ------------------------------scanner_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="245.62,-175.68 179.38,-175.68 179.38,-141.12 245.62,-141.12 245.62,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="187.38" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Device</text>
+</a>
+</g>
+</g>
+<!-- pl.Device&#45;&gt;pl.Scan -->
+<g id="edge5" class="edge">
+<title>pl.Device-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M230.17,-140.8C241.56,-130.1 256.33,-116.24 267.74,-105.52"/>
+</g>
+<!-- pl.Session -->
+<g id="node8" class="node">
+<title>pl.Session</title>
+<g id="a_node8"><a xlink:title="session_id           ------------------------------→ pl.Subjectsession_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="515.62,-175.68 443.38,-175.68 443.38,-141.12 515.62,-141.12 515.62,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="451.38" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Session</text>
+</a>
+</g>
+</g>
+<!-- pl.Session&#45;&gt;pl.Scan -->
+<g id="edge6" class="edge">
+<title>pl.Session-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M443.01,-144.5C405.69,-131.32 348.48,-111.1 314.25,-99"/>
+</g>
+<!-- pl.Session&#45;&gt;model.VideoRecording -->
+<g id="edge7" class="edge">
+<title>pl.Session-&gt;model.VideoRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M491.84,-140.89C511.85,-114.12 551.17,-61.52 571.18,-34.76"/>
+</g>
+<!-- equipment.Device -->
+<g id="node10" class="node">
+<title>equipment.Device</title>
+<g id="a_node10"><a xlink:title="camera               ------------------------------camera_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="461.88,-105.12 349.12,-105.12 349.12,-70.56 461.88,-70.56 461.88,-105.12"/>
+<text xml:space="preserve" text-anchor="start" x="357.12" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">equipment.Device</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;model.DLCliveRecording -->
+<g id="edge8" class="edge">
+<title>equipment.Device-&gt;model.DLCliveRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M348.77,-75.05C294.22,-63.72 211.41,-46.52 151.25,-34.02"/>
+</g>
+<!-- equipment.Device&#45;&gt;model.VideoRecording -->
+<g id="edge9" class="edge">
+<title>equipment.Device-&gt;model.VideoRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M449.04,-70.07C476.73,-59.4 512.44,-45.65 540.1,-35"/>
+</g>
+<!-- equipment.Device&#45;&gt;model.VideoRecordingNew -->
+<g id="edge10" class="edge">
+<title>equipment.Device-&gt;model.VideoRecordingNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M367.58,-70.07C343.47,-59.4 312.38,-45.65 288.29,-35"/>
+</g>
+<!-- equipment.Device&#45;&gt;mocap.MocapRecording -->
+<g id="edge11" class="edge">
+<title>equipment.Device-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M409.86,-70.24C412.69,-59.46 416.36,-45.47 419.18,-34.72"/>
+</g>
+</g>
+</svg>

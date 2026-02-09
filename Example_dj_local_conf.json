@@ -12,7 +12,7 @@
     "display.limit": 50,
     "display.width": 14,
     "display.show_tuple_count": true,
-    "database.use_tls": null,
+    "database.use_tls": false,
     "enable_python_native_blobs": true,
     "filepath_checksum_size_limit": null,
     "database.ingest_filename_short": "",

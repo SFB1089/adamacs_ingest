@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="826pt" height="169pt" viewBox="0.00 0.00 826.00 169.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 165.12)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-165.12 822.3,-165.12 822.3,4 -4,4"/>
+<!-- `roselab_behavior`.`#audio_device` -->
+<g id="node1" class="node">
+<title>`roselab_behavior`.`#audio_device`</title>
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="166.75,-161.12 0,-161.12 0,-126.56 166.75,-126.56 166.75,-161.12"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">`roselab_behavior`.`#audio_device`</text>
+</g>
+<!-- behavior.HarpRecording.Channel -->
+<g id="node2" class="node">
+<title>behavior.HarpRecording.Channel</title>
+<g id="a_node2"><a xlink:title="→ behavior.HarpRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="none" stroke="none" points="318.38,-20 158.38,-20 158.38,0 318.38,0 318.38,-20"/>
+<text xml:space="preserve" text-anchor="start" x="166.38" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">behavior.HarpRecording.Channel</text>
+</a>
+</g>
+</g>
+<!-- behavior.HarpRecording -->
+<g id="node3" class="node">
+<title>behavior.HarpRecording</title>
+<g id="a_node3"><a xlink:title="→ event.BehaviorRecording→ behavior.HarpDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="238.38" cy="-73.28" rx="95.73" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="238.38" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">behavior.HarpRecording</text>
+</a>
+</g>
+</g>
+<!-- behavior.HarpRecording&#45;&gt;behavior.HarpRecording.Channel -->
+<g id="edge1" class="edge">
+<title>behavior.HarpRecording-&gt;behavior.HarpRecording.Channel</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M238.38,-55.53C238.38,-44.05 238.38,-29.27 238.38,-19.96"/>
+</g>
+<!-- event.BehaviorRecording -->
+<g id="node4" class="node">
+<title>event.BehaviorRecording</title>
+<g id="a_node4"><a xlink:title="→ pl.Session→ pl.Scan------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="470.25,-161.12 318.5,-161.12 318.5,-126.56 470.25,-126.56 470.25,-161.12"/>
+<text xml:space="preserve" text-anchor="middle" x="394.38" y="-139.56" font-family="arial" font-size="12.00" fill="darkgreen">event.BehaviorRecording</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;behavior.HarpRecording -->
+<g id="edge2" class="edge">
+<title>event.BehaviorRecording-&gt;behavior.HarpRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M356.21,-126.07C330.96,-114.97 298.08,-100.52 273.48,-89.71"/>
+</g>
+<!-- behavior.CamSyncRecording -->
+<g id="node6" class="node">
+<title>behavior.CamSyncRecording</title>
+<g id="a_node6"><a xlink:title="→ event.BehaviorRecording→ behavior.CamSyncDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="465.38" cy="-73.28" rx="112.88" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="465.38" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">behavior.CamSyncRecording</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;behavior.CamSyncRecording -->
+<g id="edge3" class="edge">
+<title>event.BehaviorRecording-&gt;behavior.CamSyncRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M411.56,-126.24C422.73,-115.46 437.21,-101.47 448.35,-90.72"/>
+</g>
+<!-- behavior.TreadmillRecording -->
+<g id="node11" class="node">
+<title>behavior.TreadmillRecording</title>
+<g id="a_node11"><a xlink:title="→ event.BehaviorRecording→ behavior.TreadmillDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="707.38" cy="-73.28" rx="110.92" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="707.38" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">behavior.TreadmillRecording</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;behavior.TreadmillRecording -->
+<g id="edge4" class="edge">
+<title>event.BehaviorRecording-&gt;behavior.TreadmillRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M470.54,-126.16C524.02,-114.44 594.65,-98.97 644.83,-87.98"/>
+</g>
+<!-- behavior.TreadmillDevice -->
+<g id="node5" class="node">
+<title>behavior.TreadmillDevice</title>
+<g id="a_node5"><a xlink:title="treadmill_device_id  ------------------------------treadmill_device_name treadmill_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="770.5,-161.12 644.25,-161.12 644.25,-126.56 770.5,-126.56 770.5,-161.12"/>
+<text xml:space="preserve" text-anchor="start" x="652.25" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">behavior.TreadmillDevice</text>
+</a>
+</g>
+</g>
+<!-- behavior.TreadmillDevice&#45;&gt;behavior.TreadmillRecording -->
+<g id="edge5" class="edge">
+<title>behavior.TreadmillDevice-&gt;behavior.TreadmillRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M707.38,-126.59C707.38,-115.82 707.38,-101.73 707.38,-90.89"/>
+</g>
+<!-- behavior.CamSyncRecording.Channel -->
+<g id="node9" class="node">
+<title>behavior.CamSyncRecording.Channel</title>
+<g id="a_node9"><a xlink:title="→ behavior.CamSyncRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="none" stroke="none" points="556.62,-20 374.12,-20 374.12,0 556.62,0 556.62,-20"/>
+<text xml:space="preserve" text-anchor="start" x="382.12" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">behavior.CamSyncRecording.Channel</text>
+</a>
+</g>
+</g>
+<!-- behavior.CamSyncRecording&#45;&gt;behavior.CamSyncRecording.Channel -->
+<g id="edge6" class="edge">
+<title>behavior.CamSyncRecording-&gt;behavior.CamSyncRecording.Channel</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M465.38,-55.53C465.38,-44.05 465.38,-29.27 465.38,-19.96"/>
+</g>
+<!-- behavior.HarpDevice -->
+<g id="node7" class="node">
+<title>behavior.HarpDevice</title>
+<g id="a_node7"><a xlink:title="harp_device_id       ------------------------------harp_device_name     harp_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="292.12,-161.12 184.62,-161.12 184.62,-126.56 292.12,-126.56 292.12,-161.12"/>
+<text xml:space="preserve" text-anchor="start" x="192.62" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">behavior.HarpDevice</text>
+</a>
+</g>
+</g>
+<!-- behavior.HarpDevice&#45;&gt;behavior.HarpRecording -->
+<g id="edge7" class="edge">
+<title>behavior.HarpDevice-&gt;behavior.HarpRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M238.38,-126.59C238.38,-115.82 238.38,-101.73 238.38,-90.89"/>
+</g>
+<!-- behavior.CamSyncDevice -->
+<g id="node8" class="node">
+<title>behavior.CamSyncDevice</title>
+<g id="a_node8"><a xlink:title="camsync_device_id    ------------------------------camsync_device_name  camsync_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="618.38,-161.12 488.38,-161.12 488.38,-126.56 618.38,-126.56 618.38,-161.12"/>
+<text xml:space="preserve" text-anchor="start" x="496.38" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">behavior.CamSyncDevice</text>
+</a>
+</g>
+</g>
+<!-- behavior.CamSyncDevice&#45;&gt;behavior.CamSyncRecording -->
+<g id="edge8" class="edge">
+<title>behavior.CamSyncDevice-&gt;behavior.CamSyncRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M532.52,-126.59C518.59,-115.74 500.34,-101.52 486.39,-90.65"/>
+</g>
+<!-- behavior.TreadmillRecording.Channel -->
+<g id="node10" class="node">
+<title>behavior.TreadmillRecording.Channel</title>
+<g id="a_node10"><a xlink:title="→ behavior.TreadmillRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="none" stroke="none" points="796.75,-20 618,-20 618,0 796.75,0 796.75,-20"/>
+<text xml:space="preserve" text-anchor="start" x="626" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">behavior.TreadmillRecording.Channel</text>
+</a>
+</g>
+</g>
+<!-- behavior.TreadmillRecording&#45;&gt;behavior.TreadmillRecording.Channel -->
+<g id="edge9" class="edge">
+<title>behavior.TreadmillRecording-&gt;behavior.TreadmillRecording.Channel</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M707.38,-55.53C707.38,-44.05 707.38,-29.27 707.38,-19.96"/>
+</g>
+</g>
+</svg>

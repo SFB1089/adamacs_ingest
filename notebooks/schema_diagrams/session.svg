@@ -1,0 +1,298 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1188pt" height="371pt" viewBox="0.00 0.00 1188.00 371.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 367.05)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-367.05 1184,-367.05 1184,4 -4,4"/>
+<!-- 30 -->
+<g id="node1" class="node">
+<title>30</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="483.88" cy="-287.37" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="483.88" y="-287.54" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">30</text>
+</g>
+<!-- pl.Subject -->
+<g id="node13" class="node">
+<title>pl.Subject</title>
+<g id="a_node13"><a xlink:title="subject              ------------------------------earmark              sex                  birth_date           death_date=null      generation=&quot;&quot;        parent_ids           → pl.Experimenter.proj(owner_id=&quot;user_id&quot;)→ pl.Experimenter.proj(responsible_id=&quot;user_id&quot;)→ subject.Line→ subject.Protocol">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="536.5,-246.24 467.25,-246.24 467.25,-211.68 536.5,-211.68 536.5,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="475.25" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Subject</text>
+</a>
+</g>
+</g>
+<!-- 30&#45;&gt;pl.Subject -->
+<g id="edge1" class="edge">
+<title>30-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M484.19,-285.39C485.64,-280.82 491.89,-261.24 496.55,-246.64"/>
+</g>
+<!-- 31 -->
+<g id="node2" class="node">
+<title>31</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="519.88" cy="-287.37" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="519.88" y="-287.54" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">31</text>
+</g>
+<!-- 31&#45;&gt;pl.Subject -->
+<g id="edge2" class="edge">
+<title>31-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M519.56,-285.39C518.11,-280.82 511.86,-261.24 507.2,-246.64"/>
+</g>
+<!-- equipment.Device -->
+<g id="node3" class="node">
+<title>equipment.Device</title>
+<g id="a_node3"><a xlink:title="camera               ------------------------------camera_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="877.25,-175.68 764.5,-175.68 764.5,-141.12 877.25,-141.12 877.25,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="772.5" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">equipment.Device</text>
+</a>
+</g>
+</g>
+<!-- model.VideoRecording -->
+<g id="node6" class="node">
+<title>model.VideoRecording</title>
+<g id="a_node6"><a xlink:title="→ pl.Sessionrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="890,-105.12 751.75,-105.12 751.75,-70.56 890,-70.56 890,-105.12"/>
+<text xml:space="preserve" text-anchor="start" x="759.75" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.VideoRecording</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;model.VideoRecording -->
+<g id="edge3" class="edge">
+<title>equipment.Device-&gt;model.VideoRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M820.88,-140.8C820.88,-130.02 820.88,-116.03 820.88,-105.28"/>
+</g>
+<!-- session.SessionDirectory -->
+<g id="node4" class="node">
+<title>session.SessionDirectory</title>
+<g id="a_node4"><a xlink:title="→ pl.Session------------------------------session_dir          → pl.Experimenter">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="151.75,-105.12 0,-105.12 0,-70.56 151.75,-70.56 151.75,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="75.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.SessionDirectory</text>
+</a>
+</g>
+</g>
+<!-- session.ProjectSession -->
+<g id="node5" class="node">
+<title>session.ProjectSession</title>
+<g id="a_node5"><a xlink:title="→ pl.Project→ pl.Session">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="733.5,-105.12 592.25,-105.12 592.25,-70.56 733.5,-70.56 733.5,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="662.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.ProjectSession</text>
+</a>
+</g>
+</g>
+<!-- pl.Project -->
+<g id="node7" class="node">
+<title>pl.Project</title>
+<g id="a_node7"><a xlink:title="project              ------------------------------project_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="691.5,-175.68 634.25,-175.68 634.25,-141.12 691.5,-141.12 691.5,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="642.25" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">pl.Project</text>
+</a>
+</g>
+</g>
+<!-- pl.Project&#45;&gt;session.ProjectSession -->
+<g id="edge4" class="edge">
+<title>pl.Project-&gt;session.ProjectSession</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M662.88,-141.15C662.88,-130.38 662.88,-116.29 662.88,-105.45"/>
+</g>
+<!-- scan.AcquisitionSoftware -->
+<g id="node8" class="node">
+<title>scan.AcquisitionSoftware</title>
+<g id="a_node8"><a xlink:title="acq_software         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="346.38,-175.68 219.38,-175.68 219.38,-141.12 346.38,-141.12 346.38,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="227.38" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">scan.AcquisitionSoftware</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan -->
+<g id="node20" class="node">
+<title>pl.Scan</title>
+<g id="a_node20"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="226.12,-105.12 169.62,-105.12 169.62,-70.56 226.12,-70.56 226.12,-105.12"/>
+<text xml:space="preserve" text-anchor="start" x="177.62" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- scan.AcquisitionSoftware&#45;&gt;pl.Scan -->
+<g id="edge5" class="edge">
+<title>scan.AcquisitionSoftware-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M262.73,-141.15C249.38,-130.38 231.91,-116.29 218.46,-105.45"/>
+</g>
+<!-- pl.SessionUser -->
+<g id="node9" class="node">
+<title>pl.SessionUser</title>
+<g id="a_node9"><a xlink:title="→ pl.Session→ pl.Experimenter">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1005.75,-105.12 908,-105.12 908,-70.56 1005.75,-70.56 1005.75,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="956.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">pl.SessionUser</text>
+</a>
+</g>
+</g>
+<!-- session.SessionSameSite -->
+<g id="node10" class="node">
+<title>session.SessionSameSite</title>
+<g id="a_node10"><a xlink:title="→ pl.Session------------------------------→ session.SessionSite">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1180,-105.12 1023.75,-105.12 1023.75,-70.56 1180,-70.56 1180,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1101.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.SessionSameSite</text>
+</a>
+</g>
+</g>
+<!-- session.Location -->
+<g id="node11" class="node">
+<title>session.Location</title>
+<g id="a_node11"><a xlink:title="location             ------------------------------location_full=&quot;&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="667.88,-363.05 561.88,-363.05 561.88,-328.49 667.88,-328.49 667.88,-363.05"/>
+<text xml:space="preserve" text-anchor="start" x="569.88" y="-342.5" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.Location</text>
+</a>
+</g>
+</g>
+<!-- session.SessionNote -->
+<g id="node12" class="node">
+<title>session.SessionNote</title>
+<g id="a_node12"><a xlink:title="→ pl.Session------------------------------session_note         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="411.5,-105.12 282.25,-105.12 282.25,-70.56 411.5,-70.56 411.5,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="346.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.SessionNote</text>
+</a>
+</g>
+</g>
+<!-- pl.Session -->
+<g id="node17" class="node">
+<title>pl.Session</title>
+<g id="a_node17"><a xlink:title="session_id           ------------------------------→ pl.Subjectsession_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="538,-175.68 465.75,-175.68 465.75,-141.12 538,-141.12 538,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="473.75" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Session</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;pl.Session -->
+<g id="edge6" class="edge">
+<title>pl.Subject-&gt;pl.Session</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M501.88,-211.36C501.88,-200.58 501.88,-186.59 501.88,-175.84"/>
+</g>
+<!-- event.BehaviorRecording -->
+<g id="node14" class="node">
+<title>event.BehaviorRecording</title>
+<g id="a_node14"><a xlink:title="→ pl.Session→ pl.Scan------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="301.75,-34.56 150,-34.56 150,0 301.75,0 301.75,-34.56"/>
+<text xml:space="preserve" text-anchor="middle" x="225.88" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">event.BehaviorRecording</text>
+</a>
+</g>
+</g>
+<!-- session.SessionSite -->
+<g id="node15" class="node">
+<title>session.SessionSite</title>
+<g id="a_node15"><a xlink:title="same_site_id         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1164.25,-175.68 1039.5,-175.68 1039.5,-141.12 1164.25,-141.12 1164.25,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="1047.5" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.SessionSite</text>
+</a>
+</g>
+</g>
+<!-- session.SessionSite&#45;&gt;session.SessionSameSite -->
+<g id="edge7" class="edge">
+<title>session.SessionSite-&gt;session.SessionSameSite</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1101.88,-140.8C1101.88,-130.02 1101.88,-116.03 1101.88,-105.28"/>
+</g>
+<!-- pl.Experimenter -->
+<g id="node16" class="node">
+<title>pl.Experimenter</title>
+<g id="a_node16"><a xlink:title="user_id              ------------------------------name                 shorthand=&quot;&quot;         initials=&quot;&quot;          email=&quot;&quot;             → [nullable] pl.Lab">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="544,-363.05 459.75,-363.05 459.75,-328.49 544,-328.49 544,-363.05"/>
+<text xml:space="preserve" text-anchor="start" x="467.75" y="-343.27" font-family="arial" text-decoration="underline" font-size="10.00">pl.Experimenter</text>
+</a>
+</g>
+</g>
+<!-- pl.Experimenter&#45;&gt;30 -->
+<g id="edge8" class="edge">
+<title>pl.Experimenter-&gt;30</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M496.77,-328.76C492.11,-314.17 485.73,-294.18 484.21,-289.42"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;31 -->
+<g id="edge9" class="edge">
+<title>pl.Experimenter-&gt;31</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M506.98,-328.76C511.64,-314.17 518.02,-294.18 519.54,-289.42"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;session.SessionDirectory -->
+<g id="edge10" class="edge">
+<title>pl.Experimenter-&gt;session.SessionDirectory</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M459.89,-335.04C384.99,-315.87 226.71,-266.92 125.88,-175.68 104.2,-156.07 89.44,-124.8 81.86,-105.62"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;pl.SessionUser -->
+<g id="edge11" class="edge">
+<title>pl.Experimenter-&gt;pl.SessionUser</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M543.9,-329.14C631.15,-296.22 828.61,-219.22 885.88,-175.68 911.92,-155.88 934.36,-124.67 946.71,-105.55"/>
+</g>
+<!-- pl.Session&#45;&gt;session.SessionDirectory -->
+<g id="edge12" class="edge">
+<title>pl.Session-&gt;session.SessionDirectory</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M465.47,-152.27C403.03,-143.37 271.54,-124.19 160.88,-105.12 157.91,-104.61 154.9,-104.08 151.85,-103.54"/>
+</g>
+<!-- pl.Session&#45;&gt;session.ProjectSession -->
+<g id="edge13" class="edge">
+<title>pl.Session-&gt;session.ProjectSession</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M538.41,-141.84C563.83,-131.02 597.69,-116.6 623.67,-105.53"/>
+</g>
+<!-- pl.Session&#45;&gt;model.VideoRecording -->
+<g id="edge14" class="edge">
+<title>pl.Session-&gt;model.VideoRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M538.47,-149.54C590.26,-138.4 685.94,-117.84 751.45,-103.76"/>
+</g>
+<!-- pl.Session&#45;&gt;pl.SessionUser -->
+<g id="edge15" class="edge">
+<title>pl.Session-&gt;pl.SessionUser</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M538.47,-152.55C562.93,-149.31 595.83,-144.95 624.88,-141.12 746.65,-125.06 778.55,-129.78 898.88,-105.12 901.74,-104.53 904.68,-103.88 907.63,-103.18"/>
+</g>
+<!-- pl.Session&#45;&gt;session.SessionSameSite -->
+<g id="edge16" class="edge">
+<title>pl.Session-&gt;session.SessionSameSite</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M538.43,-152.18C562.87,-148.78 595.76,-144.39 624.88,-141.12 797.86,-121.7 842.47,-129.15 1014.88,-105.12 1017.77,-104.72 1020.71,-104.28 1023.68,-103.83"/>
+</g>
+<!-- pl.Session&#45;&gt;session.SessionNote -->
+<g id="edge17" class="edge">
+<title>pl.Session-&gt;session.SessionNote</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M465.53,-141.33C441.2,-130.56 409.23,-116.42 384.61,-105.53"/>
+</g>
+<!-- pl.Session&#45;&gt;event.BehaviorRecording -->
+<g id="edge18" class="edge">
+<title>pl.Session-&gt;event.BehaviorRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M465.27,-152.77C408.55,-144.99 302.83,-127.87 272.88,-105.12 249.53,-87.39 236.4,-54.6 230.26,-34.78"/>
+</g>
+<!-- session.SessionRspace -->
+<g id="node19" class="node">
+<title>session.SessionRspace</title>
+<g id="a_node19"><a xlink:title="→ pl.Session------------------------------rspace_id            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="574.38,-105.12 429.38,-105.12 429.38,-70.56 574.38,-70.56 574.38,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="501.88" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.SessionRspace</text>
+</a>
+</g>
+</g>
+<!-- pl.Session&#45;&gt;session.SessionRspace -->
+<g id="edge19" class="edge">
+<title>pl.Session-&gt;session.SessionRspace</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M501.88,-140.8C501.88,-130.02 501.88,-116.03 501.88,-105.28"/>
+</g>
+<!-- pl.Session&#45;&gt;pl.Scan -->
+<g id="edge20" class="edge">
+<title>pl.Session-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M465.37,-152.16C414.31,-144.37 318.92,-128.14 239.88,-105.12 235.52,-103.85 230.98,-102.32 226.57,-100.72"/>
+</g>
+<!-- pl.Device -->
+<g id="node18" class="node">
+<title>pl.Device</title>
+<g id="a_node18"><a xlink:title="scanner              ------------------------------scanner_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="201,-175.68 134.75,-175.68 134.75,-141.12 201,-141.12 201,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="142.75" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Device</text>
+</a>
+</g>
+</g>
+<!-- pl.Device&#45;&gt;pl.Scan -->
+<g id="edge21" class="edge">
+<title>pl.Device-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M175.14,-140.8C179.85,-130.02 185.98,-116.03 190.68,-105.28"/>
+</g>
+<!-- pl.Scan&#45;&gt;event.BehaviorRecording -->
+<g id="edge22" class="edge">
+<title>pl.Scan-&gt;event.BehaviorRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M204.65,-70.24C209.06,-59.46 214.77,-45.47 219.16,-34.72"/>
+</g>
+<!-- session.Equipment -->
+<g id="node21" class="node">
+<title>session.Equipment</title>
+<g id="a_node21"><a xlink:title="scanner              ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="803.88,-363.05 685.88,-363.05 685.88,-328.49 803.88,-328.49 803.88,-363.05"/>
+<text xml:space="preserve" text-anchor="start" x="693.88" y="-342.5" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.Equipment</text>
+</a>
+</g>
+</g>
+</g>
+</svg>
