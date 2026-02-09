@@ -5,6 +5,8 @@ pandas
 requests
 matplotlib
 natsort
+imageio
+imageio-ffmpeg>=0.4.9
 packaging>=24
 # graphviz
 ruamel.yaml

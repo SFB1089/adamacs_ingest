@@ -14,7 +14,6 @@ from natsort import natsorted, ns
 import concurrent.futures
 from multiprocessing import Pool, cpu_count
 import imageio
-import imageio.plugins.ffmpeg as ffmpeg
 import os
 from tqdm import tqdm
 from dask import compute
@@ -24,6 +23,17 @@ import dask.array as da
 from datetime import datetime, timedelta
 import bisect
 from adamacs.pipeline import subject, session, equipment, surgery, event, trial, imaging, behavior, scan, model,  analysis, denoising
+
+
+def _require_imageio_ffmpeg():
+    """Ensure FFmpeg backend dependency is available before video IO calls."""
+    try:
+        import imageio_ffmpeg  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(
+            "Missing optional dependency 'imageio-ffmpeg'. "
+            "Install with: pip install imageio-ffmpeg"
+        ) from exc
 
 def calculate_dFF(Fall, Fneu_all, framerate, event_module, scan_key, 
                   neuropil_factor=0.3, smoothing_window_seconds=120, percentile=15, 
@@ -238,6 +248,7 @@ def get_delayed_frame(reader, i):
 
 # Function to create a lazy Dask array of video frames
 def create_lazy_video_array(video_path):
+    _require_imageio_ffmpeg()
     reader = imageio.get_reader(video_path, 'ffmpeg')
     n_frames = reader.count_frames()
     lazy_frames = [get_delayed_frame(reader, i) for i in range(n_frames)]
