@@ -32,7 +32,7 @@ Optional custom environment name:
 ./scripts/install_datajoint_ingest.sh my_ingest_env
 ```
 
-The installer creates/updates a Python 3.11 conda env, installs Graphviz, installs the pinned DataJoint pre-2.0 stack (`datajoint==0.14.8`), installs this package in editable mode, and applies compatibility handling for `pywavesurfer` and `scanimage-tiff-reader`.
+The installer creates/updates a Python 3.11 conda env, verifies the interpreter is exactly 3.11, installs Graphviz, installs the pinned DataJoint pre-2.0 stack (`datajoint==0.14.8`), installs this package in editable mode, applies compatibility handling for `pywavesurfer` and `scanimage-tiff-reader`, and runs `pip check` to confirm dependency integrity.
 
 ### Manual install (same stack as script)
 ```bash
@@ -112,7 +112,7 @@ python -m ruff check --select E9,F63,F7,F82 adamacs tests examples
 python -m pytest -q
 ```
 
-CI runs lint and pytest on Python 3.10 and 3.11.
+CI runs lint and pytest on Python 3.11.
 
 ## Additional docs
 - Split audit: `docs/SPLIT_AUDIT.md`

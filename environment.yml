@@ -1,18 +1,10 @@
-name: datajoint
+name: datajoint_ingest
+channels:
+  - conda-forge
+  - defaults
 dependencies:
-  - python=3.8
-  - numpy
-  - pandas
-  - matplotlib
-  - spyder
-  - pywin32
+  - python=3.11
   - pip
   - graphviz
-  - git
   - pip:
-    - notebook
-    - datajoint==0.14.8
-    - rspace-client==1.6.0
-    - ipywidgets
-    - ipysheet
-    - opencv-python
+      - -r requirements_datajoint_new.txt

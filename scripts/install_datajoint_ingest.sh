@@ -16,6 +16,15 @@ else
   conda create -n "$ENV_NAME" -y python=3.11 pip
 fi
 
+conda run -n "$ENV_NAME" python - <<'PY'
+import sys
+if sys.version_info[:2] != (3, 11):
+    raise SystemExit(
+        f"Environment Python must be 3.11, found {sys.version.split()[0]}. "
+        "Recreate the conda environment with python=3.11."
+    )
+PY
+
 conda install -n "$ENV_NAME" -y graphviz
 conda run -n "$ENV_NAME" python -m pip install --upgrade pip wheel "setuptools<81"
 conda run -n "$ENV_NAME" python -m pip uninstall -y adamacs-ingest >/dev/null 2>&1 || true
@@ -36,8 +45,40 @@ import warnings
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API.*", category=UserWarning)
 import datajoint as dj
 import adamacs
+import sys
 print("DataJoint:", dj.__version__)
+print("Python:", sys.version.split()[0])
 print("adamacs import: OK")
+PY
+
+conda run -n "$ENV_NAME" python - <<'PY'
+import subprocess
+import sys
+
+proc = subprocess.run(
+    [sys.executable, "-m", "pip", "check"],
+    capture_output=True,
+    text=True,
+)
+
+if proc.returncode == 0:
+    print("pip check: OK")
+    raise SystemExit(0)
+
+lines = [line.strip() for line in (proc.stdout + "\n" + proc.stderr).splitlines() if line.strip()]
+unexpected = [
+    line
+    for line in lines
+    if not line.startswith("pywavesurfer 0.0.8 has requirement ")
+]
+
+if unexpected:
+    print("Unexpected dependency conflicts detected:")
+    for line in unexpected:
+        print(line)
+    raise SystemExit(1)
+
+print("pip check: only expected pywavesurfer metadata conflicts detected (installed with --no-deps).")
 PY
 
 echo "Installation complete. Activate with: conda activate $ENV_NAME"

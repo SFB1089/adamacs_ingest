@@ -25,5 +25,5 @@ setup(
     packages=find_packages(exclude=("tests", "tests.*")),
     include_package_data=True,
     install_requires=requirements,
-    python_requires=">=3.10",
+    python_requires=">=3.11",
 )
