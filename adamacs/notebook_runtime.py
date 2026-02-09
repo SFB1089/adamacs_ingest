@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,6 +17,13 @@ _TLS_HANDSHAKE_MARKERS = (
     "ssl/tls alert handshake failure",
     "tlsv1 alert handshake failure",
     "ssl handshake failure",
+)
+
+_DATAJOINT_LOGGER_NAMES = (
+    "datajoint",
+    "datajoint.connection",
+    "datajoint.settings",
+    "datajoint.plugin",
 )
 
 
@@ -59,6 +67,11 @@ def _load_config(repo_root: Path) -> Path:
     raise FileNotFoundError("Could not find dj_local_conf.json in ingest repository root.")
 
 
+def _set_datajoint_log_level(level: int = logging.WARNING) -> None:
+    for logger_name in _DATAJOINT_LOGGER_NAMES:
+        logging.getLogger(logger_name).setLevel(level)
+
+
 def _synchronize_package_db_prefix() -> None:
     """
     Ensure adamacs.db_prefix reflects the loaded dj.config custom prefix.
@@ -92,6 +105,7 @@ def bootstrap_ingest_notebook(
     *,
     connect: bool = True,
     allow_tls_fallback: bool = True,
+    quiet_datajoint_logs: bool = True,
     verbose: bool = True,
 ) -> IngestNotebookContext:
     """
@@ -105,8 +119,12 @@ def bootstrap_ingest_notebook(
     repo_root = _resolve_repo_root(cwd)
     os.chdir(repo_root)
 
+    if quiet_datajoint_logs:
+        _set_datajoint_log_level(logging.WARNING)
     config_path = _load_config(repo_root)
     _synchronize_package_db_prefix()
+    if quiet_datajoint_logs:
+        _set_datajoint_log_level(logging.WARNING)
     tls_fallback_applied = _connect_with_tls_fallback(
         allow_tls_fallback=allow_tls_fallback
     ) if connect else False
