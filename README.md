@@ -72,6 +72,16 @@ This repository ignores `dj_local_conf.json` and typo variants like `dj_local_co
 - Fix: set `"database.use_tls": false` in your local `dj_local_conf.json` for non-TLS DB servers.
 - Reminder: never commit `dj_local_conf.json`.
 
+## Notebook environment variables
+You can set these in your shell (`export ...`) or in the notebook override cell.
+
+- `ADAMACS_SESSION_FILTER`: glob for session folder names in ingest GUI workflow (`*` default).
+- `ADAMACS_DATE_FILTER`: date substring filter in ingest GUI workflow (`*` default).
+- `ADAMACS_LAUNCH_GUI`: set to `1` to open interactive GUI (`0` default).
+- `ADAMACS_MAX_JOB_ROWS`: row limit for cleanup templates (`50` default).
+- `ADAMACS_INITIALS`: user initials filter in cleanup templates (`NK` default).
+- `ADAMACS_DATE_FROM`: lower date bound for cleanup templates (`2025-01-01` default).
+
 ## Run ingest workflows
 
 ### GUI entrypoint (primary workflow)
