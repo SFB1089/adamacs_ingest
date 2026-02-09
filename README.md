@@ -76,7 +76,7 @@ This repository ignores `dj_local_conf.json` and typo variants like `dj_local_co
 You can set these in your shell (`export ...`) or in the notebook override cell.
 
 - `ADAMACS_SESSION_FILTER`: glob for session folder names in ingest GUI workflow (`*` default).
-- `ADAMACS_DATE_FILTER`: date filter for ingest GUI workflow. Supports `*`, exact date (`2025-01-20`), comparators (`>=2025-01-01`, `<2025-02-01`), inclusive range (`2025-01-01:2025-01-31`), plus legacy substring fallback (`2025-01`).
+- `ADAMACS_DATE_FILTER`: date filter for ingest GUI workflow. Supports `*`, exact date (`2025-01-20`), comparators (`>=2025-01-01`, `<2025-02-01`), inclusive range (`2025-01-01:2025-01-31`), plus legacy substring fallback (`2025-01`). Comparator tokens tolerate legacy wildcard suffixes (for example `>2025-05-01*`).
 - `ADAMACS_LAUNCH_GUI`: set to `1` to open interactive GUI (`0` default).
 - `ADAMACS_MAX_JOB_ROWS`: row limit for cleanup templates (`50` default).
 - `ADAMACS_INITIALS`: user initials filter in cleanup templates (`NK` default).
