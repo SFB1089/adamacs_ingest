@@ -11,9 +11,10 @@ from IPython.display import display, HTML
 from natsort import natsorted
 import re
 import pathlib
-from datetime import datetime
+from datetime import datetime, date
 import traceback
 import os
+import fnmatch
 import tifffile
 from scipy.ndimage import mean 
 import datajoint as dj
@@ -246,6 +247,134 @@ def get_subject_key_from_dir(string):
 
 def get_date_key_from_dir(directory):
     return directory.split("_")[-3]
+
+
+def parse_date_token(token, *, allow_month=False):
+    token = str(token).strip()
+    # tolerate wildcard/comparator-friendly forms like >2025-05-01*
+    token = token.rstrip("*").strip()
+    token = token.rstrip("-_/").strip()
+
+    date_pattern = r"(20\d{2}[-_]\d{2}[-_]\d{2}|20\d{6})"
+    if allow_month:
+        date_pattern = r"(20\d{2}[-_]\d{2}[-_]\d{2}|20\d{6}|20\d{2}[-_]\d{2})"
+
+    date_match = re.search(date_pattern, token)
+    if date_match:
+        token = date_match.group(1)
+
+    formats = ["%Y-%m-%d", "%Y_%m_%d", "%Y%m%d"]
+    if allow_month:
+        formats.extend(["%Y-%m", "%Y_%m"])
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(token, fmt).date()
+        except ValueError:
+            pass
+    return None
+
+
+def extract_session_date(session_name):
+    patterns = [
+        r"(?<!\d)(20\d{2})[-_](\d{2})[-_](\d{2})(?!\d)",
+        r"(?<!\d)(20\d{2})(\d{2})(\d{2})(?!\d)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, str(session_name))
+        if not match:
+            continue
+        year, month, day = map(int, match.groups())
+        try:
+            return date(year, month, day)
+        except ValueError:
+            continue
+    return None
+
+
+def parse_date_filter(expr):
+    expr = (expr or "*").strip()
+    if expr in {"", "*"}:
+        return {"mode": "all"}
+
+    if ":" in expr and not expr.startswith((">", "<")):
+        lo_raw, hi_raw = expr.split(":", 1)
+        lo = parse_date_token(lo_raw, allow_month=True) if lo_raw.strip() else None
+        hi = parse_date_token(hi_raw, allow_month=True) if hi_raw.strip() else None
+        if lo is None and hi is None:
+            raise ValueError(
+                f"Invalid ADAMACS_DATE_FILTER range: {expr!r}. "
+                "Expected YYYY-MM-DD:YYYY-MM-DD (either side can be omitted)."
+            )
+        return {"mode": "range", "lo": lo, "hi": hi}
+
+    for op in (">=", "<=", ">", "<"):
+        if expr.startswith(op):
+            rhs = parse_date_token(expr[len(op) :].strip(), allow_month=True)
+            if rhs is None:
+                raise ValueError(
+                    f"Invalid ADAMACS_DATE_FILTER comparator: {expr!r}. "
+                    "Expected forms like >=2025-01-01 or <2025-02-01."
+                )
+            return {"mode": "cmp", "op": op, "rhs": rhs}
+
+    exact = parse_date_token(expr, allow_month=False)
+    if exact is not None:
+        return {"mode": "exact", "rhs": exact}
+
+    return {"mode": "substring", "expr": expr}
+
+
+def date_filter_matches(session_name, parsed_filter):
+    mode = parsed_filter["mode"]
+    if mode == "all":
+        return True
+    if mode == "substring":
+        expr = parsed_filter["expr"]
+        if fnmatch.fnmatch(session_name, f"*{expr}*"):
+            return True
+        session_date = extract_session_date(session_name)
+        return session_date is not None and expr in session_date.isoformat()
+
+    session_date = extract_session_date(session_name)
+    if session_date is None:
+        return False
+
+    if mode == "exact":
+        return session_date == parsed_filter["rhs"]
+    if mode == "cmp":
+        rhs = parsed_filter["rhs"]
+        op = parsed_filter["op"]
+        if op == ">=":
+            return session_date >= rhs
+        if op == "<=":
+            return session_date <= rhs
+        if op == ">":
+            return session_date > rhs
+        if op == "<":
+            return session_date < rhs
+        return False
+    if mode == "range":
+        lo = parsed_filter["lo"]
+        hi = parsed_filter["hi"]
+        if lo is not None and session_date < lo:
+            return False
+        if hi is not None and session_date > hi:
+            return False
+        return True
+    return False
+
+
+def filter_session_dirs(session_dirs, session_filter="*", date_filter="*"):
+    parsed_date_filter = parse_date_filter(date_filter)
+    session_matched_dirs = [d for d in session_dirs if fnmatch.fnmatch(d, session_filter)]
+    filtered_dirs = [
+        d for d in session_matched_dirs if date_filter_matches(d, parsed_date_filter)
+    ]
+    unmatched_date_dirs = [
+        d for d in session_matched_dirs if extract_session_date(d) is None
+    ]
+    return filtered_dirs, parsed_date_filter, unmatched_date_dirs
 
 def get_scan_key_from_dir(string):
     result = []
