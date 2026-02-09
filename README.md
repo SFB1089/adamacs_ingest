@@ -19,66 +19,35 @@ Use this repo directly for day-to-day ingest and pipeline population. The ingest
 
 ## Installation
 
-### Recommended full install (`datajoint_ingest`)
-This is the path for real ingest and notebook work.
+### One-stop install (recommended)
+Run from repository root:
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/SFB1089/adamacs_ingest.git
-cd adamacs_ingest
+./scripts/install_datajoint_ingest.sh
 ```
 
-2. Create a fresh environment with a recent Python:
+Optional custom environment name:
+
 ```bash
-conda create -n datajoint_ingest python=3.10 -y
-conda activate datajoint_ingest
-python -m pip install --upgrade pip setuptools wheel
+./scripts/install_datajoint_ingest.sh my_ingest_env
 ```
 
-3. Install DataJoint pre-2.0 (pinned):
+The installer creates/updates a Python 3.11 conda env, installs Graphviz, installs the pinned DataJoint pre-2.0 stack (`datajoint==0.14.8`), installs this package in editable mode, and applies compatibility handling for `pywavesurfer` and `scanimage-tiff-reader`.
+
+### Manual install (same stack as script)
 ```bash
-python -m pip install "datajoint==0.14.8" "PyMySQL>=1.1.0"
+conda create -n datajoint_ingest python=3.11 -y
+conda install -n datajoint_ingest -y graphviz
+conda run -n datajoint_ingest python -m pip install --upgrade pip wheel "setuptools<81"
+conda run -n datajoint_ingest python -m pip install -r requirements_datajoint_new.txt
+conda run -n datajoint_ingest python -m pip install -e .
+conda run -n datajoint_ingest python -m pip install --no-deps "pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git"
+conda run -n datajoint_ingest python -m pip install scanimage-tiff-reader==1.4.1.4
 ```
 
-4. Install the ingest dependency stack (includes SFB1089 element forks):
+If `scanimage-tiff-reader` wheel build fails:
 ```bash
-python -m pip install -r requirements_datajoint_new.txt
-```
-
-5. Install `adamacs_ingest` in editable mode:
-```bash
-python -m pip install -e .
-```
-
-6. Sanity-check core imports:
-```bash
-python - <<'PY'
-import datajoint as dj
-import adamacs
-print("DataJoint:", dj.__version__)
-print("adamacs import: OK")
-PY
-```
-
-### Lightweight install (code-only development)
-Use this only when you are not running full DataJoint ingest workflows.
-
-```bash
-conda create -n adamacs_ingest python=3.10 -y
-conda activate adamacs_ingest
-python -m pip install --upgrade pip setuptools wheel
-python -m pip install -r requirements.txt
-python -m pip install -e .
-```
-
-### Environment-file install (alternative)
-If you prefer conda YAML bootstrapping:
-
-```bash
-mamba env create -f environment_datajoint_new.yml
-conda activate datajoint_new
-python -m pip install -e .
-python -m pip install "datajoint==0.14.8"
+conda install -n datajoint_ingest -y -c conda-forge scanimage-tiff-reader
 ```
 
 ## DataJoint local configuration
@@ -150,3 +119,4 @@ CI runs lint and pytest on Python 3.10 and 3.11.
 - Path migration: `MIGRATION.md`
 - Tobiasr ingest adaptation map: `docs/TOBIASR_INGEST_ADAPTATION.md`
 - Tobiasr full notebook catalog: `docs/TOBIASR_NOTEBOOK_CATALOG.md`
+- Diagram setup and troubleshooting: `docs/DIAGRAM_SETUP.md`

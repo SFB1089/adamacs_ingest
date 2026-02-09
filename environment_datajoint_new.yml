@@ -5,6 +5,7 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  - setuptools<81
   - git
   - numpy>=1.26
   - scipy>=1.11
@@ -17,21 +18,21 @@ dependencies:
   - jupyterlab>=4
   - ipywidgets>=8
   - graphviz
-  - python-graphviz
   - ffmpeg
   - tqdm
   - openssl
   - ca-certificates
+  - libffi
   - llvm-openmp
-  - numactl
   - cmake
   - make
   - pkg-config
-  - libstdcxx-ng
-  - libgcc-ng
   - pip:
-    - datajoint
+    - datajoint==0.14.8
     - PyMySQL>=1.1.0
+    - graphviz>=0.21
+    - networkx>=3.4.2
+    - pydot>=4.0.1
     - requests>=2.32
     - ruamel.yaml>=0.18
     - natsort>=8.4
@@ -52,9 +53,7 @@ dependencies:
     - "element-session @ git+https://github.com/SFB1089/element-session.git@main"
     - "element-event @ git+https://github.com/SFB1089/element-event.git@master"
     - "element-deeplabcut @ git+https://github.com/SFB1089/element-deeplabcut.git@reverted"
-    - "pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git"
     - "scanreader @ git+https://github.com/SFB1089/scanreader.git"
-    - scanimage-tiff-reader==1.4.1.4
     - torch>=2.3,<3
     - torchvision>=0.18,<1
     - plotly>=5.22

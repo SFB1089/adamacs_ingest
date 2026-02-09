@@ -5,12 +5,12 @@ pandas
 requests
 matplotlib
 natsort
+packaging>=24
 # graphviz
 ruamel.yaml
 jupyter
 # suite2p @ git+https://github.com/SFB1089/suite2p@master
 rspace-client==2.5.0
-setuptools==65.5.0
 # element-deeplabcut already requires element-interface
 element-interface @ git+https://github.com/SFB1089/element-interface.git@main
 element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main
@@ -18,6 +18,5 @@ element-session @ git+https://github.com/SFB1089/element-session.git@main
 element-event @ git+https://github.com/SFB1089/element-event.git@master
 # element-deeplabcut @ git+https://github.com/datajoint/element-deeplabcut.git@main
 element-deeplabcut @ git+https://github.com/SFB1089/element-deeplabcut.git@reverted
-pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git
 # scanreader @ git+https://github.com/atlab/scanreader.git
 scanreader @ git+https://github.com/SFB1089/scanreader.git

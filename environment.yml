@@ -11,7 +11,7 @@ dependencies:
   - git
   - pip:
     - notebook
-    - datajoint==0.14.1
+    - datajoint==0.14.8
     - rspace-client==1.6.0
     - ipywidgets
     - ipysheet

@@ -23,6 +23,7 @@ wheels/
 MANIFEST
 *.spec
 pip-*.txt
+condaenv.*.requirements.txt
 
 # Unit test / coverage reports
 htmlcov/
