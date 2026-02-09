@@ -1,0 +1,374 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1719pt" height="466pt" viewBox="0.00 0.00 1719.00 466.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 461.92)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-461.92 1714.71,-461.92 1714.71,4 -4,4"/>
+<!-- 6 -->
+<g id="node1" class="node">
+<title>6</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="749.83" cy="-299.52" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="749.83" y="-299.69" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">6</text>
+</g>
+<!-- pl.Subject -->
+<g id="node13" class="node">
+<title>pl.Subject</title>
+<g id="a_node13"><a xlink:title="subject              ------------------------------earmark              sex                  birth_date           death_date=null      generation=&quot;&quot;        parent_ids           → pl.Experimenter.proj(owner_id=&quot;user_id&quot;)→ pl.Experimenter.proj(responsible_id=&quot;user_id&quot;)→ subject.Line→ subject.Protocol">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="819.46,-246.24 750.21,-246.24 750.21,-211.68 819.46,-211.68 819.46,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="758.21" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Subject</text>
+</a>
+</g>
+</g>
+<!-- 6&#45;&gt;pl.Subject -->
+<g id="edge1" class="edge">
+<title>6-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M750.33,-297.55C753.12,-292.08 767.11,-264.68 776.39,-246.49"/>
+</g>
+<!-- 7 -->
+<g id="node2" class="node">
+<title>7</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="784.83" cy="-299.52" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="784.83" y="-299.69" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">7</text>
+</g>
+<!-- 7&#45;&gt;pl.Subject -->
+<g id="edge2" class="edge">
+<title>7-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M784.83,-297.55C784.83,-292.08 784.83,-264.68 784.83,-246.49"/>
+</g>
+<!-- session.SessionDirectory -->
+<g id="node3" class="node">
+<title>session.SessionDirectory</title>
+<g id="a_node3"><a xlink:title="→ pl.Session------------------------------session_dir          → pl.Experimenter">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1530.71,-105.12 1378.96,-105.12 1378.96,-70.56 1530.71,-70.56 1530.71,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1454.83" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.SessionDirectory</text>
+</a>
+</g>
+</g>
+<!-- session.ProjectSession -->
+<g id="node4" class="node">
+<title>session.ProjectSession</title>
+<g id="a_node4"><a xlink:title="→ pl.Project→ pl.Session">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="887.46,-105.12 746.21,-105.12 746.21,-70.56 887.46,-70.56 887.46,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="816.83" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">session.ProjectSession</text>
+</a>
+</g>
+</g>
+<!-- subject.SubjectGenotype -->
+<g id="node5" class="node">
+<title>subject.SubjectGenotype</title>
+<g id="a_node5"><a xlink:title="→ pl.Subject→ subject.Mutation------------------------------genotype             ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="473.58,-175.68 324.08,-175.68 324.08,-141.12 473.58,-141.12 473.58,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="398.83" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">subject.SubjectGenotype</text>
+</a>
+</g>
+</g>
+<!-- pl.Project -->
+<g id="node6" class="node">
+<title>pl.Project</title>
+<g id="a_node6"><a xlink:title="project              ------------------------------project_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="697.46,-175.68 640.21,-175.68 640.21,-141.12 697.46,-141.12 697.46,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="648.21" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">pl.Project</text>
+</a>
+</g>
+</g>
+<!-- pl.Project&#45;&gt;session.ProjectSession -->
+<g id="edge3" class="edge">
+<title>pl.Project-&gt;session.ProjectSession</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M697.37,-144.18C721.14,-133.17 755.13,-117.42 780.78,-105.54"/>
+</g>
+<!-- pupil_tracking.TorsionCalibManual -->
+<g id="node7" class="node">
+<title>pupil_tracking.TorsionCalibManual</title>
+<g id="a_node7"><a xlink:title="→ pl.Subject------------------------------param_coeff          param_intercept      ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1368.46,-175.68 1167.21,-175.68 1167.21,-141.12 1368.46,-141.12 1368.46,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="1267.83" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">pupil_tracking.TorsionCalibManual</text>
+</a>
+</g>
+</g>
+<!-- surgery.Antagonist -->
+<g id="node8" class="node">
+<title>surgery.Antagonist</title>
+<g id="a_node8"><a xlink:title="antagonist           ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="131.33,-246.24 16.33,-246.24 16.33,-211.68 131.33,-211.68 131.33,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="24.33" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">surgery.Antagonist</text>
+</a>
+</g>
+</g>
+<!-- surgery.Surgery -->
+<g id="node9" class="node">
+<title>surgery.Surgery</title>
+<g id="a_node9"><a xlink:title="→ pl.Subjectdate                 ------------------------------weight               → pl.Experimenter→ surgery.Anesthesiaanesthesia_time      anesthesis_volume    → surgery.Antagonistantagonist_time      antagonist_volume    ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="191.83,-175.68 91.83,-175.68 91.83,-141.12 191.83,-141.12 191.83,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="99.83" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">surgery.Surgery</text>
+</a>
+</g>
+</g>
+<!-- surgery.Antagonist&#45;&gt;surgery.Surgery -->
+<g id="edge4" class="edge">
+<title>surgery.Antagonist-&gt;surgery.Surgery</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M90.29,-211.36C100.98,-200.58 114.86,-186.59 125.52,-175.84"/>
+</g>
+<!-- pl.SessionUser -->
+<g id="node10" class="node">
+<title>pl.SessionUser</title>
+<g id="a_node10"><a xlink:title="→ pl.Session→ pl.Experimenter">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1710.71,-105.12 1612.96,-105.12 1612.96,-70.56 1710.71,-70.56 1710.71,-105.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1661.83" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">pl.SessionUser</text>
+</a>
+</g>
+</g>
+<!-- subject.Protocol -->
+<g id="node11" class="node">
+<title>subject.Protocol</title>
+<g id="a_node11"><a xlink:title="protocol             ------------------------------protocol_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="912.58,-316.8 811.08,-316.8 811.08,-282.24 912.58,-282.24 912.58,-316.8"/>
+<text xml:space="preserve" text-anchor="start" x="819.08" y="-296.25" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Protocol</text>
+</a>
+</g>
+</g>
+<!-- subject.Protocol&#45;&gt;pl.Subject -->
+<g id="edge5" class="edge">
+<title>subject.Protocol-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M843.19,-281.92C831.18,-271.22 815.6,-257.36 803.57,-246.64"/>
+</g>
+<!-- surgery.Anesthesia -->
+<g id="node12" class="node">
+<title>surgery.Anesthesia</title>
+<g id="a_node12"><a xlink:title="anesthesia           ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="267.83,-246.24 149.83,-246.24 149.83,-211.68 267.83,-211.68 267.83,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="157.83" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">surgery.Anesthesia</text>
+</a>
+</g>
+</g>
+<!-- surgery.Anesthesia&#45;&gt;surgery.Surgery -->
+<g id="edge6" class="edge">
+<title>surgery.Anesthesia-&gt;surgery.Surgery</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M192.61,-211.36C182.08,-200.58 168.41,-186.59 157.9,-175.84"/>
+</g>
+<!-- pl.Subject&#45;&gt;subject.SubjectGenotype -->
+<g id="edge7" class="edge">
+<title>pl.Subject-&gt;subject.SubjectGenotype</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M749.91,-222.15C693.63,-212.73 579.39,-193.39 482.83,-175.68 479.91,-175.14 476.93,-174.59 473.92,-174.03"/>
+</g>
+<!-- pl.Subject&#45;&gt;pupil_tracking.TorsionCalibManual -->
+<g id="edge8" class="edge">
+<title>pl.Subject-&gt;pupil_tracking.TorsionCalibManual</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M819.91,-223.17C886.17,-214.09 1034.25,-193.69 1158.83,-175.68 1161.48,-175.3 1164.17,-174.91 1166.88,-174.51"/>
+</g>
+<!-- pl.Subject&#45;&gt;surgery.Surgery -->
+<g id="edge9" class="edge">
+<title>pl.Subject-&gt;surgery.Surgery</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M749.8,-224.23C642.49,-212.78 317.92,-178.18 192.27,-164.78"/>
+</g>
+<!-- subject.SubjectDeath -->
+<g id="node14" class="node">
+<title>subject.SubjectDeath</title>
+<g id="a_node14"><a xlink:title="→ pl.Subject------------------------------death_date           cause                ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="621.83,-175.68 491.83,-175.68 491.83,-141.12 621.83,-141.12 621.83,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="556.83" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">subject.SubjectDeath</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;subject.SubjectDeath -->
+<g id="edge10" class="edge">
+<title>pl.Subject-&gt;subject.SubjectDeath</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M750.2,-217.55C713.58,-206.53 655.26,-189 612.23,-176.06"/>
+</g>
+<!-- subject.SubjectRspace -->
+<g id="node15" class="node">
+<title>subject.SubjectRspace</title>
+<g id="a_node15"><a xlink:title="→ pl.Subject------------------------------rspace_subject_id    ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="854.33,-175.68 715.33,-175.68 715.33,-141.12 854.33,-141.12 854.33,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="784.83" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">subject.SubjectRspace</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;subject.SubjectRspace -->
+<g id="edge11" class="edge">
+<title>pl.Subject-&gt;subject.SubjectRspace</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M784.83,-211.36C784.83,-200.58 784.83,-186.59 784.83,-175.84"/>
+</g>
+<!-- surgery.AnalgesiaSubject -->
+<g id="node19" class="node">
+<title>surgery.AnalgesiaSubject</title>
+<g id="a_node19"><a xlink:title="→ surgery.Analgesia→ pl.Subjectdatetime             ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1629.08,-175.68 1476.58,-175.68 1476.58,-141.12 1629.08,-141.12 1629.08,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="1484.58" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">surgery.AnalgesiaSubject</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;surgery.AnalgesiaSubject -->
+<g id="edge12" class="edge">
+<title>pl.Subject-&gt;surgery.AnalgesiaSubject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M819.81,-226.68C920.71,-222.68 1220.88,-208.67 1467.83,-175.68 1470.66,-175.3 1473.54,-174.89 1476.44,-174.45"/>
+</g>
+<!-- pl.Session -->
+<g id="node20" class="node">
+<title>pl.Session</title>
+<g id="a_node20"><a xlink:title="session_id           ------------------------------→ pl.Subjectsession_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1458.96,-175.68 1386.71,-175.68 1386.71,-141.12 1458.96,-141.12 1458.96,-175.68"/>
+<text xml:space="preserve" text-anchor="start" x="1394.71" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Session</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;pl.Session -->
+<g id="edge13" class="edge">
+<title>pl.Subject-&gt;pl.Session</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M819.73,-228.02C912.02,-227.5 1169.69,-221.68 1377.83,-175.68 1380.59,-175.07 1383.41,-174.34 1386.23,-173.52"/>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="node22" class="node">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<g id="a_node22"><a xlink:title="→ pl.Subject------------------------------eye_left             eye_right            nose                 world_cam            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1149.33,-175.68 872.33,-175.68 872.33,-141.12 1149.33,-141.12 1149.33,-175.68"/>
+<text xml:space="preserve" text-anchor="middle" x="1010.83" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">virtual_markers_optitrack.EyeNoseCamPosCalib</text>
+</a>
+</g>
+</g>
+<!-- pl.Subject&#45;&gt;virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="edge14" class="edge">
+<title>pl.Subject-&gt;virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M819.65,-217.4C855.93,-206.39 913.29,-188.99 955.73,-176.12"/>
+</g>
+<!-- subject.Mutation -->
+<g id="node16" class="node">
+<title>subject.Mutation</title>
+<g id="a_node16"><a xlink:title="→ subject.Linemutation_id          ------------------------------description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="591.33,-246.24 488.33,-246.24 488.33,-211.68 591.33,-211.68 591.33,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="496.33" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Mutation</text>
+</a>
+</g>
+</g>
+<!-- subject.Mutation&#45;&gt;subject.SubjectGenotype -->
+<g id="edge15" class="edge">
+<title>subject.Mutation-&gt;subject.SubjectGenotype</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M505.34,-211.19C483.33,-200.48 454.91,-186.67 432.97,-176"/>
+</g>
+<!-- surgery.Analgesia -->
+<g id="node17" class="node">
+<title>surgery.Analgesia</title>
+<g id="a_node17"><a xlink:title="analgesia            ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1608.83,-246.24 1496.83,-246.24 1496.83,-211.68 1608.83,-211.68 1608.83,-246.24"/>
+<text xml:space="preserve" text-anchor="start" x="1504.83" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">surgery.Analgesia</text>
+</a>
+</g>
+</g>
+<!-- surgery.Analgesia&#45;&gt;surgery.AnalgesiaSubject -->
+<g id="edge16" class="edge">
+<title>surgery.Analgesia-&gt;surgery.AnalgesiaSubject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1552.83,-211.36C1552.83,-200.58 1552.83,-186.59 1552.83,-175.84"/>
+</g>
+<!-- pl.Experimenter -->
+<g id="node18" class="node">
+<title>pl.Experimenter</title>
+<g id="a_node18"><a xlink:title="user_id              ------------------------------name                 shorthand=&quot;&quot;         initials=&quot;&quot;          email=&quot;&quot;             → [nullable] pl.Lab">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="808.96,-387.36 724.71,-387.36 724.71,-352.8 808.96,-352.8 808.96,-387.36"/>
+<text xml:space="preserve" text-anchor="start" x="732.71" y="-367.58" font-family="arial" text-decoration="underline" font-size="10.00">pl.Experimenter</text>
+</a>
+</g>
+</g>
+<!-- pl.Experimenter&#45;&gt;6 -->
+<g id="edge17" class="edge">
+<title>pl.Experimenter-&gt;6</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M762.8,-352.83C758.25,-334.46 751.3,-306.42 750.03,-301.33"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;7 -->
+<g id="edge18" class="edge">
+<title>pl.Experimenter-&gt;7</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M771.1,-352.83C775.92,-334.46 783.28,-306.42 784.62,-301.33"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;session.SessionDirectory -->
+<g id="edge19" class="edge">
+<title>pl.Experimenter-&gt;session.SessionDirectory</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M808.89,-368.85C963.16,-367.16 1495.26,-353.53 1617.83,-246.24 1653.62,-214.92 1666.47,-179.09 1637.83,-141.12 1624.5,-123.45 1574.99,-109.95 1530.82,-101.1"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;surgery.Surgery -->
+<g id="edge20" class="edge">
+<title>pl.Experimenter-&gt;surgery.Surgery</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M724.72,-369.37C578.32,-369.38 95.57,-360.62 6.83,-246.24 -2.58,-234.1 -1.85,-224.35 6.83,-211.68 25.72,-184.1 61.43,-171.07 91.37,-164.91"/>
+</g>
+<!-- pl.Experimenter&#45;&gt;pl.SessionUser -->
+<g id="edge21" class="edge">
+<title>pl.Experimenter-&gt;pl.SessionUser</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M808.55,-368.37C944.92,-365.69 1376.33,-354.38 1509.83,-316.8 1575.38,-298.35 1604.95,-300.69 1645.83,-246.24 1677.5,-204.07 1670.66,-136.62 1665.27,-105.53"/>
+</g>
+<!-- scan.ScanPath -->
+<g id="node23" class="node">
+<title>scan.ScanPath</title>
+<g id="a_node23"><a xlink:title="→ pl.Scan→ pl.Experimenterpath                 ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="846.33,-34.56 749.33,-34.56 749.33,0 846.33,0 846.33,-34.56"/>
+<text xml:space="preserve" text-anchor="start" x="757.33" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">scan.ScanPath</text>
+</a>
+</g>
+</g>
+<!-- pl.Experimenter&#45;&gt;scan.ScanPath -->
+<g id="edge22" class="edge">
+<title>pl.Experimenter-&gt;scan.ScanPath</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M725.03,-365.74C609.76,-355.4 295.83,-319.06 295.83,-229.96 295.83,-229.96 295.83,-229.96 295.83,-157.4 295.83,-63.91 623.26,-30.69 749.24,-21.37"/>
+</g>
+<!-- pl.Session&#45;&gt;session.SessionDirectory -->
+<g id="edge23" class="edge">
+<title>pl.Session-&gt;session.SessionDirectory</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1430.58,-140.8C1435.61,-130.02 1442.14,-116.03 1447.16,-105.28"/>
+</g>
+<!-- pl.Session&#45;&gt;session.ProjectSession -->
+<g id="edge24" class="edge">
+<title>pl.Session-&gt;session.ProjectSession</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1386.22,-143.3C1383.41,-142.48 1380.59,-141.74 1377.83,-141.12 1331.15,-130.68 1028.22,-105.67 887.93,-94.45"/>
+</g>
+<!-- pl.Session&#45;&gt;pl.SessionUser -->
+<g id="edge25" class="edge">
+<title>pl.Session-&gt;pl.SessionUser</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1459.09,-143.99C1462.04,-142.99 1464.98,-142.02 1467.83,-141.12 1516.57,-125.77 1573.06,-110.86 1612.47,-100.92"/>
+</g>
+<!-- pl.Scan -->
+<g id="node24" class="node">
+<title>pl.Scan</title>
+<g id="a_node24"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1110.08,-105.12 1053.58,-105.12 1053.58,-70.56 1110.08,-70.56 1110.08,-105.12"/>
+<text xml:space="preserve" text-anchor="start" x="1061.58" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- pl.Session&#45;&gt;pl.Scan -->
+<g id="edge26" class="edge">
+<title>pl.Session-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1386.65,-143.71C1383.69,-142.77 1380.72,-141.89 1377.83,-141.12 1281.28,-115.34 1163.55,-98.87 1110.35,-92.21"/>
+</g>
+<!-- subject.Line -->
+<g id="node21" class="node">
+<title>subject.Line</title>
+<g id="a_node21"><a xlink:title="line                 ------------------------------line_name=&quot;&quot;         is_active            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="651.08,-316.8 570.58,-316.8 570.58,-282.24 651.08,-282.24 651.08,-316.8"/>
+<text xml:space="preserve" text-anchor="start" x="578.58" y="-296.25" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Line</text>
+</a>
+</g>
+</g>
+<!-- subject.Line&#45;&gt;pl.Subject -->
+<g id="edge27" class="edge">
+<title>subject.Line-&gt;pl.Subject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M651.19,-282.62C681.11,-270.83 721.47,-254.93 749.99,-243.69"/>
+</g>
+<!-- subject.Line&#45;&gt;subject.Mutation -->
+<g id="edge28" class="edge">
+<title>subject.Line-&gt;subject.Mutation</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M593.64,-281.92C582.48,-271.14 567.99,-257.15 556.86,-246.4"/>
+</g>
+<!-- pl.Scan&#45;&gt;scan.ScanPath -->
+<g id="edge29" class="edge">
+<title>pl.Scan-&gt;scan.ScanPath</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1053.3,-79.95C1004.91,-68.27 906.22,-44.45 846.67,-30.07"/>
+</g>
+<!-- pl.Lab -->
+<g id="node25" class="node">
+<title>pl.Lab</title>
+<g id="a_node25"><a xlink:title="lab                  ------------------------------lab_name             institution          address              ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="791.33,-457.92 742.33,-457.92 742.33,-423.36 791.33,-423.36 791.33,-457.92"/>
+<text xml:space="preserve" text-anchor="start" x="750.33" y="-437.37" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Lab</text>
+</a>
+</g>
+</g>
+<!-- pl.Lab&#45;&gt;pl.Experimenter -->
+<g id="edge30" class="edge">
+<title>pl.Lab-&gt;pl.Experimenter</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M766.83,-423.04C766.83,-412.11 766.83,-397.86 766.83,-387.05"/>
+</g>
+</g>
+</svg>

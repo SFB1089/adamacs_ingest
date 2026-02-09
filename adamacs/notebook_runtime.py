@@ -90,6 +90,9 @@ def _synchronize_package_db_prefix() -> None:
 
 def _connect_with_tls_fallback(*, allow_tls_fallback: bool) -> bool:
     tls_fallback_applied = False
+    # Default to non-TLS when the config leaves this unset (null/None).
+    if dj.config.get("database.use_tls") is None:
+        dj.config["database.use_tls"] = False
     try:
         dj.conn(reset=True)
     except Exception as exc:

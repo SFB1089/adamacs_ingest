@@ -30,6 +30,12 @@ print("Diagram dot generation: OK")
 PY
 ```
 
+## TLS handshake troubleshooting
+- Symptom: `SSLV3_ALERT_HANDSHAKE_FAILURE` during `dj.conn()` or `adamacs.pipeline` import.
+- Cause: in DataJoint `0.14.x`, `database.use_tls: null` can trigger a TLS attempt.
+- Fix: set `"database.use_tls": false` in your local `dj_local_conf.json` for non-TLS DB servers.
+- Reminder: never commit `dj_local_conf.json`.
+
 ## Known issue classes and current status
 - Missing `dot` binary (`FileNotFoundError: "dot" not found in path`):
   resolved by installing Graphviz in the environment.

@@ -94,3 +94,5 @@ temp*
 */temp*
 rspace_local_conf.json
 notebooks/schema_diagrams/
+!notebooks/schema_diagrams/
+!notebooks/schema_diagrams/*.svg

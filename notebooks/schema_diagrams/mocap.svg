@@ -1,0 +1,307 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1330pt" height="443pt" viewBox="0.00 0.00 1330.00 443.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 438.72)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-438.72 1326.14,-438.72 1326.14,4 -4,4"/>
+<!-- `roselab_virtual_markers_optitrack`.`__rigid_body_tracking` -->
+<g id="node1" class="node">
+<title>`roselab_virtual_markers_optitrack`.`__rigid_body_tracking`</title>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="686.62" cy="-68.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="686.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">`roselab_virtual_markers_optitrack`.`__rigid_body_tracking`</text>
+</g>
+<!-- equipment.Device -->
+<g id="node2" class="node">
+<title>equipment.Device</title>
+<g id="a_node2"><a xlink:title="camera               ------------------------------camera_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1107,-434.72 994.25,-434.72 994.25,-400.16 1107,-400.16 1107,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="1002.25" y="-414.17" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">equipment.Device</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording -->
+<g id="node5" class="node">
+<title>mocap.MocapRecording</title>
+<g id="a_node5"><a xlink:title="→ pl.Scan------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1123.88,-364.16 977.38,-364.16 977.38,-329.6 1123.88,-329.6 1123.88,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="1050.62" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">mocap.MocapRecording</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;mocap.MocapRecording -->
+<g id="edge1" class="edge">
+<title>equipment.Device-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1050.62,-399.84C1050.62,-389.06 1050.62,-375.07 1050.62,-364.32"/>
+</g>
+<!-- disk.DISKModel -->
+<g id="node3" class="node">
+<title>disk.DISKModel</title>
+<g id="a_node3"><a xlink:title="disk_model_name      ------------------------------model_path           model_description=&quot;&quot; data_type            n_keypoints          seq_length           network_type         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="717.25,-223.04 630,-223.04 630,-188.48 717.25,-188.48 717.25,-223.04"/>
+<text xml:space="preserve" text-anchor="start" x="638" y="-203.26" font-family="arial" text-decoration="underline" font-size="10.00">disk.DISKModel</text>
+</a>
+</g>
+</g>
+<!-- disk.MocapImputationTask -->
+<g id="node8" class="node">
+<title>disk.MocapImputationTask</title>
+<g id="a_node8"><a xlink:title="→ mocap.MotionCapture→ disk.DISKModel------------------------------task_mode            output_dir=&quot;&quot;        disk_params=null     task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="752.12,-152.48 595.12,-152.48 595.12,-117.92 752.12,-117.92 752.12,-152.48"/>
+<text xml:space="preserve" text-anchor="middle" x="673.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">disk.MocapImputationTask</text>
+</a>
+</g>
+</g>
+<!-- disk.DISKModel&#45;&gt;disk.MocapImputationTask -->
+<g id="edge2" class="edge">
+<title>disk.DISKModel-&gt;disk.MocapImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M673.62,-188.51C673.62,-177.74 673.62,-163.65 673.62,-152.81"/>
+</g>
+<!-- disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="node4" class="node">
+<title>disk.MocapImputation.RigidBodyPositionDISK</title>
+<g id="a_node4"><a xlink:title="→ disk.MocapImputation→ mocap.Mocap.TrackingIdrigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  uncertainty          imputed_mask         ">
+<polygon fill="none" stroke="none" points="219.25,-20 0,-20 0,0 219.25,0 219.25,-20"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">disk.MocapImputation.RigidBodyPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording.File -->
+<g id="node7" class="node">
+<title>mocap.MocapRecording.File</title>
+<g id="a_node7"><a xlink:title="→ mocap.MocapRecordingfile_id              ------------------------------file_path            ">
+<polygon fill="none" stroke="none" points="1063.88,-286.32 923.38,-286.32 923.38,-266.32 1063.88,-266.32 1063.88,-286.32"/>
+<text xml:space="preserve" text-anchor="start" x="931.38" y="-273.82" font-family="arial" text-decoration="underline" font-size="10.00">mocap.MocapRecording.File</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording&#45;&gt;mocap.MocapRecording.File -->
+<g id="edge3" class="edge">
+<title>mocap.MocapRecording-&gt;mocap.MocapRecording.File</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1036.83,-329.28C1025.49,-315.65 1009.89,-296.88 1000.87,-286.03"/>
+</g>
+<!-- mocap.MocapRecordingInfo -->
+<g id="node9" class="node">
+<title>mocap.MocapRecordingInfo</title>
+<g id="a_node9"><a xlink:title="→ mocap.MocapRecording------------------------------nframes              sampling_rate_hz     duration_s           metadata             ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1190.62" cy="-276.32" rx="108.47" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1190.62" y="-272.05" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">mocap.MocapRecordingInfo</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording&#45;&gt;mocap.MocapRecordingInfo -->
+<g id="edge4" class="edge">
+<title>mocap.MocapRecording-&gt;mocap.MocapRecordingInfo</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1084.87,-329.11C1107.22,-318.17 1136.2,-303.97 1158.17,-293.21"/>
+</g>
+<!-- mocap.MotionCaptureTask -->
+<g id="node11" class="node">
+<title>mocap.MotionCaptureTask</title>
+<g id="a_node11"><a xlink:title="→ mocap.MocapRecording→ mocap.Mocap------------------------------csv_path=&quot;&quot;          ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="581.88,-293.6 423.38,-293.6 423.38,-259.04 581.88,-259.04 581.88,-293.6"/>
+<text xml:space="preserve" text-anchor="middle" x="502.62" y="-272.05" font-family="arial" font-size="12.00" fill="darkgreen">mocap.MotionCaptureTask</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording&#45;&gt;mocap.MotionCaptureTask -->
+<g id="edge5" class="edge">
+<title>mocap.MocapRecording-&gt;mocap.MotionCaptureTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M976.98,-337.35C891.13,-327.3 745.01,-309.93 619.62,-293.6 607.52,-292.02 594.73,-290.3 582.21,-288.59"/>
+</g>
+<!-- mocap.Mocap.TrackingId -->
+<g id="node6" class="node">
+<title>mocap.Mocap.TrackingId</title>
+<g id="a_node6"><a xlink:title="→ mocap.Mocap→ mocap.TrackingId">
+<polygon fill="none" stroke="none" points="332.75,-215.76 206.5,-215.76 206.5,-195.76 332.75,-195.76 332.75,-215.76"/>
+<text xml:space="preserve" text-anchor="middle" x="269.62" y="-202.26" font-family="arial" font-size="10.00">mocap.Mocap.TrackingId</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="edge6" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;disk.MocapImputation.RigidBodyPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M232.13,-195.77C207.56,-188.08 176.43,-174.65 156.62,-152.48 120.76,-112.33 112.15,-44.03 110.18,-19.82"/>
+</g>
+<!-- disk.MocapImputation.TrackingPositionDISK -->
+<g id="node12" class="node">
+<title>disk.MocapImputation.TrackingPositionDISK</title>
+<g id="a_node12"><a xlink:title="→ disk.MocapImputation→ mocap.Mocap.TrackingId------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                uncertainty          imputed_mask         ">
+<polygon fill="none" stroke="none" points="449.5,-20 237.75,-20 237.75,0 449.5,0 449.5,-20"/>
+<text xml:space="preserve" text-anchor="middle" x="343.62" y="-6.5" font-family="arial" font-size="10.00">disk.MocapImputation.TrackingPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;disk.MocapImputation.TrackingPositionDISK -->
+<g id="edge7" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;disk.MocapImputation.TrackingPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M230.55,-195.81C207.63,-188.33 180.53,-175.12 166.62,-152.48 158.59,-139.39 159.09,-131.31 166.62,-117.92 197.44,-63.17 268.84,-33.31 310.93,-19.89"/>
+</g>
+<!-- mocap.MotionCapture.RigidBodyPosition -->
+<g id="node13" class="node">
+<title>mocap.MotionCapture.RigidBodyPosition</title>
+<g id="a_node13"><a xlink:title="→ mocap.MotionCapture→ mocap.Mocap.TrackingIdrigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)INDEX (qw)INDEX (qx)INDEX (qy)INDEX (qz)INDEX (roll)INDEX (pitch)INDEX (yaw)">
+<polygon fill="none" stroke="none" points="577.25,-145.2 382,-145.2 382,-125.2 577.25,-125.2 577.25,-145.2"/>
+<text xml:space="preserve" text-anchor="start" x="390" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">mocap.MotionCapture.RigidBodyPosition</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;mocap.MotionCapture.RigidBodyPosition -->
+<g id="edge8" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;mocap.MotionCapture.RigidBodyPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M297.08,-195.8C337.33,-182.66 411.91,-158.31 452.16,-145.17"/>
+</g>
+<!-- mocap.MotionCapture.TrackingPosition -->
+<g id="node14" class="node">
+<title>mocap.MotionCapture.TrackingPosition</title>
+<g id="a_node14"><a xlink:title="→ mocap.MotionCapture→ mocap.Mocap.TrackingId------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)">
+<polygon fill="none" stroke="none" points="363.5,-145.2 175.75,-145.2 175.75,-125.2 363.5,-125.2 363.5,-145.2"/>
+<text xml:space="preserve" text-anchor="middle" x="269.62" y="-131.7" font-family="arial" font-size="10.00">mocap.MotionCapture.TrackingPosition</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;mocap.MotionCapture.TrackingPosition -->
+<g id="edge9" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;mocap.MotionCapture.TrackingPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M269.62,-195.8C269.62,-182.58 269.62,-158.04 269.62,-144.95"/>
+</g>
+<!-- disk.MocapImputation -->
+<g id="node10" class="node">
+<title>disk.MocapImputation</title>
+<g id="a_node10"><a xlink:title="→ disk.MocapImputationTask------------------------------imputation_time      n_frames_total       n_frames_imputed     n_values_imputed     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="343.62" cy="-68.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="343.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">disk.MocapImputation</text>
+</a>
+</g>
+</g>
+<!-- disk.MocapImputationTask&#45;&gt;disk.MocapImputation -->
+<g id="edge10" class="edge">
+<title>disk.MocapImputationTask-&gt;disk.MocapImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M595,-118.89C513.98,-103.12 394.26,-79.82 355.91,-72.35"/>
+</g>
+<!-- disk.MocapImputation&#45;&gt;disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="edge11" class="edge">
+<title>disk.MocapImputation-&gt;disk.MocapImputation.RigidBodyPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M331.37,-64.98C297.24,-56.67 200.04,-33.01 146.36,-19.94"/>
+</g>
+<!-- disk.MocapImputation&#45;&gt;disk.MocapImputation.TrackingPositionDISK -->
+<g id="edge12" class="edge">
+<title>disk.MocapImputation-&gt;disk.MocapImputation.TrackingPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M343.62,-56.16C343.62,-45.34 343.62,-29.56 343.62,-19.81"/>
+</g>
+<!-- mocap.MotionCapture -->
+<g id="node15" class="node">
+<title>mocap.MotionCapture</title>
+<g id="a_node15"><a xlink:title="→ mocap.MotionCaptureTask------------------------------import_time          ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="490.62" cy="-205.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="490.62" y="-201.49" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">mocap.MotionCapture</text>
+</a>
+</g>
+</g>
+<!-- mocap.MotionCaptureTask&#45;&gt;mocap.MotionCapture -->
+<g id="edge13" class="edge">
+<title>mocap.MotionCaptureTask-&gt;mocap.MotionCapture</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M499.72,-258.72C497.53,-246.2 494.58,-229.34 492.64,-218.27"/>
+</g>
+<!-- pupil_tracking.RigidMouseTracking -->
+<g id="node17" class="node">
+<title>pupil_tracking.RigidMouseTracking</title>
+<g id="a_node17"><a xlink:title="→ pl.Scan→ virtual_markers_optitrack.EyeNoseCamPosCalib→ mocap.MotionCaptureTask------------------------------pivot_eye_center_global yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_global      eye_right_global     nose_global          world_cam_global     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="910.62" cy="-205.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="910.62" y="-201.49" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.RigidMouseTracking</text>
+</a>
+</g>
+</g>
+<!-- mocap.MotionCaptureTask&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge14" class="edge">
+<title>mocap.MotionCaptureTask-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M582.26,-261.94C683.6,-244.91 851.16,-216.75 898.08,-208.87"/>
+</g>
+<!-- mocap.MotionCapture.TrackingPosition&#45;&gt;`roselab_virtual_markers_optitrack`.`__rigid_body_tracking` -->
+<g id="edge15" class="edge">
+<title>mocap.MotionCapture.TrackingPosition-&gt;`roselab_virtual_markers_optitrack`.`__rigid_body_tracking`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M326.01,-125.23C341.15,-122.84 357.51,-120.27 372.62,-117.92 489.78,-99.71 631.63,-78.26 674.06,-71.86"/>
+</g>
+<!-- mocap.MotionCapture&#45;&gt;disk.MocapImputationTask -->
+<g id="edge16" class="edge">
+<title>mocap.MotionCapture-&gt;disk.MocapImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M502.35,-200.37C527.36,-191 587.05,-168.63 628.9,-152.96"/>
+</g>
+<!-- mocap.MotionCapture&#45;&gt;mocap.MotionCapture.RigidBodyPosition -->
+<g id="edge17" class="edge">
+<title>mocap.MotionCapture-&gt;mocap.MotionCapture.RigidBodyPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M488.76,-193.13C486.58,-179.53 483.01,-157.32 481.04,-145.05"/>
+</g>
+<!-- mocap.MotionCapture&#45;&gt;mocap.MotionCapture.TrackingPosition -->
+<g id="edge18" class="edge">
+<title>mocap.MotionCapture-&gt;mocap.MotionCapture.TrackingPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M478.74,-201.07C444.94,-190.59 347.54,-160.37 298.52,-145.17"/>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="node16" class="node">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<g id="a_node16"><a xlink:title="→ pl.Subject------------------------------eye_left             eye_right            nose                 world_cam            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="905.12,-293.6 628.12,-293.6 628.12,-259.04 905.12,-259.04 905.12,-293.6"/>
+<text xml:space="preserve" text-anchor="middle" x="766.62" y="-272.05" font-family="arial" font-size="12.00" fill="darkgreen">virtual_markers_optitrack.EyeNoseCamPosCalib</text>
+</a>
+</g>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib&#45;&gt;`roselab_virtual_markers_optitrack`.`__rigid_body_tracking` -->
+<g id="edge19" class="edge">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib-&gt;`roselab_virtual_markers_optitrack`.`__rigid_body_tracking`</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M770.81,-258.81C777.51,-228.59 787.43,-163.32 761.62,-117.92 747.8,-93.6 716.03,-79.69 698.61,-73.63"/>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge20" class="edge">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M801.85,-258.55C833.82,-243.33 879.02,-221.81 899.62,-212"/>
+</g>
+<!-- pl.Scan -->
+<g id="node18" class="node">
+<title>pl.Scan</title>
+<g id="a_node18"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1296.88,-434.72 1240.38,-434.72 1240.38,-400.16 1296.88,-400.16 1296.88,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="1248.38" y="-414.17" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan&#45;&gt;mocap.MocapRecording -->
+<g id="edge21" class="edge">
+<title>pl.Scan-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1240.13,-407.48C1205.62,-396.62 1146.79,-378.12 1103.81,-364.61"/>
+</g>
+<!-- pl.Scan&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge22" class="edge">
+<title>pl.Scan-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1281.06,-399.96C1303.09,-368.61 1343.45,-299.89 1307.62,-259.04 1281.56,-229.31 988.29,-211.13 923.32,-207.45"/>
+</g>
+<!-- mocap.Mocap -->
+<g id="node19" class="node">
+<title>mocap.Mocap</title>
+<g id="a_node19"><a xlink:title="mocap_name           ------------------------------description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="432.12,-364.16 341.12,-364.16 341.12,-329.6 432.12,-329.6 432.12,-364.16"/>
+<text xml:space="preserve" text-anchor="start" x="349.12" y="-343.61" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">mocap.Mocap</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap&#45;&gt;mocap.Mocap.TrackingId -->
+<g id="edge23" class="edge">
+<title>mocap.Mocap-&gt;mocap.Mocap.TrackingId</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M340.86,-331.21C322.05,-322.98 301.66,-310.82 288.62,-293.6 270.64,-269.85 268.98,-232.55 269.24,-215.63"/>
+</g>
+<!-- mocap.Mocap&#45;&gt;mocap.MotionCaptureTask -->
+<g id="edge24" class="edge">
+<title>mocap.Mocap-&gt;mocap.MotionCaptureTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M415,-329.11C433.11,-318.4 456.49,-304.59 474.54,-293.92"/>
+</g>
+<!-- mocap.TrackingId -->
+<g id="node20" class="node">
+<title>mocap.TrackingId</title>
+<g id="a_node20"><a xlink:title="tracking_id          ------------------------------uid=&quot;&quot;               description=&quot;&quot;       ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="391.62,-293.6 297.62,-293.6 297.62,-259.04 391.62,-259.04 391.62,-293.6"/>
+<text xml:space="preserve" text-anchor="start" x="305.62" y="-273.82" font-family="arial" text-decoration="underline" font-size="10.00">mocap.TrackingId</text>
+</a>
+</g>
+</g>
+<!-- mocap.TrackingId&#45;&gt;mocap.Mocap.TrackingId -->
+<g id="edge25" class="edge">
+<title>mocap.TrackingId-&gt;mocap.Mocap.TrackingId</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M326.85,-259.07C311.95,-245.45 291.24,-226.52 279.25,-215.56"/>
+</g>
+</g>
+</svg>

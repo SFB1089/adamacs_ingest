@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="332pt" height="246pt" viewBox="0.00 0.00 332.00 246.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 241.6)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-241.6 327.75,-241.6 327.75,4 -4,4"/>
+<!-- pl.Scan -->
+<g id="node1" class="node">
+<title>pl.Scan</title>
+<g id="a_node1"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="56.5,-167.04 0,-167.04 0,-132.48 56.5,-132.48 56.5,-167.04"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-146.48" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- denoising.DenoisingTask -->
+<g id="node2" class="node">
+<title>denoising.DenoisingTask</title>
+<g id="a_node2"><a xlink:title="→ pl.Scan→ denoising.DenoisingProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="175.75,-96.48 24.75,-96.48 24.75,-61.92 175.75,-61.92 175.75,-96.48"/>
+<text xml:space="preserve" text-anchor="middle" x="100.25" y="-74.92" font-family="arial" font-size="12.00" fill="darkgreen">denoising.DenoisingTask</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan&#45;&gt;denoising.DenoisingTask -->
+<g id="edge1" class="edge">
+<title>pl.Scan-&gt;denoising.DenoisingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M45.68,-132.16C56.92,-121.46 71.48,-107.6 82.73,-96.88"/>
+</g>
+<!-- denoising.Denoising -->
+<g id="node5" class="node">
+<title>denoising.Denoising</title>
+<g id="a_node5"><a xlink:title="→ denoising.DenoisingTask------------------------------denoising_time       ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="100.25" cy="-12.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="100.25" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">denoising.Denoising</text>
+</a>
+</g>
+</g>
+<!-- denoising.DenoisingTask&#45;&gt;denoising.Denoising -->
+<g id="edge2" class="edge">
+<title>denoising.DenoisingTask-&gt;denoising.Denoising</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M100.25,-61.66C100.25,-50.36 100.25,-35.66 100.25,-25.58"/>
+</g>
+<!-- denoising.DenoisingMethod -->
+<g id="node3" class="node">
+<title>denoising.DenoisingMethod</title>
+<g id="a_node3"><a xlink:title="denoising_method     ------------------------------denoising_method_desc ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="160.25,-237.6 24.25,-237.6 24.25,-203.04 160.25,-203.04 160.25,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="32.25" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">denoising.DenoisingMethod</text>
+</a>
+</g>
+</g>
+<!-- denoising.DenoisingProcessingParamSet -->
+<g id="node6" class="node">
+<title>denoising.DenoisingProcessingParamSet</title>
+<g id="a_node6"><a xlink:title="denoise_paramset_idx ------------------------------→ imaging.ProcessingParamSet→ denoising.DenoisingMethoddenoise_paramset_desc denoise_param_set_hash denoise_params       UNIQUE INDEX (denoise_param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="270.25,-167.04 74.25,-167.04 74.25,-132.48 270.25,-132.48 270.25,-167.04"/>
+<text xml:space="preserve" text-anchor="start" x="82.25" y="-147.26" font-family="arial" text-decoration="underline" font-size="10.00">denoising.DenoisingProcessingParamSet</text>
+</a>
+</g>
+</g>
+<!-- denoising.DenoisingMethod&#45;&gt;denoising.DenoisingProcessingParamSet -->
+<g id="edge3" class="edge">
+<title>denoising.DenoisingMethod-&gt;denoising.DenoisingProcessingParamSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M111.21,-203.07C123.96,-192.14 140.7,-177.8 153.43,-166.89"/>
+</g>
+<!-- imaging.ProcessingParamSet -->
+<g id="node4" class="node">
+<title>imaging.ProcessingParamSet</title>
+<g id="a_node4"><a xlink:title="paramset_idx         ------------------------------→ imaging.ProcessingMethod→ imaging.ProcessingScanConcatenationparamset_desc        param_set_hash       params               UNIQUE INDEX (param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="323.75,-237.6 178.75,-237.6 178.75,-203.04 323.75,-203.04 323.75,-237.6"/>
+<text xml:space="preserve" text-anchor="start" x="186.75" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">imaging.ProcessingParamSet</text>
+</a>
+</g>
+</g>
+<!-- imaging.ProcessingParamSet&#45;&gt;denoising.DenoisingProcessingParamSet -->
+<g id="edge4" class="edge">
+<title>imaging.ProcessingParamSet-&gt;denoising.DenoisingProcessingParamSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M232.53,-203.07C219.93,-192.14 203.4,-177.8 190.84,-166.89"/>
+</g>
+<!-- denoising.DenoisingProcessingParamSet&#45;&gt;denoising.DenoisingTask -->
+<g id="edge5" class="edge">
+<title>denoising.DenoisingProcessingParamSet-&gt;denoising.DenoisingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M155.19,-132.51C143.88,-121.74 129.08,-107.65 117.69,-96.81"/>
+</g>
+</g>
+</svg>

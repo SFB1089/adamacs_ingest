@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="713pt" height="231pt" viewBox="0.00 0.00 713.00 231.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227.04)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-227.04 708.5,-227.04 708.5,4 -4,4"/>
+<!-- disk.MocapImputation.TrackingPositionDISK -->
+<g id="node1" class="node">
+<title>disk.MocapImputation.TrackingPositionDISK</title>
+<g id="a_node1"><a xlink:title="→ disk.MocapImputation→ mocap.Mocap.TrackingId------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                uncertainty          imputed_mask         ">
+<polygon fill="none" stroke="none" points="449.5,-20 237.75,-20 237.75,0 449.5,0 449.5,-20"/>
+<text xml:space="preserve" text-anchor="middle" x="343.62" y="-6.5" font-family="arial" font-size="10.00">disk.MocapImputation.TrackingPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- disk.MocapImputationTask -->
+<g id="node2" class="node">
+<title>disk.MocapImputationTask</title>
+<g id="a_node2"><a xlink:title="→ mocap.MotionCapture→ disk.DISKModel------------------------------task_mode            output_dir=&quot;&quot;        disk_params=null     task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="341.12,-152.48 184.12,-152.48 184.12,-117.92 341.12,-117.92 341.12,-152.48"/>
+<text xml:space="preserve" text-anchor="middle" x="262.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">disk.MocapImputationTask</text>
+</a>
+</g>
+</g>
+<!-- disk.MocapImputation -->
+<g id="node8" class="node">
+<title>disk.MocapImputation</title>
+<g id="a_node8"><a xlink:title="→ disk.MocapImputationTask------------------------------imputation_time      n_frames_total       n_frames_imputed     n_values_imputed     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="262.62" cy="-68.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="262.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">disk.MocapImputation</text>
+</a>
+</g>
+</g>
+<!-- disk.MocapImputationTask&#45;&gt;disk.MocapImputation -->
+<g id="edge1" class="edge">
+<title>disk.MocapImputationTask-&gt;disk.MocapImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M262.62,-117.66C262.62,-106.36 262.62,-91.66 262.62,-81.58"/>
+</g>
+<!-- disk.DISKModel -->
+<g id="node3" class="node">
+<title>disk.DISKModel</title>
+<g id="a_node3"><a xlink:title="disk_model_name      ------------------------------model_path           model_description=&quot;&quot; data_type            n_keypoints          seq_length           network_type         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="378.25,-223.04 291,-223.04 291,-188.48 378.25,-188.48 378.25,-223.04"/>
+<text xml:space="preserve" text-anchor="start" x="299" y="-203.26" font-family="arial" text-decoration="underline" font-size="10.00">disk.DISKModel</text>
+</a>
+</g>
+</g>
+<!-- disk.DISKModel&#45;&gt;disk.MocapImputationTask -->
+<g id="edge2" class="edge">
+<title>disk.DISKModel-&gt;disk.MocapImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M317.56,-188.51C306.25,-177.74 291.45,-163.65 280.07,-152.81"/>
+</g>
+<!-- disk.DLCImputationTask -->
+<g id="node7" class="node">
+<title>disk.DLCImputationTask</title>
+<g id="a_node7"><a xlink:title="→ pupil_tracking.PoseEstimationNew→ disk.DISKModel------------------------------task_mode            output_dir=&quot;&quot;        disk_params=null     task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="554.5,-152.48 408.75,-152.48 408.75,-117.92 554.5,-117.92 554.5,-152.48"/>
+<text xml:space="preserve" text-anchor="middle" x="481.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">disk.DLCImputationTask</text>
+</a>
+</g>
+</g>
+<!-- disk.DISKModel&#45;&gt;disk.DLCImputationTask -->
+<g id="edge3" class="edge">
+<title>disk.DISKModel-&gt;disk.DLCImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M369.46,-188.51C392.47,-177.78 422.55,-163.75 445.76,-152.93"/>
+</g>
+<!-- disk.DLCImputation -->
+<g id="node4" class="node">
+<title>disk.DLCImputation</title>
+<g id="a_node4"><a xlink:title="→ disk.DLCImputationTask------------------------------imputation_time      n_frames_total       n_frames_imputed     n_values_imputed     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="481.62" cy="-68.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="481.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">disk.DLCImputation</text>
+</a>
+</g>
+</g>
+<!-- disk.DLCImputation.BodyPartPositionDISK -->
+<g id="node9" class="node">
+<title>disk.DLCImputation.BodyPartPositionDISK</title>
+<g id="a_node9"><a xlink:title="→ disk.DLCImputation→ model.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           uncertainty          imputed_mask         original_likelihood  ">
+<polygon fill="none" stroke="none" points="704.5,-20 498.75,-20 498.75,0 704.5,0 704.5,-20"/>
+<text xml:space="preserve" text-anchor="middle" x="601.62" y="-6.5" font-family="arial" font-size="10.00">disk.DLCImputation.BodyPartPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- disk.DLCImputation&#45;&gt;disk.DLCImputation.BodyPartPositionDISK -->
+<g id="edge4" class="edge">
+<title>disk.DLCImputation-&gt;disk.DLCImputation.BodyPartPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M492.7,-62.7C513.24,-52.95 557.45,-31.97 582.78,-19.95"/>
+</g>
+<!-- pupil_tracking.PoseEstimationNew -->
+<g id="node5" class="node">
+<title>pupil_tracking.PoseEstimationNew</title>
+<g id="a_node5"><a xlink:title="→ model.PoseEstimationTaskNew------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="497.62" cy="-205.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="497.62" y="-201.49" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.PoseEstimationNew</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.PoseEstimationNew&#45;&gt;disk.DLCImputationTask -->
+<g id="edge5" class="edge">
+<title>pupil_tracking.PoseEstimationNew-&gt;disk.DLCImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M494.91,-193.13C492.33,-182.05 488.41,-165.26 485.49,-152.78"/>
+</g>
+<!-- mocap.Mocap.TrackingId -->
+<g id="node6" class="node">
+<title>mocap.Mocap.TrackingId</title>
+<g id="a_node6"><a xlink:title="→ mocap.Mocap→ mocap.TrackingId">
+<polygon fill="none" stroke="none" points="176.75,-78.96 50.5,-78.96 50.5,-58.96 176.75,-58.96 176.75,-78.96"/>
+<text xml:space="preserve" text-anchor="middle" x="113.62" y="-65.46" font-family="arial" font-size="10.00">mocap.Mocap.TrackingId</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;disk.MocapImputation.TrackingPositionDISK -->
+<g id="edge6" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;disk.MocapImputation.TrackingPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M149.82,-59C192.95,-48.31 264.6,-30.57 307.65,-19.91"/>
+</g>
+<!-- disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="node12" class="node">
+<title>disk.MocapImputation.RigidBodyPositionDISK</title>
+<g id="a_node12"><a xlink:title="→ disk.MocapImputation→ mocap.Mocap.TrackingIdrigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  uncertainty          imputed_mask         ">
+<polygon fill="none" stroke="none" points="219.25,-20 0,-20 0,0 219.25,0 219.25,-20"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">disk.MocapImputation.RigidBodyPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- mocap.Mocap.TrackingId&#45;&gt;disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="edge7" class="edge">
+<title>mocap.Mocap.TrackingId-&gt;disk.MocapImputation.RigidBodyPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M113,-59.06C112.24,-48.3 110.98,-30.3 110.23,-19.65"/>
+</g>
+<!-- disk.DLCImputationTask&#45;&gt;disk.DLCImputation -->
+<g id="edge8" class="edge">
+<title>disk.DLCImputationTask-&gt;disk.DLCImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M481.62,-117.66C481.62,-106.36 481.62,-91.66 481.62,-81.58"/>
+</g>
+<!-- disk.MocapImputation&#45;&gt;disk.MocapImputation.TrackingPositionDISK -->
+<g id="edge9" class="edge">
+<title>disk.MocapImputation-&gt;disk.MocapImputation.TrackingPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M272.56,-60.98C287.26,-50.64 314.81,-31.27 330.95,-19.92"/>
+</g>
+<!-- disk.MocapImputation&#45;&gt;disk.MocapImputation.RigidBodyPositionDISK -->
+<g id="edge10" class="edge">
+<title>disk.MocapImputation-&gt;disk.MocapImputation.RigidBodyPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M251.13,-63.68C226.25,-54.42 166.98,-32.35 133.58,-19.92"/>
+</g>
+<!-- mocap.MotionCapture -->
+<g id="node10" class="node">
+<title>mocap.MotionCapture</title>
+<g id="a_node10"><a xlink:title="→ mocap.MotionCaptureTask------------------------------import_time          ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="205.62" cy="-205.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="205.62" y="-201.49" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">mocap.MotionCapture</text>
+</a>
+</g>
+</g>
+<!-- mocap.MotionCapture&#45;&gt;disk.MocapImputationTask -->
+<g id="edge11" class="edge">
+<title>mocap.MotionCapture-&gt;disk.MocapImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M213.31,-195.51C222.37,-184.62 237.59,-166.32 248.73,-152.92"/>
+</g>
+<!-- model.Model.BodyPart -->
+<g id="node11" class="node">
+<title>model.Model.BodyPart</title>
+<g id="a_node11"><a xlink:title="→ model.Model→ model.BodyPart">
+<polygon fill="none" stroke="none" points="675.12,-78.96 560.12,-78.96 560.12,-58.96 675.12,-58.96 675.12,-78.96"/>
+<text xml:space="preserve" text-anchor="middle" x="617.62" y="-65.46" font-family="arial" font-size="10.00">model.Model.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- model.Model.BodyPart&#45;&gt;disk.DLCImputation.BodyPartPositionDISK -->
+<g id="edge12" class="edge">
+<title>model.Model.BodyPart-&gt;disk.DLCImputation.BodyPartPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M615.12,-59.06C612.1,-48.3 607.05,-30.3 604.06,-19.65"/>
+</g>
+</g>
+</svg>

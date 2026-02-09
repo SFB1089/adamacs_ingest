@@ -1,3 +1,20 @@
+import logging
+import warnings
+
+logging.getLogger("datajoint").setLevel(logging.WARNING)
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API.*",
+    category=UserWarning,
+)
+
+from adamacs.notebook_runtime import bootstrap_ingest_notebook
+
+ctx = bootstrap_ingest_notebook(verbose=False)
+repo_root = ctx.repo_root
+
+import datajoint as dj
+
 """Batch template for DLC pose ingestion and population."""
 
 from adamacs.pipeline import model

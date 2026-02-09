@@ -1,0 +1,526 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1447pt" height="513pt" viewBox="0.00 0.00 1447.00 513.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 509.28)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-509.28 1442.5,-509.28 1442.5,4 -4,4"/>
+<!-- 36 -->
+<g id="node1" class="node">
+<title>36</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="84" cy="-205.76" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="84" y="-205.94" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">36</text>
+</g>
+<!-- imaging.Segmentation.Mask -->
+<g id="node24" class="node">
+<title>imaging.Segmentation.Mask</title>
+<g id="a_node24"><a xlink:title="→ imaging.Segmentationmask                 ------------------------------roi_group            → scan.Channel.proj(segmentation_channel=&quot;channel&quot;)mask_npix            mask_center_x        mask_center_y        mask_center_z        mask_xpix            mask_ypix            mask_zpix            mask_weights         ">
+<polygon fill="none" stroke="none" points="169.88,-78.96 30.12,-78.96 30.12,-58.96 169.88,-58.96 169.88,-78.96"/>
+<text xml:space="preserve" text-anchor="start" x="38.12" y="-66.46" font-family="arial" text-decoration="underline" font-size="10.00">imaging.Segmentation.Mask</text>
+</a>
+</g>
+</g>
+<!-- 36&#45;&gt;imaging.Segmentation.Mask -->
+<g id="edge1" class="edge">
+<title>36-&gt;imaging.Segmentation.Mask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M84.1,-203.9C85.24,-194.3 95.59,-107.15 98.95,-78.82"/>
+</g>
+<!-- 37 -->
+<g id="node2" class="node">
+<title>37</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="147" cy="-205.76" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="147" y="-205.94" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">37</text>
+</g>
+<!-- imaging.MotionCorrection -->
+<g id="node4" class="node">
+<title>imaging.MotionCorrection</title>
+<g id="a_node4"><a xlink:title="→ imaging.Curation------------------------------→ scan.Channel.proj(motion_correct_channel=&quot;channel&quot;)">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="366" cy="-135.2" rx="100.14" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="366" y="-130.93" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">imaging.MotionCorrection</text>
+</a>
+</g>
+</g>
+<!-- 37&#45;&gt;imaging.MotionCorrection -->
+<g id="edge2" class="edge">
+<title>37-&gt;imaging.MotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M148.36,-204.22C153.72,-202.1 174,-194.16 191,-188.48 232.5,-174.62 280.11,-160.51 315.19,-150.45"/>
+</g>
+<!-- 35 -->
+<g id="node3" class="node">
+<title>35</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="32" cy="-135.2" rx="2.16" ry="2.16"/>
+<text xml:space="preserve" text-anchor="middle" x="32" y="-135.38" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">35</text>
+</g>
+<!-- imaging.Fluorescence.Trace -->
+<g id="node27" class="node">
+<title>imaging.Fluorescence.Trace</title>
+<g id="a_node27"><a xlink:title="→ imaging.Fluorescence→ imaging.Segmentation.Mask→ scan.Channel.proj(fluo_channel=&quot;channel&quot;)------------------------------fluorescence         neuropil_fluorescence=null INDEX (fluorescence)INDEX (neuropil_fluorescence)">
+<polygon fill="none" stroke="none" points="169.5,-20 30.5,-20 30.5,0 169.5,0 169.5,-20"/>
+<text xml:space="preserve" text-anchor="middle" x="100" y="-6.5" font-family="arial" font-size="10.00">imaging.Fluorescence.Trace</text>
+</a>
+</g>
+</g>
+<!-- 35&#45;&gt;imaging.Fluorescence.Trace -->
+<g id="edge3" class="edge">
+<title>35-&gt;imaging.Fluorescence.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M31.51,-133.35C27.81,-126.83 4.74,-83.97 21,-56 31.39,-38.12 51.83,-26.76 69.32,-19.92"/>
+</g>
+<!-- imaging.MotionCorrection.Summary -->
+<g id="node15" class="node">
+<title>imaging.MotionCorrection.Summary</title>
+<g id="a_node15"><a xlink:title="→ imaging.MotionCorrection→ scan.ScanInfo.Field------------------------------ref_image            average_image        correlation_image=null max_proj_image=null  ">
+<polygon fill="none" stroke="none" points="567,-78.96 395,-78.96 395,-58.96 567,-58.96 567,-78.96"/>
+<text xml:space="preserve" text-anchor="middle" x="481" y="-65.46" font-family="arial" font-size="10.00">imaging.MotionCorrection.Summary</text>
+</a>
+</g>
+</g>
+<!-- imaging.MotionCorrection&#45;&gt;imaging.MotionCorrection.Summary -->
+<g id="edge4" class="edge">
+<title>imaging.MotionCorrection-&gt;imaging.MotionCorrection.Summary</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M394.43,-118.32C416.64,-105.91 446.71,-89.11 464.94,-78.93"/>
+</g>
+<!-- imaging.Curation -->
+<g id="node5" class="node">
+<title>imaging.Curation</title>
+<g id="a_node5"><a xlink:title="→ imaging.Processingcuration_id          ------------------------------curation_time        curation_output_dir  manual_curation      curation_note=&quot;&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="307.75,-223.04 200.25,-223.04 200.25,-188.48 307.75,-188.48 307.75,-223.04"/>
+<text xml:space="preserve" text-anchor="start" x="208.25" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">imaging.Curation</text>
+</a>
+</g>
+</g>
+<!-- imaging.Curation&#45;&gt;imaging.MotionCorrection -->
+<g id="edge5" class="edge">
+<title>imaging.Curation-&gt;imaging.MotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M281.4,-187.99C299.14,-177.13 322.12,-163.06 339.66,-152.33"/>
+</g>
+<!-- imaging.Segmentation -->
+<g id="node16" class="node">
+<title>imaging.Segmentation</title>
+<g id="a_node16"><a xlink:title="→ imaging.Curation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="180" cy="-135.2" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="180" y="-130.93" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Segmentation</text>
+</a>
+</g>
+</g>
+<!-- imaging.Curation&#45;&gt;imaging.Segmentation -->
+<g id="edge6" class="edge">
+<title>imaging.Curation-&gt;imaging.Segmentation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M236.09,-188.16C221.03,-174.21 200.17,-154.88 188.6,-144.17"/>
+</g>
+<!-- imaging.Fluorescence -->
+<g id="node6" class="node">
+<title>imaging.Fluorescence</title>
+<g id="a_node6"><a xlink:title="→ imaging.Segmentation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="255" cy="-68.96" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="255" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Fluorescence</text>
+</a>
+</g>
+</g>
+<!-- imaging.Fluorescence&#45;&gt;imaging.Fluorescence.Trace -->
+<g id="edge7" class="edge">
+<title>imaging.Fluorescence-&gt;imaging.Fluorescence.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M243.35,-63.68C218.15,-54.42 158.1,-32.35 124.26,-19.92"/>
+</g>
+<!-- denoising.DenoisingTask -->
+<g id="node7" class="node">
+<title>denoising.DenoisingTask</title>
+<g id="a_node7"><a xlink:title="→ pl.Scan→ denoising.DenoisingProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="162.5,-364.16 11.5,-364.16 11.5,-329.6 162.5,-329.6 162.5,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="87" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">denoising.DenoisingTask</text>
+</a>
+</g>
+</g>
+<!-- pl.Location -->
+<g id="node8" class="node">
+<title>pl.Location</title>
+<g id="a_node8"><a xlink:title="anatomical_location  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1132.25,-434.72 1057.75,-434.72 1057.75,-400.16 1132.25,-400.16 1132.25,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="1065.75" y="-414.17" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Location</text>
+</a>
+</g>
+</g>
+<!-- scan.ScanLocation -->
+<g id="node11" class="node">
+<title>scan.ScanLocation</title>
+<g id="a_node11"><a xlink:title="→ pl.Scan------------------------------→ pl.Location">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1154,-364.16 1036,-364.16 1036,-329.6 1154,-329.6 1154,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="1095" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">scan.ScanLocation</text>
+</a>
+</g>
+</g>
+<!-- pl.Location&#45;&gt;scan.ScanLocation -->
+<g id="edge8" class="edge">
+<title>pl.Location-&gt;scan.ScanLocation</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1095,-399.84C1095,-389.06 1095,-375.07 1095,-364.32"/>
+</g>
+<!-- scan.ScanInfo -->
+<g id="node9" class="node">
+<title>scan.ScanInfo</title>
+<g id="a_node9"><a xlink:title="→ pl.Scan------------------------------nfields              nchannels            ndepths              nframes              nrois                x=null               y=null               z=null               fps                  bidirectional        usecs_per_line=null  fill_fraction=null   scan_datetime=null   scan_duration=null   userfunction_info    ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="920" cy="-346.88" rx="59.95" ry="17.28"/>
+<text xml:space="preserve" text-anchor="middle" x="920" y="-342.61" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">scan.ScanInfo</text>
+</a>
+</g>
+</g>
+<!-- scan.ScanInfo.ScanFile -->
+<g id="node17" class="node">
+<title>scan.ScanInfo.ScanFile</title>
+<g id="a_node17"><a xlink:title="→ scan.ScanInfofile_path            ">
+<polygon fill="none" stroke="none" points="980.12,-286.32 859.88,-286.32 859.88,-266.32 980.12,-266.32 980.12,-286.32"/>
+<text xml:space="preserve" text-anchor="start" x="867.88" y="-273.82" font-family="arial" text-decoration="underline" font-size="10.00">scan.ScanInfo.ScanFile</text>
+</a>
+</g>
+</g>
+<!-- scan.ScanInfo&#45;&gt;scan.ScanInfo.ScanFile -->
+<g id="edge9" class="edge">
+<title>scan.ScanInfo-&gt;scan.ScanInfo.ScanFile</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M920,-329.28C920,-315.65 920,-296.88 920,-286.03"/>
+</g>
+<!-- scan.ScanInfo.Field -->
+<g id="node19" class="node">
+<title>scan.ScanInfo.Field</title>
+<g id="a_node19"><a xlink:title="→ scan.ScanInfofield_idx            ------------------------------px_height            px_width             um_height=null       um_width=null        zoom                 power                field_x=null         field_y=null         field_z=null         delay_image=null     roi=null             ">
+<polygon fill="none" stroke="none" points="587.5,-145.2 484.5,-145.2 484.5,-125.2 587.5,-125.2 587.5,-145.2"/>
+<text xml:space="preserve" text-anchor="start" x="492.5" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">scan.ScanInfo.Field</text>
+</a>
+</g>
+</g>
+<!-- scan.ScanInfo&#45;&gt;scan.ScanInfo.Field -->
+<g id="edge10" class="edge">
+<title>scan.ScanInfo-&gt;scan.ScanInfo.Field</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M876.26,-334.63C868.22,-332.79 859.89,-331.02 852,-329.6 786.57,-317.84 602,-340.62 555,-293.6 513.75,-252.33 527.79,-171.47 533.84,-144.89"/>
+</g>
+<!-- mocap.MocapRecording -->
+<g id="node10" class="node">
+<title>mocap.MocapRecording</title>
+<g id="a_node10"><a xlink:title="→ pl.Scan------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="661.25,-364.16 514.75,-364.16 514.75,-329.6 661.25,-329.6 661.25,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="588" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">mocap.MocapRecording</text>
+</a>
+</g>
+</g>
+<!-- mocap.MotionCaptureTask -->
+<g id="node22" class="node">
+<title>mocap.MotionCaptureTask</title>
+<g id="a_node22"><a xlink:title="→ mocap.MocapRecording→ mocap.Mocap------------------------------csv_path=&quot;&quot;          ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="508.25,-293.6 349.75,-293.6 349.75,-259.04 508.25,-259.04 508.25,-293.6"/>
+<text xml:space="preserve" text-anchor="middle" x="429" y="-272.05" font-family="arial" font-size="12.00" fill="darkgreen">mocap.MotionCaptureTask</text>
+</a>
+</g>
+</g>
+<!-- mocap.MocapRecording&#45;&gt;mocap.MotionCaptureTask -->
+<g id="edge11" class="edge">
+<title>mocap.MocapRecording-&gt;mocap.MotionCaptureTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M549.1,-329.11C524.37,-318.44 492.48,-304.69 467.77,-294.04"/>
+</g>
+<!-- scan.AcquisitionSoftware -->
+<g id="node12" class="node">
+<title>scan.AcquisitionSoftware</title>
+<g id="a_node12"><a xlink:title="acq_software         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="917.5,-505.28 790.5,-505.28 790.5,-470.72 917.5,-470.72 917.5,-505.28"/>
+<text xml:space="preserve" text-anchor="start" x="798.5" y="-485.5" font-family="arial" text-decoration="underline" font-size="10.00">scan.AcquisitionSoftware</text>
+</a>
+</g>
+</g>
+<!-- pl.Scan -->
+<g id="node35" class="node">
+<title>pl.Scan</title>
+<g id="a_node35"><a xlink:title="→ pl.Sessionscan_id              ------------------------------→ [nullable] pl.Device→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="948.25,-434.72 891.75,-434.72 891.75,-400.16 948.25,-400.16 948.25,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="899.75" y="-414.17" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Scan</text>
+</a>
+</g>
+</g>
+<!-- scan.AcquisitionSoftware&#45;&gt;pl.Scan -->
+<g id="edge12" class="edge">
+<title>scan.AcquisitionSoftware-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M869.64,-470.75C880.01,-459.98 893.57,-445.89 904.01,-435.05"/>
+</g>
+<!-- equipment.Device -->
+<g id="node13" class="node">
+<title>equipment.Device</title>
+<g id="a_node13"><a xlink:title="camera               ------------------------------camera_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="644.38,-434.72 531.62,-434.72 531.62,-400.16 644.38,-400.16 644.38,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="539.62" y="-414.17" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">equipment.Device</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;mocap.MocapRecording -->
+<g id="edge13" class="edge">
+<title>equipment.Device-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M588,-399.84C588,-389.06 588,-375.07 588,-364.32"/>
+</g>
+<!-- model.VideoRecordingNew -->
+<g id="node14" class="node">
+<title>model.VideoRecordingNew</title>
+<g id="a_node14"><a xlink:title="→ pl.Scanrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="842.5,-364.16 679.5,-364.16 679.5,-329.6 842.5,-329.6 842.5,-364.16"/>
+<text xml:space="preserve" text-anchor="start" x="687.5" y="-343.61" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.VideoRecordingNew</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;model.VideoRecordingNew -->
+<g id="edge14" class="edge">
+<title>equipment.Device-&gt;model.VideoRecordingNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M630.32,-399.67C657.23,-389 691.93,-375.25 718.82,-364.6"/>
+</g>
+<!-- model.DLCliveRecording -->
+<g id="node18" class="node">
+<title>model.DLCliveRecording</title>
+<g id="a_node18"><a xlink:title="→ pl.Scanrecording_id         ------------------------------→ equipment.Device">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="496.5,-364.16 345.5,-364.16 345.5,-329.6 496.5,-329.6 496.5,-364.16"/>
+<text xml:space="preserve" text-anchor="start" x="353.5" y="-343.61" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.DLCliveRecording</text>
+</a>
+</g>
+</g>
+<!-- equipment.Device&#45;&gt;model.DLCliveRecording -->
+<g id="edge15" class="edge">
+<title>equipment.Device-&gt;model.DLCliveRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M547.15,-399.67C521.17,-389 487.67,-375.25 461.72,-364.6"/>
+</g>
+<!-- imaging.Segmentation&#45;&gt;imaging.Fluorescence -->
+<g id="edge16" class="edge">
+<title>imaging.Segmentation-&gt;imaging.Fluorescence</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M189.2,-126.32C203.59,-113.99 231.29,-90.27 245.73,-77.9"/>
+</g>
+<!-- imaging.Segmentation&#45;&gt;imaging.Segmentation.Mask -->
+<g id="edge17" class="edge">
+<title>imaging.Segmentation-&gt;imaging.Segmentation.Mask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M170.51,-126.58C155.61,-114.61 126.8,-91.48 111.01,-78.8"/>
+</g>
+<!-- scan.ScanInfo.Field&#45;&gt;imaging.MotionCorrection.Summary -->
+<g id="edge18" class="edge">
+<title>scan.ScanInfo.Field-&gt;imaging.MotionCorrection.Summary</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M528.35,-125.27C517.84,-112.99 499.06,-91.05 488.58,-78.82"/>
+</g>
+<!-- scan.Channel -->
+<g id="node20" class="node">
+<title>scan.Channel</title>
+<g id="a_node20"><a xlink:title="channel              ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="122,-293.6 46,-293.6 46,-259.04 122,-259.04 122,-293.6"/>
+<text xml:space="preserve" text-anchor="start" x="54" y="-273.82" font-family="arial" text-decoration="underline" font-size="10.00">scan.Channel</text>
+</a>
+</g>
+</g>
+<!-- scan.Channel&#45;&gt;36 -->
+<g id="edge19" class="edge">
+<title>scan.Channel-&gt;36</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M84,-259.07C84,-240.7 84,-212.66 84,-207.57"/>
+</g>
+<!-- scan.Channel&#45;&gt;37 -->
+<g id="edge20" class="edge">
+<title>scan.Channel-&gt;37</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M98.93,-259.07C115.81,-240.7 141.58,-212.66 146.26,-207.57"/>
+</g>
+<!-- scan.Channel&#45;&gt;35 -->
+<g id="edge21" class="edge">
+<title>scan.Channel-&gt;35</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M77.93,-259.09C65.07,-224.68 35.95,-146.78 32.37,-137.18"/>
+</g>
+<!-- event.BehaviorRecording -->
+<g id="node21" class="node">
+<title>event.BehaviorRecording</title>
+<g id="a_node21"><a xlink:title="→ pl.Session→ pl.Scan------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1323.88,-364.16 1172.12,-364.16 1172.12,-329.6 1323.88,-329.6 1323.88,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="1248" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">event.BehaviorRecording</text>
+</a>
+</g>
+</g>
+<!-- pupil_tracking.RigidMouseTracking -->
+<g id="node33" class="node">
+<title>pupil_tracking.RigidMouseTracking</title>
+<g id="a_node33"><a xlink:title="→ pl.Scan→ virtual_markers_optitrack.EyeNoseCamPosCalib→ mocap.MotionCaptureTask------------------------------pivot_eye_center_global yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_global      eye_right_global     nose_global          world_cam_global     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="703" cy="-205.76" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="703" y="-201.49" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">pupil_tracking.RigidMouseTracking</text>
+</a>
+</g>
+</g>
+<!-- mocap.MotionCaptureTask&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge22" class="edge">
+<title>mocap.MotionCaptureTask-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M496.03,-258.55C561.94,-242.06 657.38,-218.18 690.85,-209.8"/>
+</g>
+<!-- imaging.ProcessingParamSet -->
+<g id="node23" class="node">
+<title>imaging.ProcessingParamSet</title>
+<g id="a_node23"><a xlink:title="paramset_idx         ------------------------------→ imaging.ProcessingMethod→ imaging.ProcessingScanConcatenationparamset_desc        param_set_hash       params               UNIQUE INDEX (param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="243.5,-505.28 98.5,-505.28 98.5,-470.72 243.5,-470.72 243.5,-505.28"/>
+<text xml:space="preserve" text-anchor="start" x="106.5" y="-485.5" font-family="arial" text-decoration="underline" font-size="10.00">imaging.ProcessingParamSet</text>
+</a>
+</g>
+</g>
+<!-- denoising.DenoisingProcessingParamSet -->
+<g id="node28" class="node">
+<title>denoising.DenoisingProcessingParamSet</title>
+<g id="a_node28"><a xlink:title="denoise_paramset_idx ------------------------------→ imaging.ProcessingParamSet→ denoising.DenoisingMethoddenoise_paramset_desc denoise_param_set_hash denoise_params       UNIQUE INDEX (denoise_param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="196,-434.72 0,-434.72 0,-400.16 196,-400.16 196,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-414.94" font-family="arial" text-decoration="underline" font-size="10.00">denoising.DenoisingProcessingParamSet</text>
+</a>
+</g>
+</g>
+<!-- imaging.ProcessingParamSet&#45;&gt;denoising.DenoisingProcessingParamSet -->
+<g id="edge23" class="edge">
+<title>imaging.ProcessingParamSet-&gt;denoising.DenoisingProcessingParamSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M153.7,-470.75C142.06,-459.82 126.79,-445.48 115.18,-434.57"/>
+</g>
+<!-- imaging.ProcessingTask -->
+<g id="node34" class="node">
+<title>imaging.ProcessingTask</title>
+<g id="a_node34"><a xlink:title="→ pl.Scan→ imaging.ProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="327.25,-364.16 180.75,-364.16 180.75,-329.6 327.25,-329.6 327.25,-364.16"/>
+<text xml:space="preserve" text-anchor="middle" x="254" y="-342.61" font-family="arial" font-size="12.00" fill="darkgreen">imaging.ProcessingTask</text>
+</a>
+</g>
+</g>
+<!-- imaging.ProcessingParamSet&#45;&gt;imaging.ProcessingTask -->
+<g id="edge24" class="edge">
+<title>imaging.ProcessingParamSet-&gt;imaging.ProcessingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M181.68,-471.15C188.51,-460.87 197.48,-447.13 205,-434.72 219.63,-410.59 235.5,-381.98 245.09,-364.38"/>
+</g>
+<!-- imaging.Segmentation.Mask&#45;&gt;imaging.Fluorescence.Trace -->
+<g id="edge25" class="edge">
+<title>imaging.Segmentation.Mask-&gt;imaging.Fluorescence.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M100,-59.06C100,-48.3 100,-30.3 100,-19.65"/>
+</g>
+<!-- pl.Experimenter -->
+<g id="node25" class="node">
+<title>pl.Experimenter</title>
+<g id="a_node25"><a xlink:title="user_id              ------------------------------name                 shorthand=&quot;&quot;         initials=&quot;&quot;          email=&quot;&quot;             → [nullable] pl.Lab">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1432.12,-434.72 1347.88,-434.72 1347.88,-400.16 1432.12,-400.16 1432.12,-434.72"/>
+<text xml:space="preserve" text-anchor="start" x="1355.88" y="-414.94" font-family="arial" text-decoration="underline" font-size="10.00">pl.Experimenter</text>
+</a>
+</g>
+</g>
+<!-- scan.ScanPath -->
+<g id="node32" class="node">
+<title>scan.ScanPath</title>
+<g id="a_node32"><a xlink:title="→ pl.Scan→ pl.Experimenterpath                 ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1438.5,-364.16 1341.5,-364.16 1341.5,-329.6 1438.5,-329.6 1438.5,-364.16"/>
+<text xml:space="preserve" text-anchor="start" x="1349.5" y="-343.61" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">scan.ScanPath</text>
+</a>
+</g>
+</g>
+<!-- pl.Experimenter&#45;&gt;scan.ScanPath -->
+<g id="edge26" class="edge">
+<title>pl.Experimenter-&gt;scan.ScanPath</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1390,-400.19C1390,-389.42 1390,-375.33 1390,-364.49"/>
+</g>
+<!-- imaging.Processing -->
+<g id="node26" class="node">
+<title>imaging.Processing</title>
+<g id="a_node26"><a xlink:title="→ imaging.ProcessingTask------------------------------processing_time      package_version=&quot;&quot;   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="254" cy="-276.32" rx="12.96" ry="12.96"/>
+<text xml:space="preserve" text-anchor="middle" x="254" y="-272.05" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Processing</text>
+</a>
+</g>
+</g>
+<!-- imaging.Processing&#45;&gt;imaging.Curation -->
+<g id="edge27" class="edge">
+<title>imaging.Processing-&gt;imaging.Curation</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M254,-263.38C254,-252.33 254,-235.8 254,-223.44"/>
+</g>
+<!-- denoising.DenoisingProcessingParamSet&#45;&gt;denoising.DenoisingTask -->
+<g id="edge28" class="edge">
+<title>denoising.DenoisingProcessingParamSet-&gt;denoising.DenoisingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M95.39,-400.19C93.67,-389.42 91.4,-375.33 89.66,-364.49"/>
+</g>
+<!-- pl.Session -->
+<g id="node29" class="node">
+<title>pl.Session</title>
+<g id="a_node29"><a xlink:title="session_id           ------------------------------→ pl.Subjectsession_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1190.12,-505.28 1117.88,-505.28 1117.88,-470.72 1190.12,-470.72 1190.12,-505.28"/>
+<text xml:space="preserve" text-anchor="start" x="1125.88" y="-484.73" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Session</text>
+</a>
+</g>
+</g>
+<!-- pl.Session&#45;&gt;event.BehaviorRecording -->
+<g id="edge29" class="edge">
+<title>pl.Session-&gt;event.BehaviorRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1165.15,-470.49C1183.24,-443.72 1218.78,-391.12 1236.86,-364.36"/>
+</g>
+<!-- pl.Session&#45;&gt;pl.Scan -->
+<g id="edge30" class="edge">
+<title>pl.Session-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1117.44,-476.29C1070.78,-462.62 991.04,-439.25 948.58,-426.81"/>
+</g>
+<!-- pl.Device -->
+<g id="node30" class="node">
+<title>pl.Device</title>
+<g id="a_node30"><a xlink:title="scanner              ------------------------------scanner_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1002.12,-505.28 935.88,-505.28 935.88,-470.72 1002.12,-470.72 1002.12,-505.28"/>
+<text xml:space="preserve" text-anchor="start" x="943.88" y="-484.73" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">pl.Device</text>
+</a>
+</g>
+</g>
+<!-- pl.Device&#45;&gt;pl.Scan -->
+<g id="edge31" class="edge">
+<title>pl.Device-&gt;pl.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M957.14,-470.4C949.43,-459.62 939.43,-445.63 931.75,-434.88"/>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib -->
+<g id="node31" class="node">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib</title>
+<g id="a_node31"><a xlink:title="→ pl.Subject------------------------------eye_left             eye_right            nose                 world_cam            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="841.5,-293.6 564.5,-293.6 564.5,-259.04 841.5,-259.04 841.5,-293.6"/>
+<text xml:space="preserve" text-anchor="middle" x="703" y="-272.05" font-family="arial" font-size="12.00" fill="darkgreen">virtual_markers_optitrack.EyeNoseCamPosCalib</text>
+</a>
+</g>
+</g>
+<!-- virtual_markers_optitrack.EyeNoseCamPosCalib&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge32" class="edge">
+<title>virtual_markers_optitrack.EyeNoseCamPosCalib-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M703,-258.72C703,-246.36 703,-229.77 703,-218.69"/>
+</g>
+<!-- imaging.ProcessingTask&#45;&gt;imaging.Processing -->
+<g id="edge33" class="edge">
+<title>imaging.ProcessingTask-&gt;imaging.Processing</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M254,-329.28C254,-316.92 254,-300.33 254,-289.25"/>
+</g>
+<!-- pl.Scan&#45;&gt;denoising.DenoisingTask -->
+<g id="edge34" class="edge">
+<title>pl.Scan-&gt;denoising.DenoisingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M891.68,-414.66C763.92,-406.61 244.37,-373.59 172,-364.16 169.02,-363.77 165.99,-363.35 162.93,-362.89"/>
+</g>
+<!-- pl.Scan&#45;&gt;scan.ScanInfo -->
+<g id="edge35" class="edge">
+<title>pl.Scan-&gt;scan.ScanInfo</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M920,-399.84C920,-389.06 920,-375.07 920,-364.32"/>
+</g>
+<!-- pl.Scan&#45;&gt;mocap.MocapRecording -->
+<g id="edge36" class="edge">
+<title>pl.Scan-&gt;mocap.MocapRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M891.41,-410.54C840.76,-400.08 733.81,-377.99 661.41,-363.04"/>
+</g>
+<!-- pl.Scan&#45;&gt;scan.ScanLocation -->
+<g id="edge37" class="edge">
+<title>pl.Scan-&gt;scan.ScanLocation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M948.51,-405.27C976.69,-394.23 1020.16,-377.2 1052.43,-364.56"/>
+</g>
+<!-- pl.Scan&#45;&gt;model.VideoRecordingNew -->
+<g id="edge38" class="edge">
+<title>pl.Scan-&gt;model.VideoRecordingNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M891.57,-404.18C865.94,-393.13 828.01,-376.78 799.63,-364.54"/>
+</g>
+<!-- pl.Scan&#45;&gt;model.DLCliveRecording -->
+<g id="edge39" class="edge">
+<title>pl.Scan-&gt;model.DLCliveRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M891.3,-413.45C823.88,-406.29 650.17,-387.05 506,-364.16 503.03,-363.69 500.01,-363.19 496.96,-362.68"/>
+</g>
+<!-- pl.Scan&#45;&gt;event.BehaviorRecording -->
+<g id="edge40" class="edge">
+<title>pl.Scan-&gt;event.BehaviorRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M948.53,-410.48C997.86,-400.16 1100.64,-378.68 1171.93,-363.78"/>
+</g>
+<!-- pl.Scan&#45;&gt;scan.ScanPath -->
+<g id="edge41" class="edge">
+<title>pl.Scan-&gt;scan.ScanPath</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M948.62,-412.82C1041.99,-401.03 1331.81,-364.4 1333,-364.16 1335.72,-363.6 1338.5,-362.98 1341.3,-362.32"/>
+</g>
+<!-- pl.Scan&#45;&gt;pupil_tracking.RigidMouseTracking -->
+<g id="edge42" class="edge">
+<title>pl.Scan-&gt;pupil_tracking.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M948.43,-403.01C963.46,-394.25 980.51,-381.25 989,-364.16 1009.79,-322.32 1018.92,-294.92 989,-259.04 953.28,-216.2 766.09,-208.36 715.57,-207.02"/>
+</g>
+<!-- pl.Scan&#45;&gt;imaging.ProcessingTask -->
+<g id="edge43" class="edge">
+<title>pl.Scan-&gt;imaging.ProcessingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M891.31,-414.96C806.25,-410.34 548.1,-394.62 336,-364.16 333.27,-363.77 330.49,-363.34 327.69,-362.9"/>
+</g>
+</g>
+</svg>
