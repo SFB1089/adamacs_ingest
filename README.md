@@ -72,12 +72,12 @@ This repository ignores `dj_local_conf.json` and typo variants like `dj_local_co
 - Fix: set `"database.use_tls": false` in your local `dj_local_conf.json` for non-TLS DB servers.
 - Reminder: never commit `dj_local_conf.json`.
 
-## Notebook environment variables
-You can set these in your shell (`export ...`) or in the notebook override cell.
+## Notebook parameters
+Set these directly in the notebook parameter cell (no environment variables required).
 
 - `ADAMACS_SESSION_FILTER`: glob for session folder names in ingest GUI workflow (`*` default).
-- `ADAMACS_DATE_FILTER`: date filter for ingest GUI workflow. Supports `*`, exact date (`2025-01-20`), comparators (`>=2025-01-01`, `<2025-02-01`), inclusive range (`2025-01-01:2025-01-31`), plus legacy substring fallback (`2025-01`). Comparator tokens tolerate legacy wildcard suffixes (for example `>2025-05-01*`).
-- `ADAMACS_LAUNCH_GUI`: set to `1` to open interactive GUI (`0` default).
+- `ADAMACS_DATE_FILTER`: date filter for ingest GUI workflow. Supports `*`, exact date (`2025-01-20`), comparators (`>=2025-01-01`, `<2025-02-01`), inclusive range (`2025-01-01:2025-01-31`), plus legacy substring fallback (`2025-01`). Comparator tokens tolerate optional wildcard suffixes (for example `>2025-05-01*`).
+- `ADAMACS_LAUNCH_GUI`: set to `True` to open interactive GUI (`False` default).
 - `ADAMACS_MAX_JOB_ROWS`: row limit for cleanup templates (`50` default).
 - `ADAMACS_INITIALS`: user initials filter in cleanup templates (`NK` default).
 - `ADAMACS_DATE_FROM`: lower date bound for cleanup templates (`2025-01-01` default).
