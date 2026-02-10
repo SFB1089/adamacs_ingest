@@ -1,5 +1,10 @@
 # adamacs_ingest
 
+> **Primary ADAMACS Documentation:**  
+> <https://github.com/trose-neuro/adamacs_documentation>
+>
+> Use this as the canonical guide for setup, ingest GUI workflow, analysis links, schema chapters, infrastructure, and troubleshooting.
+
 `adamacs_ingest` is the ingest-first ADAMACS repository.
 
 Use this repo directly for day-to-day ingest and pipeline population. The ingest GUI remains the central user entrypoint, and ingest logic stays upstream in this repository (no routine fork required for students).
