@@ -72,6 +72,21 @@ def get_timestamps(data, sr, thr=1):
     timestamps = idc / sr
     return timestamps
 
+def get_timestamps_auxcam(data, sr, thr=1):
+    """
+    Extract aux camera trigger timestamps using rising edges only.
+
+    Unlike ``get_timestamps``, this avoids counting both on/off transitions.
+    """
+    data = np.asarray(data)
+    if data.dtype == 'bool':
+        diff = np.diff(data.astype(np.int8))
+        idc = np.argwhere(diff > 0)[:, 0]
+    else:
+        diff = np.diff(data.astype(float))
+        idc = np.argwhere(diff > thr)[:, 0]
+    return idc / sr
+
 def get_timestamps_robust_optitrack(data, sr, expected_frequency=241.0, thr=1):
     """
     Robust OptiTrack timestamp extraction with clock recovery.
@@ -331,6 +346,12 @@ def ingest_bpod(sessi, scansi, root_paths=get_imaging_root_data_dir(), aux_setup
         )
     elif aux_setup_type == "bench2p_Oddball_v2":
         bpod_object.ingest_oddball_v2(
+            sessi, scansi,
+            include_raw_bpod_events=include_raw_bpod_events,
+            include_raw_bpod_states=include_raw_bpod_states,
+        )
+    elif aux_setup_type == "bench2p_Oddball_v3":
+        bpod_object.ingest_oddball_v3(
             sessi, scansi,
             include_raw_bpod_events=include_raw_bpod_events,
             include_raw_bpod_states=include_raw_bpod_states,
@@ -997,6 +1018,9 @@ def ingest_aux(session_key, scan_key, root_paths=get_imaging_root_data_dir(), au
                     if len(vis_stim_event_list) != ts_stim_vis.size / 2:
                         print('Aux-File und StimLog have not the same number of stimulus onsets! CHECK THAT!')  
 
+        elif aux_setup_type == "bench2p_Oddball_v3":
+                    event_types = ingest_bench2p_oddball_v3(scan_basenames, curr_path, curr_aux, sweep, sr)
+
         elif aux_setup_type == "bench2p_SP": #TR24 - HEADFIXED Bench2p - #bench2p - needs to be set in scan schema! Taken from userfunction_consolidate_files argument
                     
                     # LOAD STIMINFO
@@ -1120,7 +1144,7 @@ def ingest_aux(session_key, scan_key, root_paths=get_imaging_root_data_dir(), au
             
         for event_type, timestamps in event_types.items():
             # Handle OptiTrack frames as instantaneous events
-            if event_type == 'optitrack_frames':
+            if event_type == 'optitrack_frames' or (aux_setup_type == "bench2p_Oddball_v3" and event_type == 'aux_cam'):
                 to_insert = prepare_timestamps_optitrack(timestamps, session_key, scan_key, event_type)
             else:
                 to_insert = prepare_timestamps(timestamps, session_key, scan_key, event_type)
@@ -1215,6 +1239,196 @@ def get_and_ingest_trial_times(scan_key, aux_setup_type):
             
             # do server-side insert - fetch does not work. The number key seems to be rounded.
             trial.TrialEvent.insert(TrialEvent_query_keys,  allow_direct_insert=True, skip_duplicates=True, ignore_extra_fields=True)
+
+    if aux_setup_type == "bench2p_Oddball_v3":
+        # Oddball v3 encodes trial boundaries on an explicit trial channel.
+        all_stims = (event.Event & scan_key_key & 'event_type LIKE "%;%"').fetch("event_type")
+        all_stims = ['; '.join(item.split('; ')[:1]) for item in all_stims]
+        trial_start_edges = (event.Event & scan_key_key & 'event_type LIKE "%trial%"').fetch('event_start_time', order_by="event_start_time")
+        trial_end_edges = (event.Event & scan_key_key & 'event_type LIKE "%trial%"').fetch('event_end_time', order_by="event_end_time")
+        if len(trial_start_edges) == 0 or len(trial_end_edges) == 0:
+            print("No aux_trial events found for bench2p_Oddball_v3, skipping Trial/TrialEvent insert.")
+            return
+
+        trial_event_name = 'Oddball'
+        trial.TrialType().insert1({'trial_type': trial_event_name, 'trial_type_description': 'Stimulus nomenclature: Type; Class; Azimuth; Elevation; Size; Orientation; Spatial Frequency; Temporal Frequency'}, skip_duplicates=True)
+
+        if len(all_stims) > 0:
+            trial_repeats = set([list(all_stims).count(x) for x in all_stims])
+            n_trials = min(min(trial_repeats), len(trial_start_edges), len(trial_end_edges))
+        else:
+            n_trials = min(len(trial_start_edges), len(trial_end_edges))
+
+        for trialnum in enumerate(range(n_trials)):
+            trial.Trial.insert1({'session_id': session_key, 'scan_id': scan_key, 'trial_id': trialnum[0] + 1, 'trial_type': trial_event_name, 'trial_start_time': trial_start_edges[trialnum[0]], 'trial_stop_time': trial_end_edges[trialnum[0]]}, allow_direct_insert=True, skip_duplicates=True)
+            trial_end_idx = min(trialnum[0] + 1, len(trial_end_edges) - 1)
+            TrialEvent_query_keys = (event.Event * trial.Trial & scan_key_key & f'event_type LIKE "%;%"' & f'event_start_time <= "{trial_end_edges[trial_end_idx]}"' & f'event_end_time >= "{trial_start_edges[trialnum[0]]}"' & f'trial_id= "{trialnum[0] + 1}"')
+            trial.TrialEvent.insert(TrialEvent_query_keys, allow_direct_insert=True, skip_duplicates=True, ignore_extra_fields=True)
+
+
+def ingest_bench2p_oddball_v3(scan_basenames, curr_path, curr_aux, sweep, sr):
+    """Extract oddball v3 aux channels without affecting legacy oddball/v2 logic."""
+    stim_log = pd.DataFrame()
+    for _k in scan_basenames:
+        stim_file_paths = [fp.as_posix() for fp in curr_path.glob('*bonsai_stimulus_log*.csv')]
+        if len(stim_file_paths) != 1:
+            print(f"More or less than 1 stim_files found in {_k} - not extracting stim IDs")
+        else:
+            stim_log = pd.read_csv(stim_file_paths[0])
+
+    ai_channel_names = [name.decode('utf-8') if isinstance(name, (bytes, bytearray)) else str(name) for name in curr_aux['header']['AIChannelNames']]
+    di_channel_names = [name.decode('utf-8') if isinstance(name, (bytes, bytearray)) else str(name) for name in curr_aux['header']['DIChannelNames']]
+    analog_data = curr_aux[sweep]['analogScans']
+    digital_data = curr_aux[sweep]['digitalScans']
+
+    df = pd.DataFrame(analog_data.T, columns=ai_channel_names)
+    digital_scans = demultiplex(digital_data[0], len(di_channel_names))
+    digital_scans_df = pd.DataFrame(digital_scans.T, columns=di_channel_names[::-1])
+    df = pd.concat([df, digital_scans_df], axis=1)
+
+    def _pick_channel(name_candidates, required=True):
+        for name in name_candidates:
+            if name in df.columns:
+                return df[name].values
+        if required:
+            raise ValueError(f"bench2p_Oddball_v3: missing required channel, expected one of {name_candidates}")
+        return None
+
+    main_track_gate_chan = _pick_channel(["Main Trigger", "MainTrigger", "main_track_gate"])
+    shutter_chan = _pick_channel(["Bench2p 920 shutter", "Shutter", "shutter"])
+    bench2p_frame_chan = _pick_channel(["Frame clock", "FrameClock", "bench2p_frames"])
+    bench2p_vol_chan = _pick_channel(["Volume clock", "VolumeClock", "bench2p_volumes"])
+    cam_trigger = _pick_channel(["Camera Trigger", "CameraTriggerIn", "aux_cam"])
+    trial_chan = _pick_channel(["Trial_Onset", "TrialOnset", "aux_trial"])
+    hifi_chan = _pick_channel(["HIFI", "HiFi", "aux_HIFI"], required=False)
+
+    main_track_gate_chan[-1] = 0
+    shutter_chan[-1] = 0
+    bench2p_frame_chan[-1] = 0
+    bench2p_vol_chan[-1] = 0
+    cam_trigger[-1] = 0
+    trial_chan[-1] = 0
+    if hifi_chan is not None:
+        hifi_chan[-1] = 0
+
+    ts_main_track_gate_chan = get_timestamps(main_track_gate_chan, sr)
+    ts_shutter_chan = get_timestamps(shutter_chan, sr)
+    ts_bench2p_frame_chan = get_timestamps(bench2p_frame_chan, sr)
+    ts_bench2p_vol_chan = get_timestamps(bench2p_vol_chan, sr)
+    ts_cam_trigger = get_timestamps_auxcam(cam_trigger, sr)
+    ts_trial = get_timestamps(trial_chan, sr)
+    ts_hifi = get_timestamps(hifi_chan, sr) if hifi_chan is not None else np.array([])
+
+    ts_texts_dict = get_oddball_stim_timestamps(df, sr, stim_log)
+
+    event_types = {
+        'main_track_gate': ts_main_track_gate_chan,
+        'shutter': ts_shutter_chan,
+        'bench2p_frames': ts_bench2p_frame_chan,
+        'bench2p_volumes': ts_bench2p_vol_chan,
+        'aux_cam': ts_cam_trigger,
+        'aux_trial': ts_trial,
+    }
+    if ts_hifi.size:
+        event_types['aux_HIFI'] = ts_hifi
+    for key, values in ts_texts_dict.items():
+        event_types[key] = np.asarray(values)
+    return event_types
+
+
+def butter_filter(sr, cutoff, order=4, btype='low'):
+    from scipy.signal import butter
+    """Create a Butterworth filter in SOS format."""
+    nyquist = 0.5 * sr
+    if cutoff >= nyquist:
+        raise ValueError("Cutoff frequency must be less than the Nyquist frequency (sr / 2).")
+    normal_cutoff = cutoff / nyquist
+    return butter(order, normal_cutoff, btype=btype, analog=False, output='sos')
+
+
+def get_pdiode_timestamps(curr_aux, sr, stim_log, thr=1.6):
+    """Extract photodiode on/off timestamps for oddball v3 stimulus alignment."""
+    if 'Photodiode' not in curr_aux.columns or 'Main Trigger' not in curr_aux.columns:
+        return []
+
+    pdiode = curr_aux['Photodiode'].values
+    master_trigger = curr_aux['Main Trigger'].values.astype(int)
+
+    try:
+        from scipy.signal import sosfiltfilt
+        sos_filter = butter_filter(sr, cutoff=29.98)
+        pd_filtered = sosfiltfilt(sos_filter, pdiode)
+    except Exception:
+        pd_filtered = pdiode.astype(float)
+
+    master_trigger_diff = np.diff(master_trigger)
+    master_on_idx = np.where(master_trigger_diff > 0.5)[0]
+    master_off_idx = np.where(master_trigger_diff < 0)[0]
+    if len(master_on_idx) == 0 or len(master_off_idx) == 0:
+        return []
+
+    master_on = int(master_on_idx[0]) + 1
+    master_off = int(master_off_idx[0]) + 1
+    in_rec = pd_filtered[master_on:master_off]
+    if in_rec.size == 0:
+        return []
+
+    pd_filtered[master_off:] = np.min(in_rec)
+    pd_filtered[:master_on] = np.min(in_rec)
+    pd_zero = pd_filtered - np.min(in_rec)
+    pd_diff = np.diff(pd_zero)
+    if master_off - master_on <= 2:
+        return []
+
+    thr_max = np.max(pd_diff[master_on:master_off - 1])
+    pd_diff = np.where(pd_diff > thr_max, 0, pd_diff)
+    pd_diff_max = pd_diff.max()
+    if pd_diff_max == 0:
+        return []
+    pd_ons = np.where(pd_diff > (pd_diff_max / thr), 1, 0)
+    pd_offs = np.where(pd_diff < -(pd_diff_max / thr), 1, 0)
+    pd_ons, pd_offs = np.r_[0, pd_ons], np.r_[0, pd_offs]
+    ons_matched = np.r_[0, np.diff(pd_ons)]
+    offs_matched = np.r_[0, np.diff(pd_offs)]
+    ons_idx = np.where(ons_matched > 0.5)[0]
+    offs_idx = np.where(offs_matched > 0.5)[0]
+    if len(ons_idx) == 0 or len(offs_idx) == 0:
+        return []
+
+    ons_ts = ons_idx / sr
+    offs_ts = (offs_idx / sr)[:-1]
+    expected = len(stim_log) if hasattr(stim_log, "__len__") else 0
+    if expected and len(ons_ts) != expected:
+        print('Aux-File und StimLog have not the same number of stimulus onsets! CHECK THAT!')
+
+    all_ts = []
+    for on, off in zip(ons_ts, offs_ts):
+        all_ts.extend([float(on), float(off)])
+    return all_ts
+
+
+def get_oddball_stim_timestamps(data, sr, stim_log):
+    """Build oddball v3 per-text timestamp events from stimulus ID and photodiode channels."""
+    from collections import defaultdict
+
+    if 'Visual Stim ID' not in data.columns:
+        return {}
+
+    pd_ts = get_pdiode_timestamps(data, sr, stim_log)
+    _, id_plateaus = get_timestamps_from_plateaus(data['Visual Stim ID'].values, sr)
+
+    texts_ts = defaultdict(list)
+    i = 0
+    for idc_on, idc_off, text_id in id_plateaus:
+        text_label = f'{text_id:.0f}'
+        texts_ts[f'bonsai_text_{text_label}'].append(float(idc_on / sr))
+        texts_ts[f'bonsai_text_{text_label}'].append(float(idc_off / sr))
+        if i + 1 < len(pd_ts):
+            texts_ts[f'pdiode_text_{text_label}'].append(float(pd_ts[i]))
+            texts_ts[f'pdiode_text_{text_label}'].append(float(pd_ts[i + 1]))
+        i += 2
+    return texts_ts
+
 def compute_angular_velocity(time, angle, window):
     # Convert the angles to radians
     angle = np.radians(angle)
