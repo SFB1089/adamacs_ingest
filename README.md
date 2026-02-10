@@ -1,5 +1,8 @@
 # adamacs_ingest
 
+> **Live ADAMACS Documentation (Read the Docs):**  
+> <https://adamacs-documentation.readthedocs.io>
+>
 > **Primary ADAMACS Documentation:**  
 > <https://github.com/trose-neuro/adamacs_documentation>
 >
