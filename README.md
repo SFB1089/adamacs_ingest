@@ -142,6 +142,21 @@ CI runs lint and pytest on Python 3.11.
 - Tobiasr full notebook catalog: `docs/TOBIASR_NOTEBOOK_CATALOG.md`
 - Diagram setup and troubleshooting: `docs/DIAGRAM_SETUP.md`
 
+## External references (component docs)
+- DataJoint core: <https://docs.datajoint.com/core/datajoint-python/latest/>
+- DataJoint Elements index: <https://docs.datajoint.com/elements/>
+- Element Calcium Imaging: <https://docs.datajoint.com/elements/element-calcium-imaging/latest/>
+- Element DeepLabCut: <https://docs.datajoint.com/elements/element-deeplabcut/latest/>
+- Element Event concepts: <https://docs.datajoint.com/elements/element-event/0.2/concepts/>
+- Suite2p docs: <https://suite2p.readthedocs.io/en/latest/>
+- Suite2p parameters: <https://suite2p.readthedocs.io/en/latest/parameters/>
+- Suite2p outputs: <https://suite2p.readthedocs.io/en/latest/outputs/>
+- DeepLabCut docs: <https://deeplabcut.github.io/DeepLabCut/>
+- DISK source: <https://github.com/bozeklab/DISK>
+- CASCADE source: <https://github.com/HelmchenLabSoftware/Cascade>
+- ADAMACS reference index:
+  <https://github.com/trose-neuro/adamacs_documentation/blob/main/docs/common/external_references.md>
+
 ## Database Dependency Diagrams
 These diagrams are generated from `notebooks/21_schema_dependency_diagrams.ipynb` using `dj.Diagram` and exported to `notebooks/schema_diagrams/`.
 Each figure shows parent-child table dependencies for one schema domain.
