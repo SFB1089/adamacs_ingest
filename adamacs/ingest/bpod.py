@@ -1191,6 +1191,160 @@ class Bpodfile(object):
             trial.TrialEvent.insert(event_keys, allow_direct_insert=True)
             # self._insert_stim_diode_trial_events(session_id, scan_id)
 
+    def ingest_oddball_v3(self, session_id, scan_id, prompt=False, bood_trial_offset=0,
+                          include_raw_bpod_events=False, include_raw_bpod_states=False):
+        """Ingest Oddball v3 BPod data (aux-synced) to session, event, and trial tables."""
+        # -------------------------- Check if already exists --------------------------
+        scan_key = (scan.Scan & f'scan_id = "{scan_id}"').fetch1('KEY')
+        self.subject_id = (session.Session & scan_key).fetch1('subject')
+
+        if event.BehaviorRecording.File & f"filepath='{self._bpod_path_relative}'":
+            print("Session already exists, skipping...")  # check this bpod file path
+            return
+
+        # ------------------------------- Some constants -------------------------------
+        bpod_version = self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
+
+        aux_gate = (event.Event & scan_key & 'event_type LIKE "%gate%"').fetch1('event_start_time')
+        aux_bpod_trialstart = (event.Event & scan_key & 'event_type LIKE "%trial%"').fetch('event_start_time')
+        aux_bpod_trialstart = aux_bpod_trialstart[aux_bpod_trialstart > aux_gate]
+        aux_bpod_trialstart = aux_bpod_trialstart[:-1]  # drop last trial since trial ttl goes high after last trial
+
+        # ------------------------------- Keys to insert -------------------------------
+        bood_trial_offset = self.n_trials - len(aux_bpod_trialstart)  # start bpod aux sync at this trial
+        print('!! Assuming bpod_trial_offset:', bood_trial_offset)
+
+        session_key = {
+            "session_id": session_id,
+            "subject": self.subject_id,
+            "session_datetime": self.start_time,
+        }
+        behavior_recording_key = {
+            "session_id": session_id,
+            "scan_id": scan_id,
+            "recording_start_time": self.start_time,
+            "recording_duration": sum(
+                # removes time between trials, following example matlab code
+                self.session_data["TrialEndTimestamp"]
+                - self.session_data["TrialStartTimestamp"]
+            ),
+            "recording_notes": f"BPod version: {bpod_version}",
+        }
+        behavior_recording_fp_key = {
+            "session_id": session_id,
+            "scan_id": scan_id,
+            "filepath": self._bpod_path_relative,
+        }
+        bpod_recording_key = self._build_bpod_recording_key(session_id, scan_id)
+        trial_type_keys = [
+            {
+                "trial_type": trial_type
+            }
+            for trial_type in np.unique(self.session_data["TrialTypeNames"]).tolist()
+        ]
+        trial_keys = [
+            {
+                "session_id": session_id,
+                "scan_id": scan_id,
+                "trial_id": n,
+                "trial_type": self.trial(n).type,
+                "trial_start_time": float(aux_bpod_trialstart[n - bood_trial_offset]) - self.trial(n).events['bpod_firststim_oddball'],
+                "trial_stop_time": float(aux_bpod_trialstart[n - bood_trial_offset]) - self.trial(n).events['bpod_firststim_oddball'] + self.trial(n).duration,
+            }
+            for n in range(bood_trial_offset, self.n_trials)  # start at second trial
+        ]
+        trial_attributes_keys = [
+            {
+                "session_id": session_id,
+                "scan_id": scan_id,
+                "trial_id": n,
+                "attribute_name": attrib,
+                "attribute_value": self.trial(n).attributes[attrib],
+            }
+            for n in range(bood_trial_offset, self.n_trials)
+            for attrib in self.trial(n).attributes
+            if self.trial(n).attributes[attrib] is not None and (
+                not hasattr(self.trial(n).attributes[attrib], '__len__')
+                or len(self.trial(n).attributes[attrib]) > 0
+            )
+        ]
+        raw_event_keys = []
+        raw_event_types = set()
+        if include_raw_bpod_events or include_raw_bpod_states:
+            for n in range(bood_trial_offset, self.n_trials):
+                anchor_time = self.trial(n).events.get("bpod_firststim_oddball")
+                base_time = aux_bpod_trialstart[n - bood_trial_offset] - anchor_time if anchor_time is not None else None
+                trial_raw_keys, trial_raw_types = self._raw_event_keys_for_trial(
+                    session_id=session_id,
+                    scan_id=scan_id,
+                    trial_idx=n,
+                    base_time=base_time,
+                    include_events=include_raw_bpod_events,
+                    include_states=include_raw_bpod_states,
+                )
+                raw_event_keys.extend(trial_raw_keys)
+                raw_event_types.update(trial_raw_types)
+        event_type_keys = [
+            {"event_type": event_type}
+            for event_type in set(
+                event_type
+                for n in range(bood_trial_offset, self.n_trials)  # start at second trial
+                for event_type in self.trial(n).events
+            ).union(raw_event_types)
+        ]
+        event_keys = [
+            {
+                "session_id": session_id,
+                "scan_id": scan_id,
+                "trial_id": n,
+                "event_type": event,
+                # align BPod events to aux trial timebase using first oddball stimulus anchor
+                "event_start_time": float(aux_bpod_trialstart[n - bood_trial_offset]) - self.trial(n).events['bpod_firststim_oddball'] + float(event_start),
+            }
+            for n in range(bood_trial_offset, self.n_trials)  # start at second trial
+            for event, event_start in self.trial(n).events.items()
+            if event_start is not None
+        ]
+        if raw_event_keys:
+            event_keys.extend(raw_event_keys)
+
+        # ---------------------------------- Prompt ----------------------------------
+        print(
+            "\n\t".join(
+                [
+                    "BPod items to be inserted:",
+                    f"Subject : {self.subject_id}",
+                    f"Time    : {self.start_time}",
+                    f"N Trials: {self.n_trials}",
+                    f"N Events: {len(event_keys)}",
+                ]
+            )
+        )
+        if (
+            prompt
+            and dj.utils.user_choice("Proceed with new subject(s) insert?") != "yes"
+        ):
+            print("Canceled insert.")
+            return
+
+        # ----------------------------- Insert to schemas -----------------------------
+        with session.Session.connection.transaction:
+            session.Session.insert1(session_key, skip_duplicates=True)  # remove skip
+            event.BehaviorRecording.insert1(behavior_recording_key, skip_duplicates=True)
+            event.BehaviorRecording.File.insert1(behavior_recording_fp_key, skip_duplicates=True)
+            event.BpodRecording.insert1(bpod_recording_key, skip_duplicates=True)
+            trial.TrialType.insert(trial_type_keys, skip_duplicates=True)
+            trial.Trial.insert(trial_keys, allow_direct_insert=True, skip_duplicates=True)
+            trial.Trial.Attribute.insert(
+                trial_attributes_keys, allow_direct_insert=True
+            )
+            event.EventType.insert(event_type_keys, skip_duplicates=True)
+            event_keys = Trial.split_event_times_list(event_keys)
+            event.Event.insert(
+                event_keys, allow_direct_insert=True, ignore_extra_fields=True, skip_duplicates=True
+            )  # ignore extra trial_id
+            trial.TrialEvent.insert(event_keys, allow_direct_insert=True)
+
     def ingest_behavior_box(self, session_id, scan_id, prompt=False, bood_trial_offset = 0,
                             include_raw_bpod_events=False, include_raw_bpod_states=False): # start bpod aux sync at this trial
         """Ingest Behavior Box BPod data to session, event, and trial tables.
