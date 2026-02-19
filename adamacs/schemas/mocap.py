@@ -330,10 +330,9 @@ class MotionCapture(dj.Computed):
     #                        populate logic
     # -----------------------------------------------------------------
     def make(self, key):
-        rec_file = (MocapRecording.File & key).fetch1("file_path")
-        rec_stem = Path(rec_file).with_suffix("")
+
         override = (MotionCaptureTask & key).fetch1("csv_path")
-        csv_path = Path(override) if override else rec_stem.with_suffix(".csv")
+        csv_path = Path(override) if override else Path(rec_file).with_suffix(".csv")
 
         frame_idx, ts, markers, marker_uids, rigid_bodies, rb_uids = _parse_motive_csv(csv_path)
 
