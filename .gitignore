@@ -1,5 +1,22 @@
 # data
-/data/
+**/data/
+**/results/
+*.mp4
+*.avi
+*.jpg
+*.png
+*.svg
+*.csv
+*.pdf
+*.npy
+*.ts
+*.mat
+*.h5
+*.gif
+*.tiff
+
+# personal folder
+notebooks/Shan/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -96,3 +113,5 @@ rspace_local_conf.json
 notebooks/schema_diagrams/
 !notebooks/schema_diagrams/
 !notebooks/schema_diagrams/*.svg
+
+.gitignore
