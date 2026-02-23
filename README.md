@@ -1,5 +1,7 @@
 # adamacs_ingest
 
+ADAMACS (Architectures for Data Management and Computational Support) is our framework for managing and analyzing complex multimodal datasets. Built around DataJoint-based pipeline management, it supports structured data storage, metadata integration, computational workflows, and reproducible processing across experiments.
+
 > **Live ADAMACS Documentation (Read the Docs):**  
 > <https://adamacs-documentation.readthedocs.io>
 >
