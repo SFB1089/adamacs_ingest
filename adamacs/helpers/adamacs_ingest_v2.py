@@ -54,7 +54,7 @@ except (ImportError, Exception) as e:
 
 # =============================================================================
 # Initialize user defaults manager for INI-based configuration
-_user_defaults_manager = UserDefaultsManager('/home/backup_user/adamacs/user_configs')
+_user_defaults_manager = UserDefaultsManager('/home/shanm/adamacs_ingest/user_configs')
 
 # ------------------------- USER DEFAULTS (INI-BASED) ------------------------
 # =============================================================================
@@ -159,7 +159,7 @@ def _get_hardcoded_user_defaults(initial):
         'LE': [9, 9, 0, 10, 10, 8, 8],
         'AM': [8, 8, 0, 7, 7, 8, 8],
         'AA': [6, 5, 1, 66, 14, 0, 0],
-        'SM': [5, 8, 7, 0, 2, 0, 0],
+        'SM': [5, 7, 10, 16, 2, 0, 0],
         'YH': [8, 5, 1, 66, 14, 0, 0],
         'KH': [9, 9, 0, 10, 10, 0, 0]
     }
