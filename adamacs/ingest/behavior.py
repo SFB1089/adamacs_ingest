@@ -2939,7 +2939,8 @@ def register_missing_video_recordings(session_key, scan_key, camera_types, verbo
     }
 
 
-def _eye_ocr_config(side, is_high_res):
+def _eye_ocr_config(side, is_high_res, video_path):
+# Shan: video_path added here
     if side == "left":
         if is_high_res:
             width, height, y = 10 * 2, 12 * 2, 255 * 2
@@ -2958,6 +2959,16 @@ def _eye_ocr_config(side, is_high_res):
             width, height, y = 10, 12, 255
             x_coords = [19, 31, 43, 55, 67, 79]
             threshold = 0.7
+
+    if "topdigit" in str(video_path).lower():            
+            width, height, y = 21, 32, 6
+            x_coords = [37, 61, 85, 109, 133, 157]
+            threshold = 0.7
+    # modify in the future
+    # if "bottomdigit" in str(video_path).lower():
+    #         width, height, y = 21, 32, 6
+    #         x_coords = [37, 61, 85, 109, 133, 157]
+    #         threshold = 0.7
 
     return {
         'x_coords': x_coords,
@@ -3008,7 +3019,7 @@ def _candidate_ocr_configs(camera_role, video_path, frame_width, frame_height, i
         elif camera_role == "eye":
             path_label = str(video_path).lower()
             side = "right" if "right" in path_label else "left"
-        return [_eye_ocr_config(side, is_high_res)], side
+        return [_eye_ocr_config(side, is_high_res, video_path)], side
 
     base_height = 288.0
     scale = frame_height / base_height if frame_height else 1.0
@@ -3136,7 +3147,11 @@ def extract_eye_camera_frames_ocr(video_path, model_path=None, verbose=True, wri
     if model_path is None:
         # Default path relative to adamacs package
         adamacs_root = Path(__file__).parent.parent.parent
-        model_path = adamacs_root / "user_data" / "other models" / "digit_model.joblib"
+        video_path_str = str(video_path).lower()
+        if "topdigit" in video_path_str or "bottomdigit" in video_path_str:
+            model_path = adamacs_root / "user_data" / "other models" / "digit_with_background_model.joblib"
+        else:
+            model_path = adamacs_root / "user_data" / "other models" / "digit_model.joblib"
     else:
         model_path = Path(model_path)
     
