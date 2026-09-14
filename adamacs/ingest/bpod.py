@@ -147,45 +147,84 @@ class Bpodfile(object):
         return trials_with_timeout
 
     def _aux_timestamps(self):
+        """Compute corrected trial start times on the Aux clock.
+
+        Matches non-timeout Bpod trigger events to aux TTL triggers by ordinal
+        position, fits a linear clock model (aux_time = a + b * bpod_time) to
+        account for clock drift, and returns corrected start times for ALL trials.
+
+        If total drift over the session is < 1 ms, falls back to a constant
+        (median) offset for simplicity.
+
+        Returns
+        -------
+        corrected_starts : np.ndarray
+            Corrected trial start times on the Aux clock, shape (n_trials,).
+        aux_rewards : np.ndarray
+            Reward timestamps from aux channel 2.
+        """
+        from numpy.polynomial import polynomial as P
+
         aux_paths = list(self._bpod_path_full.parent.glob("*.h5"))
         assert len(aux_paths) == 1, f"Found more than one Aux h5 file\n{aux_paths}"
         print(aux_paths[0])
-        aux = Auxfile(aux_paths[0]) #TR23: The fact that we read in the aux file again is very redundant. We should read it in once and pass it to the Bpodfile class
-        # aux_onset = aux.main_track_gate  # master trigger
-        aux_trials = aux.bpod_channels["trial"]  # - aux_onset  # trial times wrt trigger - sweep]["analogScans"][1]
-                                                 # corresponds to  bpod_trial_vis_chan = curr_aux[sweep]['analogScans'][1]
-        aux_rewards = aux.bpod_channels["reward"] # - aux_onset  # rewards wrt trigger - ["analogScans"][2], self._sample_rate
+        aux = Auxfile(aux_paths[0])
+        aux_trials = aux.bpod_channels["trial"]   # real TTL triggers only (no timeouts)
+        aux_rewards = aux.bpod_channels["reward"]
 
-        #TR23: BPod cam start earlier and end later than actual recording. We need to find the first and last BPOD trial that has a valid timestamp
-        #Problem: BNClow does not seem to be in all recordings.
-        # trials = self.trial_data
-        # BNC1Low_events = [(i, trial['Events'].get('BNC1Low')) for i, trial in enumerate(trials) if 'BNC1Low' in trial['Events']] # get all trials that have a BNC1Low event. Returns a list of tuples (trial number, event time)
+        # ── Identify non-timeout trials ──
+        timeouttrials = set(self._get_trials_with_timeout())
+        non_timeout_indices = [i for i in range(self.n_trials) if i not in timeouttrials]
 
-        # bpod_aux_starttrial = BNC1Low_events[0][0] + 1 # +1 because we want the trial that FOLLOWS the darkframe onset because the darkframe precedes the first recorded AUX trial
+        print(f"Bpod trials: {self.n_trials}, Aux triggers: {len(aux_trials)}, "
+              f"Timeouts: {len(timeouttrials)}, Non-timeout: {len(non_timeout_indices)}")
 
-        timeouttrials = self._get_trials_with_timeout()
-        if timeouttrials:
-            print(f"Timeout trials detected [trial]: {timeouttrials} \n Adjusting timestamps by inserting fake aux triggers")
-            bpod_to_aux_starttime_offset = self.session_data['TrialStartTimestamp'][0] - (aux_trials[0] - self.trial(0)._states.get("WaitForPosTriggerSoftCode", [None])[1])
-            timeout_duration = self.trial(timeouttrials[0])._states.get("WaitForPosTriggerSoftCode", [None])[1]
+        # ── Match non-timeout Bpod triggers to aux TTL triggers ──
+        n_pairs = min(len(non_timeout_indices), len(aux_trials))
+        bpod_trigger_times = []
+        aux_trigger_times = []
+        bpod_starts = self.session_data['TrialStartTimestamp']
 
-            # TR26: Fix for IndexError when timeout trial indices exceed aux_trials length.
-            # Process insertions in REVERSE order so each insert doesn't shift the indices
-            # of remaining (lower) insertions. Clip index to len(aux_trials) for out-of-bounds.
-            for trial_idx in sorted(timeouttrials, reverse=True):
-                fake_trigger = self.session_data['TrialStartTimestamp'][trial_idx] + \
-                               timeout_duration - bpod_to_aux_starttime_offset
-                insert_idx = min(trial_idx, len(aux_trials))  # Clip to valid range
-                aux_trials = np.insert(aux_trials, insert_idx, fake_trigger)
+        for k in range(n_pairs):
+            trial_idx = non_timeout_indices[k]
+            bpod_at_target = self.trial(trial_idx).events.get('bpod_at_target')
+            if bpod_at_target is not None:
+                bpod_abs = bpod_starts[trial_idx] + bpod_at_target
+                bpod_trigger_times.append(bpod_abs)
+                aux_trigger_times.append(aux_trials[k])
 
-        self.n_trials = min(self.n_trials, len(aux_trials)) #TR23: Set the number of trials to the minimum of the number of AUX trials and the number of BPOD trials
-        # self.n_trials = len(aux_trials) #TR23: Set the number of trials to the number of AUX trials
+        assert len(bpod_trigger_times) > 0, "No valid Bpod-Aux trigger pairs found"
 
-        # assert len(aux_trials) == self.n_trials, (
-        #     "Number of trials do not match: "
-        #     + f"BPod {self.n_trials} vs. Aux {len(aux_trials)}"
-        # )
-        return aux_trials, aux_rewards
+        bpod_trigger_times = np.array(bpod_trigger_times)
+        aux_trigger_times = np.array(aux_trigger_times)
+
+        # ── Fit linear model: aux_time = intercept + slope * bpod_time ──
+        coeffs = P.polyfit(bpod_trigger_times, aux_trigger_times, deg=1)
+        intercept, slope = coeffs
+
+        # Evaluate quality
+        predicted = P.polyval(bpod_trigger_times, coeffs)
+        residuals = aux_trigger_times - predicted
+        session_duration = bpod_starts[-1] - bpod_starts[0]
+        total_drift = (slope - 1.0) * session_duration
+
+        print(f"Linear fit: aux = {intercept:.6f} + {slope:.10f} * bpod")
+        print(f"Clock drift: {(slope - 1.0) * 1e6:.2f} ppm, "
+              f"total over session ({session_duration:.1f}s): {total_drift * 1000:.2f} ms")
+        print(f"Residuals: std = {np.std(residuals) * 1000:.4f} ms "
+              f"({len(bpod_trigger_times)} pairs)")
+
+        # ── Compute corrected starts for ALL trials ──
+        if abs(total_drift) < 0.001:  # < 1 ms total drift
+            offsets = aux_trigger_times - bpod_trigger_times
+            median_offset = np.median(offsets)
+            corrected_starts = bpod_starts[:self.n_trials] + median_offset
+            print(f"Drift < 1 ms -> using constant offset: {median_offset:.6f} s")
+        else:
+            corrected_starts = P.polyval(bpod_starts[:self.n_trials], coeffs)
+            print(f"Drift >= 1 ms -> using linear fit")
+
+        return corrected_starts, aux_rewards
     
 
     def _aux_oddball_timestamps(self):
@@ -694,7 +733,7 @@ class Bpodfile(object):
         # ------------------------------- Some constants -------------------------------
         
         bpod_version = self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
-        aux_trials, aux_rewards = self._aux_timestamps()
+        corrected_starts, aux_rewards = self._aux_timestamps()
         
 
         # ------------------------------- Keys to insert -------------------------------
@@ -732,8 +771,8 @@ class Bpodfile(object):
                 "scan_id": scan_id,
                 "trial_id": n,
                 "trial_type": self.trial(n).type,
-                "trial_start_time": aux_trials[n] - self.trial(n).events['bpod_at_target'],     #TR23: aux start time is equivalent to bpod_at_target. This means: The signal of the visual target being triggered on the aux channel is subtracted by the BPOD reference for the same event. 
-                "trial_stop_time": aux_trials[n] - self.trial(n).events['bpod_at_target'] + self.trial(n).duration, #TR23: removed - self.trial(n).events['bpod_cue'] because it was already subtracted above
+                "trial_start_time": corrected_starts[n],
+                "trial_stop_time": corrected_starts[n] + self.trial(n).duration,
             }
             for n in range(self.n_trials)
         ]
@@ -756,8 +795,7 @@ class Bpodfile(object):
         raw_event_types = set()
         if include_raw_bpod_events or include_raw_bpod_states:
             for n in range(self.n_trials):
-                anchor_time = self.trial(n).events.get("bpod_at_target")
-                base_time = aux_trials[n] - anchor_time if anchor_time is not None else None
+                base_time = corrected_starts[n]
                 trial_raw_keys, trial_raw_types = self._raw_event_keys_for_trial(
                     session_id=session_id,
                     scan_id=scan_id,
@@ -785,7 +823,7 @@ class Bpodfile(object):
                 "scan_id": scan_id,
                 "trial_id": n,
                 "event_type": event,
-                "event_start_time": aux_trials[n] - self.trial(n).events['bpod_at_target'] + event_start, #TR23: IMPORTANT SYNC LINE! subtracting bpod_at_target first since aux start time (visual stim location triggered) is equivalent to bpod_at_target
+                "event_start_time": corrected_starts[n] + event_start,
             }
             for n in range(self.n_trials)
             for event, event_start in self.trial(n).events.items()
