@@ -966,3 +966,56 @@ class EyeSideNote(dj.Manual):
   verified: tinyint # 1 = independently verified, 0 = reported only
   note: varchar(4000) # full description of the problem and its consequences
   """
+
+
+def eye_sides_swapped(subject):
+  """True if this subject's eye videos are stored under the wrong side.
+
+  Reads the most recent EyeSideNote for the subject, so clearing the flag or
+  adding a newer note with sides_swapped=0 switches the correction off without
+  a code change. Cached per subject for the life of the process: these loaders
+  are called once per trial per eye, and a note does not change mid-analysis.
+  """
+  cached = _SWAP_CACHE.get(subject)
+  if cached is None:
+    notes = (EyeSideNote & {'subject': subject}).fetch(
+      as_dict=True, order_by='note_date DESC', limit=1)
+    cached = bool(notes and notes[0]['sides_swapped'])
+    _SWAP_CACHE[subject] = cached
+  return cached
+
+
+_SWAP_CACHE = {}
+_SUBJECT_CACHE = {}
+
+
+def subject_of(scan_key):
+  """The subject for a scan_key, which often carries only session_id/scan_id."""
+  if scan_key.get('subject'):
+    return scan_key['subject']
+  sid = scan_key['session_id']
+  if sid not in _SUBJECT_CACHE:
+    from ..pipeline import session
+    _SUBJECT_CACHE[sid] = (session.Session & {'session_id': sid}).fetch1('subject')
+  return _SUBJECT_CACHE[sid]
+
+
+def stored_eye_prefix(scan_key, eye_prefix):
+  """Translate an ANATOMICAL side into the side it is STORED under.
+
+  Analysis code asks for the left or the right eye meaning the animal's actual
+  left or right. For subjects whose video files were misnamed at acquisition,
+  that eye sits in the recording labelled with the OTHER side, so every lookup
+  that builds a recording_id or an eye event_type out of a side name has to go
+  through here. Pass the anatomical side, use the returned one in the query.
+
+  Note that this applies ONLY to quantities keyed by recording_id, i.e. those
+  that come off the eye cameras. RigidMouseTracking's eye_left_global and
+  eye_right_global are OptiTrack measurements and are unaffected: swapping
+  those too would undo the correction rather than complete it.
+  """
+  if eye_prefix not in ('left', 'right'):
+    raise ValueError(f"eye_prefix must be 'left' or 'right', got {eye_prefix!r}")
+  if not eye_sides_swapped(subject_of(scan_key)):
+    return eye_prefix
+  return 'right' if eye_prefix == 'left' else 'left'
