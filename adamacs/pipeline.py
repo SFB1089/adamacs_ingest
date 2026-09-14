@@ -2,7 +2,7 @@ from . import db_prefix
 
 __all__ = ['subject', 'surgery', 'session', 'behavior', 'equipment', 'scan', 'imaging',
            'train', 'model', 'trial', 'event', 'analysis', 'mocap', 'virtual_markers_optitrack', 
-           'pupil_tracking', 'denoising', 'disk',
+           'pupil_tracking', 'denoising', 'disk', 'wfield',
            'Equipment', 'Location', 'Subject', 'Project', 'Lab', 'User', 
            'Session',
            'get_session_dir', 'get_bpod_root_data_dir', 'get_dlc_root_data_dir',
@@ -85,4 +85,6 @@ from adamacs.schemas import virtual_markers_optitrack
 from adamacs.schemas import disk
 
 #Denoising table
+# Widefield schema - Activate AFTER scan and session are ready
+from adamacs.schemas import wfield
 # from adamacs.schemas import behavior
