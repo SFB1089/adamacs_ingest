@@ -2271,6 +2271,20 @@ def _split_eye_world_summary(camera_data):
     return eye_summary, world_summary
 
 
+# ---------------------------------------------------------------------------------
+# INTENTIONAL DIVERGENCE from adamacs -- decided 2026-09-14. Do not 'fix'.
+#
+# A second copy of the OCR config lives in behavior.py in this repository; both are
+# deliberately left unchanged. adamacs carries a different implementation (candidate
+# configs probed per video, template matching against stored glyph exemplars), and
+# that is what produced the eye-camera timestamps already in the database, so
+# reconstructing those has to be done from adamacs. New ingestion runs from here.
+#
+# Both sides measured the topdigit overlay independently and agree to within a pixel;
+# the difference is only which recogniser runs on the crop. Consolidating the two
+# implementations would cost the ability to reproduce timestamps that are already in
+# the database, so check that decision before touching this.
+# ---------------------------------------------------------------------------------
 def _eye_ocr_config(side, is_high_res, video_path): # Shan: video_path added here
     if side == "left":
         if is_high_res:
