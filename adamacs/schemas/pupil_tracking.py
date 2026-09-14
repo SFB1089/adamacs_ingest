@@ -828,6 +828,27 @@ class GazeReconstruction3D(dj.Computed):
             s = -1
         elif "eye_left" in rec_id:
             s = 1
+        else:
+            raise ValueError(f"Cannot resolve eye side from recording_id: {rec_id}")
+
+        # recording_id says which eye this is, but for some subjects that label is
+        # known to be wrong: the video files were named incorrectly at acquisition,
+        # so a recording labelled "eye_left" actually shows the right eye. EyeSideNote
+        # records those subjects; the most recent note for the subject wins, so
+        # clearing the flag (or adding a newer note with sides_swapped=0) undoes this
+        # correction. If the underlying files and recording_ids are ever renamed, the
+        # note MUST be updated in the same change - otherwise the side is corrected
+        # twice and the error comes back.
+        #
+        # This deliberately corrects ONLY the eye-in-head azimuth sign. It must NOT be
+        # applied to PupilRotationOptiTrack._resolve_eye_event_type, whose event_type
+        # is still correct despite the wrong label: the video, its DLC output and its
+        # frame events all come from the same physical camera, so they share one
+        # self-consistent time base.
+        notes = (EyeSideNote & {'subject': key['subject']}).fetch(
+            as_dict=True, order_by='note_date DESC', limit=1)
+        if notes and notes[0]['sides_swapped']:
+            s = -s
 
         R_eye_in_head = self.Rz(s * eye_in_head_azimuth) @ self.Rx(eye_in_head_elevation)  # (3,3)
 
