@@ -316,17 +316,25 @@ class PupilEllipseFitting(dj.Computed):
 
 # ---------------------------------------- for free-moving eye camera setup -----------------
 @schema
-class PupilEllipseParametersFreeMoving(dj.Lookup):
-  """Set hyperparameters for pupil ellipse fitting, mainly for preprocessing"""
+class PupilEllipseParameterFreeMoving(dj.Lookup):
+  """Set hyperparameters for pupil ellipse fitting, mainly for preprocessing.
+
+  The attribute names below are the ones the live table carries. A class spelled
+  ``PupilEllipseParametersFreeMoving`` stood here from 2025-12-15; because DataJoint
+  has no migrations, renaming it created a second, empty table rather than renaming
+  this one, and ``PupilEllipseFittingFreeMoving`` -- declared 22 minutes earlier --
+  kept its foreign key on the original. Every production fit, and everything
+  downstream of it, hangs off this table.
+  """
   definition = """
   parameter_id: int # unique id for parameters
   ---
-  thres_llh_pupil: float # likelihood threshold for good tracking
-  thres_llh_ir: float # likelihood threshold for good tracking
-  thres_llh_corner: float # likelihood threshold for good tracking
+  llh_thres_pupil: float # likelihood threshold for good tracking
+  llh_thres_ir: float # likelihood threshold for good tracking
+  llh_thres_corner: float # likelihood threshold for good tracking
   pupil_min_dots: int # minimum number of pupil dots required for fitting
   exclude_ir_std: float # define a boundary by mean and std to separate good tracking and bad tracking
-  thres_ellipticity: float # for computing camera center by elliptic frames
+  ellipticity_thres: float # for computing camera center by elliptic frames
   description: varchar(255) # short description of the parameters
   """
 
@@ -353,7 +361,7 @@ class EyeCamTimeSource(dj.Lookup):
 class PupilEllipseFittingFreeMoving(dj.Computed):
     """fit pupil dots from DLC into ellipse"""
     definition = """
-    -> PupilEllipseParametersFreeMoving
+    -> PupilEllipseParameterFreeMoving
     -> PoseEstimationNew
     ---
     ellipse_dict: longblob # dictionary of ellipse fitting results
@@ -498,14 +506,18 @@ class PupilEllipseFittingFreeMoving(dj.Computed):
         y_all = np.vstack(y_all).T
         llh_all = np.vstack(llh_all).T
 
-        # get parameters from PupilEllipseParameter table
+        # get parameters from PupilEllipseParameterFreeMoving table
         # set a cutoff for poor fitting points in DLC model
-        pupil_min_dots = (PupilEllipseParametersFreeMoving & key).fetch1('pupil_min_dots')
-        thres_llh_pupil = (PupilEllipseParametersFreeMoving & key).fetch1('thres_llh_pupil') 
-        thres_llh_ir = (PupilEllipseParametersFreeMoving & key).fetch1('thres_llh_ir')
-        thres_llh_corner = (PupilEllipseParametersFreeMoving & key).fetch1('thres_llh_corner')
-        exclude_ir_std = (PupilEllipseParametersFreeMoving & key).fetch1('exclude_ir_std')
-        thres_ellipticity = (PupilEllipseParametersFreeMoving & key).fetch1('thres_ellipticity')
+        # One fetch rather than six. The live table spells its thresholds
+        # llh_thres_* / ellipticity_thres, so they are unpacked onto the names
+        # used throughout the rest of this method.
+        params = (PupilEllipseParameterFreeMoving & key).fetch1()
+        pupil_min_dots = params['pupil_min_dots']
+        thres_llh_pupil = params['llh_thres_pupil']
+        thres_llh_ir = params['llh_thres_ir']
+        thres_llh_corner = params['llh_thres_corner']
+        exclude_ir_std = params['exclude_ir_std']
+        thres_ellipticity = params['ellipticity_thres']
 
         # set points lower than thres to NaN
         mask_corner = llh_all[:,0:2] < thres_llh_corner
