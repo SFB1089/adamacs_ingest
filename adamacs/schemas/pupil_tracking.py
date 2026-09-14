@@ -920,3 +920,28 @@ class GazeReconstruction3D(dj.Computed):
         torsion = param_coeff * pitch + param_intercept
 
         self.insert1({**key, 'gaze_in_head': gaze_in_head, 'gaze_in_space': gaze_in_space, 'torsion': torsion})
+
+@schema
+class EyeSideNote(dj.Manual):
+  """Record subjects whose left/right eye labelling is known to be wrong.
+
+  Some recordings carry the wrong eye side because the video files were named
+  incorrectly at acquisition. The ingest code is generic and correct, so the
+  exception belongs in the data rather than as a per-animal special case in
+  the pipeline. Downstream analysis should consult `sides_swapped` instead of
+  trusting the eye side encoded in `recording_id`.
+
+  `verified` distinguishes a swap that has been confirmed independently from
+  one that has so far only been reported, so that a correction is never built
+  on an unchecked assumption.
+  """
+  definition = """
+  -> subject.Subject
+  note_date: date # when the labelling problem was recorded
+  ---
+  sides_swapped: tinyint # 1 = left and right eye labels are swapped for this subject
+  affected_scope: varchar(255) # which sessions are affected, e.g. "all sessions"
+  reported_by: varchar(64) # who reported the problem
+  verified: tinyint # 1 = independently verified, 0 = reported only
+  note: varchar(4000) # full description of the problem and its consequences
+  """
