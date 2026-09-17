@@ -117,3 +117,6 @@ notebooks/schema_diagrams/
 .gitignore
 # ingest run logs
 logs/
+
+# stray scratch scripts
+tmp_*.py
