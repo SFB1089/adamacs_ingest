@@ -15,6 +15,9 @@ Date: October 28, 2025
 import os
 import json
 from pathlib import Path
+# Module-level: three functions import this locally, but the two uses at ~1086
+# and ~1108 have no local import and raise NameError (ruff F821, CI red on main).
+from datetime import datetime
 from glob import glob
 from typing import Tuple, Optional, Dict, List
 import pandas as pd
