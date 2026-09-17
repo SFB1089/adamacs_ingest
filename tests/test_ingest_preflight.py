@@ -31,12 +31,21 @@ def _search_name(model_name, video_idx):
 
 
 def _candidates(directory, search_name):
+    """Mirrors adamacs_ingest_v2.dlc_video_candidates, including deinterlaced-wins.
+
+    test_the_default_video_resolution_comes_from_the_ingest_module checks the two
+    against each other so this copy cannot drift silently.
+    """
     import pathlib
     try:
         search_str = search_name.split(";")[2].replace(" ", "")
     except IndexError:
         search_str = "top"
-    return search_str, list(pathlib.Path(directory).glob("*%s*.mp4*" % search_str))
+    hits = list(pathlib.Path(directory).glob("*%s*.mp4*" % search_str))
+    deinterlaced = [p for p in hits if "deinterlaced" in p.name.lower()]
+    if deinterlaced:
+        return search_str, deinterlaced + [p for p in hits if p not in deinterlaced]
+    return search_str, hits
 
 
 @pytest.fixture
@@ -113,13 +122,29 @@ def test_a_missing_session_directory_is_an_error(tmp_path):
     assert report.of(ERROR)[0]["check"] == "session directory is missing"
 
 
-def test_several_matching_videos_is_a_warning_not_an_error(data_root):
-    """Deinterlaced files sit next to their originals, and the ingest takes whichever
-    the filesystem lists first."""
+def test_a_deinterlaced_copy_is_preferred_and_said_so(data_root):
+    """Deinterlaced files sit next to their originals and both match the pattern.
+    The deinterlaced one wins, and the report names what it chose over what."""
     (data_root / SESSION_DIR /
      "scanAAA0001_headcam_mini2p1_left_eye1_video_2099_deinterlaced.mp4").write_text("")
     report = _run(_selection([[], [EYE_MODEL], []]), data_root)
-    assert report.ok                      # ambiguity does not block the run
+    assert report.ok
+    assert not report.of(WARNING)
+    chosen = [f for f in report.of(OK)
+              if f["check"] == "video resolves (deinterlaced copy preferred)"]
+    assert chosen
+    assert chosen[0]["detail"].startswith(
+        "scanAAA0001_headcam_mini2p1_left_eye1_video_2099_deinterlaced.mp4, over ")
+
+
+def test_two_deinterlaced_copies_remain_a_warning(data_root):
+    """The rule resolves raw-vs-deinterlaced. It cannot resolve two of them."""
+    folder = data_root / SESSION_DIR
+    for suffix in ("_a_deinterlaced.mp4", "_b_deinterlaced.mp4"):
+        (folder / ("scanAAA0001_headcam_mini2p1_left_eye1_video_2099%s" % suffix)
+         ).write_text("")
+    report = _run(_selection([[], [EYE_MODEL], []]), data_root)
+    assert report.ok
     warn = [f for f in report.of(WARNING)
             if f["check"] == "several videos match this model"]
     assert warn and "filesystem lists first" in warn[0]["detail"]
@@ -277,3 +302,40 @@ def test_the_default_video_resolution_comes_from_the_ingest_module():
     assert ai.dlc_search_string("no_semicolons_here") == "top"
     assert ai.dlc_search_name("A; B; eye1_video", 2) == "A; B; eye2_video"
     assert ai.dlc_search_name("A; B; eye1_video", 1) == "A; B; eye1_video"
+
+
+def test_the_ingest_and_this_module_resolve_videos_identically(data_root):
+    """The check's local copy of the rule against the ingest's own, on real files."""
+    try:
+        import adamacs.helpers.adamacs_ingest_v2 as ai
+    except Exception as exc:
+        pytest.skip("requires an importable DataJoint pipeline (%s)" % exc)
+
+    folder = data_root / SESSION_DIR
+    (folder / "scanAAA0001_headcam_mini2p1_left_eye1_video_2099_deinterlaced.mp4"
+     ).write_text("")
+    for name in (EYE_MODEL, TOPCAM_MODEL, "no_semicolons"):
+        for idx in (0, 1, 2):
+            search = ai.dlc_search_name(name, idx)
+            assert _candidates(folder, search) == ai.dlc_video_candidates(folder, search)
+
+
+@pytest.mark.parametrize("suffix", [
+    "_deinterlaced.mp4",          # what the January batch produced
+    "-deinterlaced.mp4",          # a different separator
+    ".DEINTERLACED.mp4",          # a different case
+    "_Deinterlaced_v2.mp4",
+])
+def test_deinterlaced_is_recognised_whatever_the_separator_or_case(data_root, suffix):
+    """Codex P2: an exact "_deinterlaced" test is narrower than the repo's own
+    _prefer_deinterlaced_video_files, which matches the substring case-insensitively,
+    and a variant would hand the choice back to filesystem order."""
+    folder = data_root / SESSION_DIR
+    processed = folder / ("scanAAA0001_headcam_mini2p1_left_eye1_video_2099%s" % suffix)
+    processed.write_text("")
+    report = _run(_selection([[], [EYE_MODEL], []]), data_root)
+    assert report.ok
+    chosen = [f for f in report.of(OK)
+              if f["check"] == "video resolves (deinterlaced copy preferred)"]
+    assert chosen, [dict(f) for f in report]
+    assert chosen[0]["detail"].startswith(processed.name)

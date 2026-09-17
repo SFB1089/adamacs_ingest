@@ -736,20 +736,38 @@ def dlc_search_string(search_name):
         return "top"  # Default search string if not specified in model name
 
 
-def dlc_video_candidates(scan_path, search_name):
-    """(search_str, [paths]) that `search_name` resolves to in `scan_path`.
+def is_deinterlaced(path):
+    """Whether a video file is a deinterlaced copy.
 
-    Deliberately unsorted, matching what the ingest has always done: the first hit
-    wins and the order is the filesystem's. The preflight reports when there is more
-    than one rather than quietly picking differently.
+    Substring and case-insensitive, matching `_prefer_deinterlaced_video_files` in
+    adamacs.ingest.behavior, so that the DLC lookup and the eye-camera ingest agree on
+    what counts. Requiring the exact "_deinterlaced" would miss a separator variant
+    such as "eye1_video-deinterlaced.mp4" and hand the choice back to the filesystem.
+    """
+    return "deinterlaced" in str(getattr(path, "name", path)).lower()
+
+
+def dlc_video_candidates(scan_path, search_name):
+    """(search_str, [paths]) that `search_name` resolves to in `scan_path`, best first.
+
+    A deinterlaced copy always wins when one exists. The pattern is a substring and
+    the deinterlaced file is a superstring of the original -- `*eye1_video*.mp4*`
+    matches both `..._eye1_video_2025-05-28T15_50_54.mp4` and
+    `..._eye1_video_2025-05-28T15_50_54_deinterlaced.mp4` -- and `glob` is unsorted,
+    so which one the ingest took used to be directory iteration order. Because the
+    deinterlaced copies were made per file rather than per folder, that was not even
+    consistent inside one session: of the six sessions re-ingested on 2026-09-16,
+    sess9FUDDIBK took the raw file for the left eye and the deinterlaced one for the
+    right, and RecordingInfoNew recorded 25 fps for one camera and 50 for the other.
+
+    Remaining ties are still the filesystem's order, and the preflight says so.
     """
     search_str = dlc_search_string(search_name)
-    base = pathlib.Path(scan_path)
-    if "deinterlaced" in search_name:
-        hits = list(base.glob(f"*{search_str}*deinterlaced*.mp4*"))
-        if hits:
-            return search_str, hits
-    return search_str, list(base.glob(f"*{search_str}*.mp4*"))
+    hits = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
+    deinterlaced = [p for p in hits if is_deinterlaced(p)]
+    if deinterlaced:
+        return search_str, deinterlaced + [p for p in hits if p not in deinterlaced]
+    return search_str, hits
 
 
 def _ingest_dlc_model(scan_key, model_name, camera, aux_setup_typestr, search_model_name=None, use_cropping=True):

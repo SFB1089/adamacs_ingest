@@ -157,11 +157,23 @@ ai.select_sessions(sorted_dirs_root, ..., preflight_strict=True)
 The run then ends before `ingest_session_scan`, with `result: "preflight failed"` in
 the summary and a row in `IngestRun`.
 
-## A note on the "several videos match" warning
+## Which video wins
 
-Five of the six sessions re-ingested on 2026-09-16 have both a raw and a
-`_deinterlaced` copy of the same eye video, and the glob matches both. The order is
-the filesystem's, and it is not consistent — in some folders the raw file comes
-first, in others the deinterlaced one. That is why `RecordingInfoNew` for those
-sessions holds a mixture of 25 fps and 50 fps entries for the same camera. The
-preflight does not change which file is chosen; it says that a choice is being made.
+A deinterlaced copy always wins when one exists.
+
+The pattern is a substring and the deinterlaced file is a superstring of the
+original, so `*eye1_video*.mp4*` matches both
+`..._eye1_video_2025-05-28T15_50_54.mp4` and
+`..._eye1_video_2025-05-28T15_50_54_deinterlaced.mp4`; `glob` is unsorted, so which
+one the ingest took used to be directory iteration order. Because the deinterlaced
+copies were made per file rather than per folder, that was not even consistent within
+one session: of the six sessions re-ingested on 2026-09-16, `sess9FUDDIBK` took the
+raw file for the left eye and the deinterlaced one for the right, and
+`RecordingInfoNew` recorded **25 fps / 5,648 frames** for one camera and
+**50 fps / 11,288 frames** for the other — same animal, same 226 s recording.
+
+Ten of the twelve eye recordings in those six sessions had both copies on disk, and
+six of them had ingested the raw one. With the rule in place the preflight reports
+`video resolves (deinterlaced copy preferred)` and names both files. A real
+ambiguity that the rule cannot settle — two deinterlaced copies — is still a
+warning.
