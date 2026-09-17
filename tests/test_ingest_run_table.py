@@ -188,3 +188,22 @@ def test_long_values_are_truncated_not_rejected(rollback, tmp_path):
     assert ing.record_run(run, summary, verbose=False) is True
     row = (ing.IngestRun.Failure & f'run_id = "{run.run_id}"').fetch1()
     assert len(row["description"]) <= 255 and len(row["detail"]) <= 1000
+
+
+def test_a_run_without_an_env_file_still_gets_a_start_time(rollback, tmp_path):
+    """Codex P2: run_start is NOT NULL, and a NullRunLog has no env.json -- which is
+    precisely when the database row is the only record left."""
+    from adamacs.ingest_log import NullRunLog
+    run = NullRunLog()
+    with run.step("something", key={"session_id": "sessTEST900"}) as s:
+        s.failed(RuntimeError("no log directory either"))
+    summary = run.finish({"sessions_selected": 1, "sessions_failed": 1,
+                          "sessions_with_failures": ["sessTEST900"]})
+
+    assert ing.record_run(run, summary, verbose=False) is True
+    row = (ing.IngestRun & f'run_id = "{run.run_id}"').fetch1()
+    assert row["run_start"] is not None
+    assert row["log_dir"] is None
+    assert row["n_steps_failed"] == 1
+    outcome = (ing.IngestRun.SessionOutcome & f'run_id = "{run.run_id}"').fetch1()
+    assert outcome["outcome"] == "failed"

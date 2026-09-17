@@ -96,6 +96,13 @@ def _truncate(value: Any, length: int) -> str:
     return ("" if value is None else str(value))[:length]
 
 
+def _started_at(run) -> str:
+    """UTC start time of a run that has no env.json to read it from."""
+    from datetime import datetime, timezone
+    epoch = getattr(run, "started", None) or datetime.now(timezone.utc).timestamp()
+    return datetime.fromtimestamp(epoch, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def record_run(run, summary: Optional[Dict[str, Any]] = None, verbose: bool = True) -> bool:
     """Insert one :class:`adamacs.ingest_log.RunLog` into :class:`IngestRun`.
 
@@ -104,7 +111,7 @@ def record_run(run, summary: Optional[Dict[str, Any]] = None, verbose: bool = Tr
     """
     try:
         if getattr(run, "dir", None) is None and not getattr(run, "steps", None):
-            return False  # a NullRunLog with nothing in it
+            return False  # nothing at all to record
 
         summary = summary or run.finish()
         env = {}
@@ -122,9 +129,13 @@ def record_run(run, summary: Optional[Dict[str, Any]] = None, verbose: bool = Tr
 
         counts = summary.get("counts", {})
         git = env.get("git", {}) or {}
+        # run_start is NOT NULL. A NullRunLog has no env.json, and that is exactly the
+        # case where the database row is the only record left, so fall back to the
+        # run's in-memory start time rather than losing the row to a rejected insert.
+        started = (env.get("started") or "").replace("T", " ")[:19] or _started_at(run)
         row = {
             "run_id": run.run_id,
-            "run_start": env.get("started", "").replace("T", " ")[:19] or None,
+            "run_start": started,
             "run_end": summary.get("finished", "").replace("T", " ")[:19] or None,
             "user_initials": _truncate(env.get("context", {}).get("user_initials"), 8) or None,
             "os_user": _truncate(env.get("user"), 64) or None,

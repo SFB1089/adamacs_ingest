@@ -1072,7 +1072,13 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
                     )
                     successful_sessions += 1
                 except Exception as e:
-                    failed_sessions += 1
+                    # Record it as a step so the ledger stays the single source of
+                    # truth. Counting it only here would leave this session absent
+                    # from sessions_with_failures, and IngestRun would then file it
+                    # as 'ok'.
+                    with run.step('session processing',
+                                  key={'session_id': session_info['session_id']}) as s:
+                        s.failed(e)
                     print(f"\nERROR processing session {session_info['session_id']}: {e}")
                     traceback.print_exc(limit=2)  # Always print traceback to log
                     if suppress_errors:
@@ -1098,7 +1104,10 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
                 s['session_id'] for s in selections
                 if not run.session_ok(s['session_id'])
             ]
-            failed_sessions = max(failed_sessions, len(sessions_with_failures))
+            # Derived from the ledger alone. Exceptions that escape _process_session
+            # are recorded as steps above, so they are already in here; taking a max
+            # against a separate counter would under-report when both kinds occur.
+            failed_sessions = len(sessions_with_failures)
             successful_sessions = num_sessions - failed_sessions
 
             if failed_sessions == 0 and step_counts['failed'] == 0:
@@ -1132,7 +1141,10 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
             traceback.print_exc()  # Always print full traceback for top-level errors
         with run.step('commit callback', key=None) as s:
             s.failed(e)
-        run.finish({'result': 'aborted'})
+        # An aborted run is the one most likely to be looked up later, so it gets the
+        # same database record as a completed one.
+        aborted_summary = run.finish({'result': 'aborted'})
+        _record_run_in_database(run, aborted_summary)
     finally:
         # Stop timer thread and hide progress elements
         stop_event.set()

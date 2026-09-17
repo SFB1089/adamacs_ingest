@@ -248,7 +248,7 @@ def test_null_run_log_supports_the_whole_api():
     assert run.counts()["failed"] == 1
     assert run.session_ok("sessA") is False
     assert "1 failed" in run.format_summary()
-    assert run.finish()["run_id"] == "no-log"
+    assert run.finish()["run_id"] == run.run_id
 
 
 def test_get_run_log_normalises_none():
@@ -302,3 +302,35 @@ def test_probe_is_used_for_every_configured_root(monkeypatch, tmp_path):
 def test_step_skipped_is_not_an_error_type():
     assert issubclass(StepSkipped, Exception)
     assert not issubclass(StepSkipped, (OSError, ValueError))
+
+
+def test_the_filesystem_root_is_not_probed(monkeypatch, tmp_path):
+    """dlc_root_data_dir conventionally ends with "/". Probing it reports a
+    PermissionError that is true, useless and alarming."""
+    import datajoint as dj
+    monkeypatch.setattr(dj, "config", {
+        "custom": {"dlc_root_data_dir": [str(tmp_path), "/"]},
+    }, raising=False)
+    roots = collect_environment()["datajoint"]["roots"]
+    assert [r["path"] for r in roots] == [str(tmp_path)]
+
+
+def test_repeated_roots_are_probed_once(monkeypatch, tmp_path):
+    import datajoint as dj
+    monkeypatch.setattr(dj, "config", {
+        "custom": {"dlc_root_data_dir": [str(tmp_path), str(tmp_path), str(tmp_path)]},
+    }, raising=False)
+    roots = collect_environment()["datajoint"]["roots"]
+    assert len(roots) == 1
+
+
+def test_null_run_logs_get_distinct_ids_and_a_full_summary():
+    """run_id is IngestRun's primary key; a constant would make two fallback runs
+    collide, and finish() has to carry the caller's keys like the real one."""
+    a, b = NullRunLog(), NullRunLog()
+    assert a.run_id != b.run_id and len(a.run_id) == 8
+    summary = a.finish({"sessions_selected": 3, "result": "aborted"})
+    assert summary["sessions_selected"] == 3
+    assert summary["result"] == "aborted"
+    assert summary["finished"] and summary["counts"] == {
+        "ok": 0, "skipped": 0, "failed": 0, "unknown": 0}

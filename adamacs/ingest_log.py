@@ -364,7 +364,9 @@ class NullRunLog(RunLog):
 
     def __init__(self):  # noqa: D107 - deliberately does not call super()
         self.dir = None
-        self.run_id = "no-log"
+        # A real id, not a constant: run_id is the primary key of IngestRun, and two
+        # runs that both fell back would otherwise collide on it.
+        self.run_id = uuid.uuid4().hex[:8]
         self.started = time.time()
         self.steps = []
         self._steps_fh = None
@@ -378,7 +380,22 @@ class NullRunLog(RunLog):
         yield self
 
     def finish(self, extra=None):
-        return {"run_id": self.run_id, "counts": self.counts()}
+        # Same shape as RunLog.finish, minus the file: callers read `finished` and
+        # the caller-supplied keys back out of it.
+        summary = {
+            "run_id": self.run_id,
+            "directory": None,
+            "finished": _utcnow().isoformat(),
+            "duration_s": round(time.time() - self.started, 1),
+            "counts": self.counts(),
+            "failures": [{k: v for k, v in f.items() if k != "traceback"}
+                         for f in self.failures()],
+            "skips": [{k: v for k, v in s.items() if k != "traceback"}
+                      for s in self.skips()],
+        }
+        if extra:
+            summary.update(extra)
+        return summary
 
     def format_summary(self, max_listed: int = 10) -> str:
         c = self.counts()
@@ -483,12 +500,21 @@ def collect_environment(repo_root=None) -> Dict[str, Any]:
         import datajoint as dj
         custom = _safe(lambda: dict(dj.config.get("custom", {}) or {}), {}) or {}
         roots: List[Dict[str, Any]] = []
+        seen = set()
         for name in ("exp_root_data_dir", "imaging_root_data_dir",
                      "dlc_root_data_dir", "dlc_processed_data_dir"):
             value = custom.get(name)
             if not value:
                 continue
             for entry in (value if isinstance(value, (list, tuple)) else [value]):
+                # dlc_root_data_dir conventionally ends with "/" so that absolute
+                # project paths resolve. Probing the filesystem root reports a
+                # PermissionError that is true, useless and alarming, so skip it.
+                # Also de-duplicate: these lists repeat the same directories.
+                key = (name, str(entry))
+                if str(entry).strip() in ("/", "") or key in seen:
+                    continue
+                seen.add(key)
                 roots.append(dict(probe_writable(entry), config_key=name))
         return {
             "version": _safe(lambda: dj.__version__),

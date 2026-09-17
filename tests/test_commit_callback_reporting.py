@@ -364,3 +364,64 @@ def test_the_run_is_offered_to_the_database_mirror(harness, tmp_path):
     on_disk = json.loads((_latest_run(tmp_path) / "summary.json").read_text())
     assert summary == on_disk
     assert summary["counts"]["failed"] == 2
+
+
+# --------------------------------------------------------------------------------
+# review findings, 2026-09-17
+# --------------------------------------------------------------------------------
+
+def test_a_session_that_raises_outside_a_step_is_still_attributed(harness, tmp_path,
+                                                                  monkeypatch):
+    """Codex P1: an exception escaping _process_session used to bump a counter only.
+
+    Its session id never reached `sessions_with_failures`, so IngestRun filed that
+    session as 'ok', and combining the two counters with max() under-reported a run
+    that had both kinds of failure.
+    """
+    dirs = list(SESSIONS)[:2]
+    escaping, logged = dirs[0], dirs[1]
+
+    real_process = ai._process_session
+
+    def dispatch(sessi, *a, **k):
+        if sessi == "sessAAA0001":
+            raise RuntimeError("pyrat lookup exploded outside any step")
+        return real_process(sessi, *a, **k)
+
+    monkeypatch.setattr(ai, "_process_session", dispatch)
+    harness.behaviour = "permission"          # the other session fails inside a step
+
+    bar, status = _run_commit(dirs, [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])
+                                     for d in dirs])
+
+    summary = json.loads((_latest_run(tmp_path) / "summary.json").read_text())
+    assert sorted(summary["sessions_with_failures"]) == ["sessAAA0001", "sessBBB0002"]
+    assert summary["sessions_failed"] == 2
+    assert summary["sessions_successful"] == 0
+    assert bar.bar_style == "danger"
+    assert any("pyrat lookup exploded" in f["detail"] for f in summary["failures"])
+
+
+def test_an_aborted_run_still_reaches_the_database_mirror(harness, tmp_path,
+                                                          monkeypatch):
+    """Codex P1: with suppress_errors=False the exception re-raises into the outer
+    handler, which used to write only the disk summary -- losing the row for exactly
+    the runs someone would later go looking for."""
+    def explode(*a, **k):
+        raise RuntimeError("fatal, not suppressed")
+
+    monkeypatch.setattr(ai, "_process_session", explode)
+    d = list(SESSIONS)[0]
+    output, bar = _Output(), _ProgressBar()
+    ai._commit_button_callback(
+        None, [d], [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])],
+        ([0], ["dummy"]), output, _Container(), _Container(), bar,
+        _Value(""), _Value(""), _Container(),
+        False, False, "trigger", False,          # suppress_errors=False
+    )
+
+    assert bar.bar_style == "danger"
+    assert len(harness.recorded) == 1, "the aborted run was never offered to IngestRun"
+    _run, summary = harness.recorded[0]
+    assert summary["result"] == "aborted"
+    assert any("fatal, not suppressed" in f["detail"] for f in summary["failures"])
