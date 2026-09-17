@@ -736,6 +736,17 @@ def dlc_search_string(search_name):
         return "top"  # Default search string if not specified in model name
 
 
+def is_deinterlaced(path):
+    """Whether a video file is a deinterlaced copy.
+
+    Substring and case-insensitive, matching `_prefer_deinterlaced_video_files` in
+    adamacs.ingest.behavior, so that the DLC lookup and the eye-camera ingest agree on
+    what counts. Requiring the exact "_deinterlaced" would miss a separator variant
+    such as "eye1_video-deinterlaced.mp4" and hand the choice back to the filesystem.
+    """
+    return "deinterlaced" in str(getattr(path, "name", path)).lower()
+
+
 def dlc_video_candidates(scan_path, search_name):
     """(search_str, [paths]) that `search_name` resolves to in `scan_path`, best first.
 
@@ -753,7 +764,7 @@ def dlc_video_candidates(scan_path, search_name):
     """
     search_str = dlc_search_string(search_name)
     hits = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
-    deinterlaced = [p for p in hits if "_deinterlaced" in p.name]
+    deinterlaced = [p for p in hits if is_deinterlaced(p)]
     if deinterlaced:
         return search_str, deinterlaced + [p for p in hits if p not in deinterlaced]
     return search_str, hits

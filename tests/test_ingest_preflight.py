@@ -42,7 +42,7 @@ def _candidates(directory, search_name):
     except IndexError:
         search_str = "top"
     hits = list(pathlib.Path(directory).glob("*%s*.mp4*" % search_str))
-    deinterlaced = [p for p in hits if "_deinterlaced" in p.name]
+    deinterlaced = [p for p in hits if "deinterlaced" in p.name.lower()]
     if deinterlaced:
         return search_str, deinterlaced + [p for p in hits if p not in deinterlaced]
     return search_str, hits
@@ -318,3 +318,24 @@ def test_the_ingest_and_this_module_resolve_videos_identically(data_root):
         for idx in (0, 1, 2):
             search = ai.dlc_search_name(name, idx)
             assert _candidates(folder, search) == ai.dlc_video_candidates(folder, search)
+
+
+@pytest.mark.parametrize("suffix", [
+    "_deinterlaced.mp4",          # what the January batch produced
+    "-deinterlaced.mp4",          # a different separator
+    ".DEINTERLACED.mp4",          # a different case
+    "_Deinterlaced_v2.mp4",
+])
+def test_deinterlaced_is_recognised_whatever_the_separator_or_case(data_root, suffix):
+    """Codex P2: an exact "_deinterlaced" test is narrower than the repo's own
+    _prefer_deinterlaced_video_files, which matches the substring case-insensitively,
+    and a variant would hand the choice back to filesystem order."""
+    folder = data_root / SESSION_DIR
+    processed = folder / ("scanAAA0001_headcam_mini2p1_left_eye1_video_2099%s" % suffix)
+    processed.write_text("")
+    report = _run(_selection([[], [EYE_MODEL], []]), data_root)
+    assert report.ok
+    chosen = [f for f in report.of(OK)
+              if f["check"] == "video resolves (deinterlaced copy preferred)"]
+    assert chosen, [dict(f) for f in report]
+    assert chosen[0]["detail"].startswith(processed.name)

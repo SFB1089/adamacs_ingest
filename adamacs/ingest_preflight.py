@@ -155,7 +155,7 @@ def _check_video_resolves(report, session_label, directory, camera, model_name,
             'searched for "*%s*.mp4*" in %s -- the pattern is the 3rd ";" field of '
             '"%s"' % (search_str, directory, search_name), **scope))
     elif len(hits) > 1:
-        deinterlaced = [p for p in hits if "_deinterlaced" in p.name]
+        deinterlaced = [p for p in hits if "deinterlaced" in p.name.lower()]
         if len(deinterlaced) == 1:
             # Resolved by the deinterlaced-wins rule, so it is a choice, not a
             # coin flip; still worth saying which of the two was taken.
