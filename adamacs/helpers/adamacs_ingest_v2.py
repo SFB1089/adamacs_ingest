@@ -20,6 +20,9 @@ from scipy.ndimage import mean
 import datajoint as dj
 import time
 import threading
+import contextvars
+import contextlib
+from contextlib import contextmanager
 
 # =============================================================================
 # DEBUG CONFIGURATION - Set to True to enable detailed debug output
@@ -33,6 +36,7 @@ from adamacs.ingest import behavior as ibe
 from adamacs.schemas import mocap
 from adamacs.helpers import stack_helpers as sh
 from adamacs.helpers.user_defaults_manager import UserDefaultsManager
+from adamacs.ingest_log import RunLog, NullRunLog, StepSkipped, get_run_log
 from element_interface.utils import find_full_path
 from adamacs.paths import get_dlc_root_data_dir
 
@@ -54,7 +58,11 @@ except (ImportError, Exception) as e:
 
 # =============================================================================
 # Initialize user defaults manager for INI-based configuration
-_user_defaults_manager = UserDefaultsManager('/home/shanm/adamacs_ingest/user_configs')
+# No hardcoded path: UserDefaultsManager() resolves user_configs/ relative to this
+# checkout. The previous value pointed into one lab member's home directory, which is
+# not readable by anyone else, so importing this module raised PermissionError for
+# every other user before they saw a single line of the GUI.
+_user_defaults_manager = UserDefaultsManager()
 
 # ------------------------- USER DEFAULTS (INI-BASED) ------------------------
 # =============================================================================
@@ -391,29 +399,99 @@ def unique_directory_strings(dirs1, dirs2):
     unique_dirs = list(set(set1.union(set2)) - set(common_dirs))
     return unique_dirs
 
+# =============================================================================
+# ------------------------- RUN LOGGING CONTEXT -------------------------------
+# =============================================================================
+# The run log is carried in context variables rather than threaded through every
+# signature, so that _process_session, _process_scan, _populate_dlc and the rest
+# keep the signatures other notebooks already call them with.
+
+_RUN = contextvars.ContextVar('adamacs_ingest_run', default=None)
+_KEY = contextvars.ContextVar('adamacs_ingest_key', default=None)
+
+
+def current_run_log():
+    """The RunLog for the ingest in progress, or a NullRunLog outside one."""
+    return get_run_log(_RUN.get())
+
+
+@contextmanager
+def ingest_run(run):
+    """Make `run` the active run log for the duration of the block."""
+    token = _RUN.set(run)
+    try:
+        yield run
+    finally:
+        _RUN.reset(token)
+
+
+@contextmanager
+def ingest_context(**key):
+    """Tag every step recorded inside the block with session_id / scan_id / ..."""
+    merged = dict(_KEY.get() or {})
+    merged.update({k: v for k, v in key.items() if v is not None})
+    token = _KEY.set(merged)
+    try:
+        yield merged
+    finally:
+        _KEY.reset(token)
+
+
+def _record_run_in_database(run, summary):
+    """Mirror the run into roselab_ingest.IngestRun, so that "which run produced this
+    session, and what did it report" stays answerable after the log directory is gone.
+
+    Imported lazily and guarded: the schema is optional, and an ingest must not fail
+    because its bookkeeping could not be stored.
+    """
+    try:
+        from adamacs.schemas import ingest as ingest_schema
+    except Exception as exc:
+        print(f'-- ingest run not recorded in the database '
+              f'({type(exc).__name__}: {exc}); the log on disk is unaffected')
+        return False
+    return ingest_schema.record_run(run, summary)
+
+
 def _run_ingestion_task(task_func, description, **kwargs):
+    """Run one ingestion step, printing its progress and recording its outcome.
+
+    Three outcomes, not two. A step that had nothing to do raises StepSkipped and is
+    recorded as `skipped` with its reason, instead of returning None and being logged
+    as DONE -- which is how "no video matched this DLC model" used to be
+    indistinguishable from success.
+
+    The return value says whether the step succeeded. Callers may ignore it; the
+    ledger in the run log does not, and it is what the final summary is built from.
     """
-    Wrapper to run an ingestion function with standardized print output and error handling.
-    This simplifies the main loop by handling repetitive try/except blocks and logging.
-    """
+    run = current_run_log()
     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f'[{ts}] -- {description}...', end='')
-    try:
-        result = task_func(**kwargs)
+
+    with run.step(description, key=_KEY.get()) as step:
+        try:
+            result = task_func(**kwargs)
+        except StepSkipped as skip:
+            step.skipped(str(skip))
+            ts_skip = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f'[{ts_skip}] SKIPPED: {skip}')
+            return False
+        except Exception as e:
+            step.failed(e)
+            ts_err = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f'[{ts_err}] FAILED: {description}. Error: {e}')
+            # Two frames on screen; the full traceback goes to the run log.
+            traceback.print_exc(limit=2)
+            return False
+
+        step.ok(result)
         ts_done = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
         # If DLC model ingestion returned a video filename, include it in the log
         if result and task_func.__name__ == '_ingest_dlc_model':
             print(f'[{ts_done}] DONE. (Video: {result})')
         else:
             print(f'[{ts_done}] DONE.')
         return True
-    except Exception as e:
-        ts_err = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f'[{ts_err}] FAILED: {description}. Error: {e}')
-        # Always print detailed error traces for debugging
-        traceback.print_exc(limit=2)
-        return False
 
 # =============================================================================
 # ---------------------- INGESTION SUB-ROUTINES -------------------------------
@@ -600,15 +678,20 @@ def _ingest_dlc_model(scan_key, model_name, camera, aux_setup_typestr, search_mo
         movie_paths = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
     
     if not movie_paths:
-        print(f'-- DLC video file with search string "{search_str}" not found for scan {scan_key["scan_id"]}. Skipping.')
-        return None
+        # Not an error, but not success either: the model's name did not resolve to a
+        # video in this scan's directory. Raised rather than printed so that it is
+        # recorded as a skip with its reason and appears in the run summary.
+        raise StepSkipped(
+            f'no video matching "{search_str}" in {scan_path} '
+            f'(search string comes from the 3rd ";" field of "{search_name}")'
+        )
 
     # Get just the filename (not full path) for cleaner logging
     video_filename = movie_paths[0].name
-    
+
     rec_id = f"{scan_key['scan_id']}_{camera}"
     key = {**scan_key, 'recording_id': rec_id, 'camera': camera}
-    
+
     # Insert video recording and file info
     model.VideoRecordingNew.insert1(key, skip_duplicates=True)
     
@@ -649,8 +732,15 @@ def _populate_dlc(scans_to_process, session_info, usercam_defaults_i, useraux_de
     # If you change a model in the UI, a new task will be created, but the old one will remain.
     # Deselecting a model ('dummy') will not remove any existing tasks for that scan.
 
+    run = current_run_log()
+
     # Check if any models are selected across all three video files
     if all(len(models) == 0 or all(m == 'dummy' for m in models) for models in dlc_models):
+        # Previously a bare return: an ingest that did no DLC at all looked identical
+        # to one that did. Record it, with what the cameras were offered.
+        print('-- No DLC models selected; skipping DLC for this session.')
+        with run.step('DLC', key=_KEY.get()) as s:
+            s.skipped('no DLC models selected in the GUI for any of the three cameras')
         return # Skip if no DLC models are selected.
 
     for scansi in scans_to_process:
@@ -663,6 +753,10 @@ def _populate_dlc(scans_to_process, session_info, usercam_defaults_i, useraux_de
             aux_setup_typestr = useraux_default_i  # Use user-specific default for aux setup type
         
         if "openfield" not in aux_setup_typestr and "bench2p" not in aux_setup_typestr and "behavior_box" not in aux_setup_typestr:
+            with ingest_context(scan_id=scansi):
+                with run.step('DLC', key=_KEY.get()) as s:
+                    s.skipped(f'setup type "{aux_setup_typestr}" is not openfield / '
+                              f'bench2p / behavior_box')
             continue # Skip if not a relevant experiment type
 
         print(f'-- Processing DLC for scan: {scansi}')
@@ -679,11 +773,13 @@ def _populate_dlc(scans_to_process, session_info, usercam_defaults_i, useraux_de
                     if video_idx == 2 and "eye1" in model_name:
                         search_model_name = model_name.replace("eye1", "eye2")
                     
-                    _run_ingestion_task(
-                        _ingest_dlc_model, f'DLC model Video {video_idx+1} ({model_name})',
-                        scan_key=scan_key, model_name=model_name, camera=camera,
-                        aux_setup_typestr=aux_setup_typestr, search_model_name=search_model_name, use_cropping=use_dlc_cropping
-                    )
+                    with ingest_context(scan_id=scansi, camera=camera,
+                                        model_name=model_name):
+                        _run_ingestion_task(
+                            _ingest_dlc_model, f'DLC model Video {video_idx+1} ({model_name})',
+                            scan_key=scan_key, model_name=model_name, camera=camera,
+                            aux_setup_typestr=aux_setup_typestr, search_model_name=search_model_name, use_cropping=use_dlc_cropping
+                        )
 
 # =============================================================================
 # ------------------------- CORE PROCESSING LOGIC -----------------------------
@@ -692,65 +788,99 @@ def _populate_dlc(scans_to_process, session_info, usercam_defaults_i, useraux_de
 def _process_scan(sessi, scansi, session_info, populate_settings, ingest_opt, is_update=False, suppress_errors=True, user_aux_default="behavior_box"):
     """Run all ingestion and population tasks for a single scan."""
     print(f'Processing scan: {scansi}')
-    
-    # 1. Insert/Update all metadata from UI. This is always run to capture UI changes.
-    _run_ingestion_task(_update_all_metadata, 'Session/Scan metadata', sessi=sessi, scansi=scansi, session_info=session_info, ingest_opt=ingest_opt)
-    
-    # 2. Populate ScanInfo to get metadata required for subsequent steps
-    # The restriction must be passed into populate, not applied before it.
-    try:
-        scan.ScanInfo.populate(f'scan_id = "{scansi}"' , **populate_settings)
-        aux_setup_typestr = (scan.ScanInfo() & f'scan_id = "{scansi}"').fetch1("userfunction_info")
-        if 'dummy' in (scan.ScanInfo.ScanFile &  f'scan_id = "{scansi}"').fetch1('file_path'):
-            print(f'-- Found dummy file for scan {scansi}, using user default "{user_aux_default}".')
-            aux_setup_typestr = user_aux_default
-    except Exception as e:
-        print(f'-- Could not fetch aux_setup_typestr for scan {scansi}, using user default "{user_aux_default}". Error: {e}')
-        # traceback.print_exc(limit=2)  # Always print traceback to log
-        aux_setup_typestr = user_aux_default  # Use user-specific default for aux setup type
-        if not suppress_errors:
-            raise
+    run = current_run_log()
 
-    # 3. Ingest behavioral and physiology data only for new sessions
-    if not is_update:
-        _ingest_behavioral_data(sessi, scansi, aux_setup_typestr)
-    else:
-        print('-- Skipping behavioral data ingestion for existing session.')
+    with ingest_context(session_id=sessi, scan_id=scansi):
+        # 1. Insert/Update all metadata from UI. This is always run to capture UI changes.
+        _run_ingestion_task(_update_all_metadata, 'Session/Scan metadata', sessi=sessi, scansi=scansi, session_info=session_info, ingest_opt=ingest_opt)
 
-    # 4. Populate computed tables
-    _run_ingestion_task(_populate_behavior_tasks, 'Behavior tasks (Treadmill/HARP)', scansi=scansi, aux_setup_typestr=aux_setup_typestr, populate_settings=populate_settings)
-    _run_ingestion_task(_populate_optitrack, 'OptiTrack data', scansi=scansi, aux_setup_typestr=aux_setup_typestr, populate_settings=populate_settings)
-    _run_ingestion_task(_populate_cascade, 'CASCADE data', scansi=scansi, paramset_idx=session_info['s2p_param_idx'], populate_settings=populate_settings)
+        # 2. Populate ScanInfo to get metadata required for subsequent steps
+        # The restriction must be passed into populate, not applied before it.
+        aux_setup_source = 'scan.ScanInfo'
+        try:
+            scan.ScanInfo.populate(f'scan_id = "{scansi}"' , **populate_settings)
+            aux_setup_typestr = (scan.ScanInfo() & f'scan_id = "{scansi}"').fetch1("userfunction_info")
+            if 'dummy' in (scan.ScanInfo.ScanFile &  f'scan_id = "{scansi}"').fetch1('file_path'):
+                print(f'-- Found dummy file for scan {scansi}, using user default "{user_aux_default}".')
+                aux_setup_typestr = user_aux_default
+                aux_setup_source = 'user default (dummy scan file)'
+        except Exception as e:
+            print(f'-- Could not fetch aux_setup_typestr for scan {scansi}, using user default "{user_aux_default}". Error: {e}')
+            # traceback.print_exc(limit=2)  # Always print traceback to log
+            aux_setup_typestr = user_aux_default  # Use user-specific default for aux setup type
+            aux_setup_source = f'user default (fetch failed: {type(e).__name__}: {e})'
+            if not suppress_errors:
+                raise
+
+        # Record the value the run actually used, and where it came from. The two
+        # fallbacks above silently change what every later step does.
+        with run.step('effective aux_setup_type', key=_KEY.get()) as s:
+            s.ok(f'{aux_setup_typestr} (from {aux_setup_source})')
+
+        # 3. Ingest behavioral and physiology data only for new sessions
+        if not is_update:
+            _ingest_behavioral_data(sessi, scansi, aux_setup_typestr)
+        else:
+            print('-- Skipping behavioral data ingestion for existing session.')
+            with run.step('Behavioral data ingestion', key=_KEY.get()) as s:
+                s.skipped('session already ingested (is_update=True)')
+
+        # 4. Populate computed tables
+        _run_ingestion_task(_populate_behavior_tasks, 'Behavior tasks (Treadmill/HARP)', scansi=scansi, aux_setup_typestr=aux_setup_typestr, populate_settings=populate_settings)
+        _run_ingestion_task(_populate_optitrack, 'OptiTrack data', scansi=scansi, aux_setup_typestr=aux_setup_typestr, populate_settings=populate_settings)
+        _run_ingestion_task(_populate_cascade, 'CASCADE data', scansi=scansi, paramset_idx=session_info['s2p_param_idx'], populate_settings=populate_settings)
 
 def _process_session(sessi, session_info, usercam_defaults_i, useraux_default_i, populate_settings, ingest_opt, do_population, rspace_upload, suppress_errors=True):
-    """Run all processing for a single session, including all its scans."""
+    """Run all processing for a single session, including all its scans.
+
+    Thin wrapper so that every step recorded below is tagged with this session_id
+    without the body having to pass it anywhere.
+    """
+    with ingest_context(session_id=sessi):
+        return _process_session_body(
+            sessi, session_info, usercam_defaults_i, useraux_default_i,
+            populate_settings, ingest_opt, do_population, rspace_upload,
+            suppress_errors=suppress_errors,
+        )
+
+
+def _process_session_body(sessi, session_info, usercam_defaults_i, useraux_default_i, populate_settings, ingest_opt, do_population, rspace_upload, suppress_errors=True):
     print(f'\n{"="*30}\nProcessing session: {sessi}\n{"="*30}')
-    
+    run = current_run_log()
+
     # Check if the session is already ingested to determine if this is an update.
     is_update = bool(session.Session & f'session_id = "{sessi}"')
+    with run.step('session state', key=_KEY.get()) as s:
+        s.ok('update' if is_update else 'new session')
 
     # 1. Ingest session and discover scans from the directory.
     # This populates session.Session, scan.Scan, and related tables.
     print('-- Ingesting session and discovering scans...', end='')
-    try:
-        # This function call is crucial and was previously misplaced inside the scan loop.
-        isess.ingest_session_scan(
-            sessi,
-            verbose=False,
-            project_key=session_info['project'],
-            equipment_key=session_info['equipment'],
-            location_key=session_info['location'],
-            software_key='ScanImage'
-        )
-        print('Done.')
-    except Exception as e:
-        print(f'Failed during initial session ingestion. Error: {e}')
-        traceback.print_exc(limit=2)  # Always print traceback to log
-        if not suppress_errors:
-            raise
-        else:
-            print(f'-- Continuing with next session due to suppress_errors=True')
-            return # Stop processing this session but continue with others
+    with run.step('Session/scan discovery', key=_KEY.get()) as s:
+        try:
+            # This function call is crucial and was previously misplaced inside the scan loop.
+            isess.ingest_session_scan(
+                sessi,
+                verbose=False,
+                project_key=session_info['project'],
+                equipment_key=session_info['equipment'],
+                location_key=session_info['location'],
+                software_key='ScanImage'
+            )
+            print('Done.')
+            s.ok()
+        except Exception as e:
+            s.failed(e)
+            print(f'Failed during initial session ingestion. Error: {e}')
+            traceback.print_exc(limit=2)  # Always print traceback to log
+            if not suppress_errors:
+                raise
+            else:
+                # Everything below, DLC included, is skipped for this session.
+                # Say so, rather than leaving a silent return.
+                print(f'-- Continuing with next session due to suppress_errors=True')
+                print('-- NOTE: DLC and all later steps are skipped for this session.')
+                return # Stop processing this session but continue with others
 
     # 2. Now that scans are in the database, fetch them for further processing.
     scans_to_process = (scan.Scan & f'session_id = "{sessi}"').fetch("scan_id")
@@ -872,12 +1002,43 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
     timer_thread = threading.Thread(target=_update_timer, daemon=True)
     timer_thread.start()
     
+    # One directory per run, holding the environment, the GUI's selections, the full
+    # console output and a per-step ledger. Created before anything is touched so that
+    # a run which dies early still leaves a record.
+    selections_preview = _get_widget_values(available_sessions, all_widgets, s2pparm_options)
+    _initials = (get_user_initials_from_dir([s['path'] for s in selections_preview])[0]
+                 if selections_preview else None)
+    run = RunLog.start(
+        repo_root=pathlib.Path(__file__).resolve().parents[2],
+        user=_initials,
+        context={
+            'user_initials': _initials,
+            'n_sessions_offered': len(available_sessions),
+            'n_sessions_selected': len(selections_preview),
+            'do_population': do_population,
+            'rspace_upload': rspace_upload,
+            'ingest_opt': ingest_opt,
+            'suppress_errors': suppress_errors,
+        },
+    )
+
+    # Entered through an ExitStack rather than a `with` block so that the body below
+    # keeps its indentation and the diff stays reviewable; closed in the finally.
+    _log_ctx = contextlib.ExitStack()
+    _log_ctx.enter_context(run.tee())
+    _log_ctx.enter_context(ingest_run(run))
+
     try:
         with output_widget:
-            selections = _get_widget_values(available_sessions, all_widgets, s2pparm_options)
+            if run.dir:
+                print(f'-- run log: {run.dir}')
+            selections = selections_preview
+            run.record_selections(selections)
             if not selections:
                 progress_status_label.value = "No sessions selected. Nothing to do."
                 spinner_container.layout.visibility = 'hidden'
+                print('No sessions selected (tick the run checkbox on a row). Nothing to do.')
+                run.finish({'result': 'nothing selected'})
                 return
 
             user_cam_defaults = get_user_cam_defaults([s['path'] for s in selections])
@@ -925,18 +1086,42 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
                 mins, secs = divmod(elapsed_seconds, 60)
                 timer_label.value = f"Elapsed time: {int(mins):02d}:{int(secs):02d}"
             
-            # Update final status message
-            if failed_sessions == 0:
+            # Update final status message.
+            #
+            # Session success is taken from the step ledger, not from "no exception
+            # escaped _process_session". Those are not the same thing: every step runs
+            # under _run_ingestion_task, which catches, so a session in which all DLC
+            # steps failed used to be counted as a success and the run reported as
+            # "finished successfully".
+            step_counts = run.counts()
+            sessions_with_failures = [
+                s['session_id'] for s in selections
+                if not run.session_ok(s['session_id'])
+            ]
+            failed_sessions = max(failed_sessions, len(sessions_with_failures))
+            successful_sessions = num_sessions - failed_sessions
+
+            if failed_sessions == 0 and step_counts['failed'] == 0:
                 finished_msg = f'\n\n{"="*30}\nWorkflow finished successfully for all {successful_sessions} sessions.\n{"="*30}'
                 progress_status_label.value = f"Successfully processed {successful_sessions} sessions."
                 progress_bar.bar_style = 'success'
                 success_container.layout.visibility = 'visible'
             else:
                 finished_msg = f'\n\n{"="*30}\nWorkflow finished: {successful_sessions} successful, {failed_sessions} failed.\n{"="*30}'
-                progress_status_label.value = f"Processed {successful_sessions} sessions, {failed_sessions} failed."
+                progress_status_label.value = (
+                    f"{successful_sessions} ok, {failed_sessions} failed, "
+                    f"{step_counts['failed']} failed steps.")
                 progress_bar.bar_style = 'warning' if successful_sessions > 0 else 'danger'
-                
+
             print(finished_msg)
+            print(run.format_summary())
+            summary = run.finish({
+                'sessions_selected': num_sessions,
+                'sessions_successful': successful_sessions,
+                'sessions_failed': failed_sessions,
+                'sessions_with_failures': sessions_with_failures,
+            })
+            _record_run_in_database(run, summary)
 
     except Exception as e:
         error_msg = f"An error occurred during processing: {e}"
@@ -945,11 +1130,18 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
         with output_widget:
             print(error_msg)
             traceback.print_exc()  # Always print full traceback for top-level errors
+        with run.step('commit callback', key=None) as s:
+            s.failed(e)
+        run.finish({'result': 'aborted'})
     finally:
         # Stop timer thread and hide progress elements
         stop_event.set()
         progress_container.layout.visibility = 'hidden'
         spinner_container.layout.visibility = 'hidden'
+        _log_ctx.close()
+        if run.dir:
+            with output_widget:
+                print(f'-- run log written to: {run.dir}')
 
 # =============================================================================
 # ------------------------- UI & MAIN FUNCTION --------------------------------
