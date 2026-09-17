@@ -155,11 +155,20 @@ def _check_video_resolves(report, session_label, directory, camera, model_name,
             'searched for "*%s*.mp4*" in %s -- the pattern is the 3rd ";" field of '
             '"%s"' % (search_str, directory, search_name), **scope))
     elif len(hits) > 1:
-        report.append(Finding(
-            WARNING, "several videos match this model",
-            'pattern "*%s*.mp4*" matches %d files and the ingest takes whichever the '
-            "filesystem lists first: %s"
-            % (search_str, len(hits), ", ".join(p.name for p in hits)), **scope))
+        deinterlaced = [p for p in hits if "_deinterlaced" in p.name]
+        if len(deinterlaced) == 1:
+            # Resolved by the deinterlaced-wins rule, so it is a choice, not a
+            # coin flip; still worth saying which of the two was taken.
+            report.append(Finding(
+                OK, "video resolves (deinterlaced copy preferred)",
+                "%s, over %s" % (hits[0].name,
+                                 ", ".join(p.name for p in hits[1:])), **scope))
+        else:
+            report.append(Finding(
+                WARNING, "several videos match this model",
+                'pattern "*%s*.mp4*" matches %d files and the ingest takes whichever '
+                "the filesystem lists first: %s"
+                % (search_str, len(hits), ", ".join(p.name for p in hits)), **scope))
     else:
         report.append(Finding(OK, "video resolves", hits[0].name, **scope))
 
