@@ -477,8 +477,11 @@ def collect_environment(repo_root=None) -> Dict[str, Any]:
     }
 
     def _dj():
+        # Built field by field: one missing attribute must not cost the whole block.
+        # In particular `roots` -- which is what says whether this account can write
+        # where the ingest is about to write -- has to survive anything else failing.
         import datajoint as dj
-        custom = dict(dj.config.get("custom", {}) or {})
+        custom = _safe(lambda: dict(dj.config.get("custom", {}) or {}), {}) or {}
         roots: List[Dict[str, Any]] = []
         for name in ("exp_root_data_dir", "imaging_root_data_dir",
                      "dlc_root_data_dir", "dlc_processed_data_dir"):
@@ -488,12 +491,12 @@ def collect_environment(repo_root=None) -> Dict[str, Any]:
             for entry in (value if isinstance(value, (list, tuple)) else [value]):
                 roots.append(dict(probe_writable(entry), config_key=name))
         return {
-            "version": dj.__version__,
-            "host": dj.config.get("database.host"),
-            "user": dj.config.get("database.user"),
+            "version": _safe(lambda: dj.__version__),
+            "host": _safe(lambda: dj.config.get("database.host")),
+            "user": _safe(lambda: dj.config.get("database.user")),
             "prefix": custom.get("database.prefix"),
             "roots": roots,
         }
 
-    env["datajoint"] = _safe(_dj, {})
+    env["datajoint"] = _safe(_dj, {"roots": []}) or {"roots": []}
     return env
