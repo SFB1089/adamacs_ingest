@@ -449,8 +449,11 @@ def _run_preflight(run, selections, user_cam_defaults, strict=False):
         from adamacs.ingest_preflight import run_preflight
         from adamacs.paths import get_dlc_processed_data_dir
     except Exception as exc:
-        print(f'-- preflight unavailable ({type(exc).__name__}: {exc}); continuing')
-        return True
+        # Fail closed: a caller who asked the preflight to guard every write must not
+        # get an unguarded run because the check itself could not be imported.
+        print(f'-- preflight unavailable ({type(exc).__name__}: {exc}); '
+              f'{"refusing to continue (strict)" if strict else "continuing"}')
+        return not strict
 
     try:
         data_root = dj.config.get('custom', {}).get('exp_root_data_dir', [None])
@@ -462,9 +465,10 @@ def _run_preflight(run, selections, user_cam_defaults, strict=False):
             get_processed_dir=get_dlc_processed_data_dir,
         )
     except Exception as exc:
-        print(f'-- preflight could not run ({type(exc).__name__}: {exc}); continuing')
+        print(f'-- preflight could not run ({type(exc).__name__}: {exc}); '
+              f'{"refusing to continue (strict)" if strict else "continuing"}')
         traceback.print_exc(limit=2)
-        return True
+        return not strict
 
     print(report.format())
     run.record('preflight', report.as_json())

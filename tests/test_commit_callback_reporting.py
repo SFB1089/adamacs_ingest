@@ -527,3 +527,44 @@ def _steps(tmp_path):
     if not path.exists():
         return []
     return [json.loads(line) for line in path.read_text().splitlines()]
+
+
+def test_strict_mode_fails_closed_when_the_preflight_itself_cannot_run(harness,
+                                                                      tmp_path,
+                                                                      monkeypatch,
+                                                                      capsys):
+    """Codex P2: a caller who asked the preflight to guard every write must not get
+    an unguarded run because the check could not be imported or blew up."""
+    def explode(*a, **k):
+        raise RuntimeError("preflight module is broken")
+
+    monkeypatch.setattr("adamacs.ingest_preflight.run_preflight", explode)
+    d = list(SESSIONS)[0]
+    bar, status = _ProgressBar(), _Value("")
+    ai._commit_button_callback(
+        None, [d], [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])],
+        ([0], ["dummy"]), _Output(), _Container(), _Container(), bar,
+        status, _Value(""), _Container(),
+        False, False, "trigger", True, True,          # preflight_strict=True
+    )
+    printed = capsys.readouterr().out
+    assert "refusing to continue (strict)" in printed
+    assert bar.bar_style == "danger"
+    assert "Preflight failed" in status.value
+    assert not any(s["description"] == "Session/scan discovery"
+                   for s in _steps(tmp_path))
+    summary = json.loads((_latest_run(tmp_path) / "summary.json").read_text())
+    assert summary["result"] == "preflight failed"
+
+
+def test_a_broken_preflight_does_not_block_a_non_strict_run(harness, tmp_path,
+                                                            monkeypatch, capsys):
+    def explode(*a, **k):
+        raise RuntimeError("preflight module is broken")
+
+    monkeypatch.setattr("adamacs.ingest_preflight.run_preflight", explode)
+    d = list(SESSIONS)[0]
+    _run_commit([d], [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])])
+    printed = capsys.readouterr().out
+    assert "continuing" in printed
+    assert len(harness.recorded) == 1

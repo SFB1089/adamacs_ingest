@@ -176,12 +176,34 @@ def _check_processed_dir(report, get_processed_dir):
             OK, "dlc_processed_data_dir is unset",
             "DLC output will be written next to each video"))
         return
+
     probe = probe_writable(target)
-    if probe["mkdir_ok"] is False:
-        report.append(Finding(ERROR, "dlc_processed_data_dir is not writable",
-                              "%s -- %s" % (target, probe["mkdir_error"])))
+    if probe["exists"]:
+        if probe["mkdir_ok"] is False:
+            report.append(Finding(ERROR, "dlc_processed_data_dir is not writable",
+                                  "%s -- %s" % (target, probe["mkdir_error"])))
+        else:
+            report.append(Finding(OK, "dlc_processed_data_dir is writable", str(target)))
+        return
+
+    # It does not exist. probe_writable leaves mkdir_ok as None in that case, so
+    # asking only "is mkdir_ok False?" would report a missing path as fine and the
+    # run would fail later, when DLC output is first written. Ask instead whether
+    # the nearest existing ancestor can create it.
+    ancestor = Path(target).parent
+    while not ancestor.exists() and ancestor != ancestor.parent:
+        ancestor = ancestor.parent
+    parent_probe = probe_writable(ancestor)
+    if parent_probe["mkdir_ok"] is False:
+        report.append(Finding(
+            ERROR, "dlc_processed_data_dir does not exist and cannot be created",
+            "%s -- creating it under %s fails: %s"
+            % (target, ancestor, parent_probe["mkdir_error"])))
     else:
-        report.append(Finding(OK, "dlc_processed_data_dir is writable", str(target)))
+        report.append(Finding(
+            WARNING, "dlc_processed_data_dir does not exist yet",
+            "%s will be created under %s on first use -- check it is not a typo"
+            % (target, ancestor)))
 
 
 # --------------------------------------------------------------------------------
@@ -220,7 +242,17 @@ def run_preflight(
                           "uid=%s gid=%s groups=%s" % (
                               os.getuid(), os.getgid(), sorted(os.getgroups()))))
 
-    if get_processed_dir is not None:
+    any_model = any(
+        name != "dummy"
+        for sel in selections
+        for per_camera in (sel.get("dlc_models") or [])
+        for name in (per_camera or [])
+    )
+
+    # Only a run that will actually do DLC needs the DLC output directory. Checking
+    # it regardless would let a stale setting abort a behaviour-only ingest in strict
+    # mode, for a resource that _populate_dlc never reaches.
+    if get_processed_dir is not None and any_model:
         _check_processed_dir(report, get_processed_dir)
 
     checked_models = set()
@@ -242,12 +274,6 @@ def run_preflight(
                     _check_video_resolves(report, label, directory, camera, model_name,
                                           video_idx, candidates_fn, search_name_fn)
 
-    any_model = any(
-        name != "dummy"
-        for sel in selections
-        for per_camera in (sel.get("dlc_models") or [])
-        for name in (per_camera or [])
-    )
     if not any_model:
         report.append(Finding(
             WARNING, "no DLC model is selected for any camera",

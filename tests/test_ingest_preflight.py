@@ -162,6 +162,51 @@ def test_selecting_no_model_at_all_is_a_warning(data_root):
                for f in report.of(WARNING))
 
 
+def test_a_missing_processed_dir_that_can_be_created_is_only_a_warning(data_root,
+                                                                       tmp_path):
+    """Codex P2: probe_writable leaves mkdir_ok None for a path that does not exist,
+    so asking only "is mkdir_ok False?" reported a missing directory as writable."""
+    target = tmp_path / "not_yet" / "processed"
+    report = _run(_selection([[], [EYE_MODEL], []]), data_root,
+                  get_processed_dir=lambda: str(target))
+    assert report.ok
+    warn = [f for f in report.of(WARNING)
+            if f["check"] == "dlc_processed_data_dir does not exist yet"]
+    assert warn and "typo" in warn[0]["detail"]
+
+
+def test_a_missing_processed_dir_that_cannot_be_created_is_an_error(data_root,
+                                                                    tmp_path):
+    blocked = tmp_path / "blocked"
+    blocked.mkdir()
+    blocked.chmod(0o500)
+    try:
+        report = _run(_selection([[], [EYE_MODEL], []]), data_root,
+                      get_processed_dir=lambda: str(blocked / "processed"))
+        assert not report.ok
+        err = [f for f in report.of(ERROR)
+               if f["check"] == "dlc_processed_data_dir does not exist and cannot be created"]
+        assert err and "PermissionError" in err[0]["detail"]
+    finally:
+        blocked.chmod(0o700)
+
+
+def test_the_processed_dir_is_not_checked_when_no_model_is_selected(data_root,
+                                                                    tmp_path):
+    """Codex P2: _populate_dlc skips immediately when nothing is selected, so a stale
+    DLC output setting must not abort a behaviour-only ingest in strict mode."""
+    blocked = tmp_path / "blocked"
+    blocked.mkdir()
+    blocked.chmod(0o500)
+    try:
+        report = _run(_selection([[], [], []]), data_root,
+                      get_processed_dir=lambda: str(blocked / "processed"))
+        assert report.ok
+        assert not [f for f in report if "dlc_processed_data_dir" in f["check"]]
+    finally:
+        blocked.chmod(0o700)
+
+
 def test_an_unwritable_processed_dir_is_an_error(data_root, tmp_path):
     blocked = tmp_path / "processed"
     blocked.mkdir()
