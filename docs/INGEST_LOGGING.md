@@ -107,3 +107,61 @@ with run.tee(), ingest_run(run):
         ...                       # _run_ingestion_task calls in here are recorded
 print(run.format_summary())
 ```
+
+---
+
+# Preflight
+
+Before the Commit button writes anything, the run checks what it is about to need
+and reports it. The report is printed, written to `preflight.json` in the run
+directory, and recorded as a step.
+
+```
+------------------------------------------------------------
+preflight: 28 checks, 6 error, 10 warning, 0 could not be checked
+  ERROR    sess9FUDDCP7 mini2p1_top JJ; Topcam_mini2p2_Effnet-JJ-2026-02-23; Topcam
+           no video matches this model
+           searched for "*Topcam*.mp4*" in /datajoint-data/data/nataliak/NK_ROS-2075_…
+           -- the pattern is the 3rd ";" field of the model name
+  WARNING  sess9FUDDIBK mini2p1_eye_left  several videos match this model
+           pattern "*eye1_video*.mp4*" matches 2 files and the ingest takes whichever
+           the filesystem lists first: …T15_50_54.mp4, …T15_50_54_deinterlaced.mp4
+------------------------------------------------------------
+```
+
+## What it checks
+
+| check | why |
+|---|---|
+| session directory exists | a typo in the filter costs a whole run otherwise |
+| **an actual `mkdir` in it** | the 2026-09-16 cause. `os.access` lies on the CIFS mounts, where `forceuid`/`forcegid`/`dir_mode=0775` make the client-side permissions synthetic |
+| each selected model is in `model.Model` | an unregistered model is not selectable, and the run then silently does no DLC |
+| each model's name resolves to a video | the pattern is the third `;` field of the model name, enforced by nothing |
+| more than one video matches | the ingest takes whichever the filesystem lists first |
+| `dlc_processed_data_dir` is writable | when set, all DLC output goes there |
+| uid / gid / supplementary groups | recorded, because that was the answer last time |
+
+The video-resolution rule is imported from `adamacs_ingest_v2` (`dlc_search_name`,
+`dlc_video_candidates`) rather than reimplemented, so the check and the ingest cannot
+drift apart.
+
+## Warn or refuse
+
+Warn-and-continue is the default: a preflight that refuses on a check it got wrong is
+worse than one nobody reads. To make errors stop the run instead:
+
+```python
+ai.select_sessions(sorted_dirs_root, ..., preflight_strict=True)
+```
+
+The run then ends before `ingest_session_scan`, with `result: "preflight failed"` in
+the summary and a row in `IngestRun`.
+
+## A note on the "several videos match" warning
+
+Five of the six sessions re-ingested on 2026-09-16 have both a raw and a
+`_deinterlaced` copy of the same eye video, and the glob matches both. The order is
+the filesystem's, and it is not consistent — in some folders the raw file comes
+first, in others the deinterlaced one. That is why `RecordingInfoNew` for those
+sessions holds a mixture of 25 fps and 50 fps entries for the same camera. The
+preflight does not change which file is chosen; it says that a choice is being made.
