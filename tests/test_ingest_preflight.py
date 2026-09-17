@@ -222,7 +222,12 @@ def test_report_truncates_long_lists(data_root):
 
 def test_the_default_video_resolution_comes_from_the_ingest_module():
     """The preflight must use the ingest's own rule, or the two drift apart."""
-    ai = pytest.importorskip("adamacs.helpers.adamacs_ingest_v2")
+    try:
+        # Not importorskip: without datajoint installed the conftest stub makes this
+        # raise AttributeError rather than ImportError, which importorskip re-raises.
+        import adamacs.helpers.adamacs_ingest_v2 as ai
+    except Exception as exc:
+        pytest.skip("requires an importable DataJoint pipeline (%s)" % exc)
     assert ai.dlc_search_string("A; B; eye1_video") == "eye1_video"
     assert ai.dlc_search_string("no_semicolons_here") == "top"
     assert ai.dlc_search_name("A; B; eye1_video", 2) == "A; B; eye2_video"
