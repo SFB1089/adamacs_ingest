@@ -138,9 +138,32 @@ def harness(monkeypatch, tmp_path):
     """Stub the database, keep the ingest control flow real."""
     import datajoint as dj
 
+    # Real session folders with the videos a mini2p1 recording has, so that the
+    # preflight check runs against something truthful instead of reporting a missing
+    # directory for every test.
+    data_root = tmp_path / "data"
+    data_root.mkdir()
+    for d in SESSIONS:
+        folder = data_root / d
+        folder.mkdir()
+        scan_id = d.split("_")[3]
+        for name in (f"{scan_id}_mini2p1_top_video_2099.mp4",
+                     f"{scan_id}_headcam_mini2p1_left_eye1_video_2099.mp4",
+                     f"{scan_id}_headcam_mini2p1_right_eye2_video_2099.mp4"):
+            (folder / name).write_text("")
+
     custom = dict(dj.config.get("custom", {}) or {})
     custom["ingest_log_dir"] = str(tmp_path / "runs")
+    custom["exp_root_data_dir"] = [str(data_root)]
     monkeypatch.setitem(dj.config, "custom", custom)
+
+    # model.Model is stubbed too: the preflight asks it whether each selected model
+    # is registered, and these model names are fixtures.
+    class _KnownModels:
+        def __and__(self, _restriction):
+            return [{"model_name": EYE_MODEL}]
+
+    monkeypatch.setattr(ai.model, "Model", _KnownModels(), raising=False)
 
     scan_rows = [{"session_id": "sess", "scan_id": "scanX"}]
     monkeypatch.setattr(ai.session, "Session", _Table([]), raising=False)
@@ -425,3 +448,82 @@ def test_an_aborted_run_still_reaches_the_database_mirror(harness, tmp_path,
     _run, summary = harness.recorded[0]
     assert summary["result"] == "aborted"
     assert any("fatal, not suppressed" in f["detail"] for f in summary["failures"])
+
+
+# --------------------------------------------------------------------------------
+# preflight
+# --------------------------------------------------------------------------------
+
+def _unwritable_session(tmp_path, name):
+    folder = tmp_path / "data" / name
+    folder.chmod(0o500)
+    return folder
+
+
+def test_preflight_reports_but_does_not_block_by_default(harness, tmp_path, capsys):
+    d = list(SESSIONS)[0]
+    folder = _unwritable_session(tmp_path, d)
+    try:
+        bar, _ = _run_commit([d], [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])])
+    finally:
+        folder.chmod(0o700)
+
+    printed = capsys.readouterr().out
+    assert "preflight:" in printed
+    assert "cannot create files in the session directory" in printed
+    assert "Continuing anyway" in printed
+    # the ingest still ran
+    assert len(harness.recorded) == 1
+    report = json.loads((_latest_run(tmp_path) / "preflight.json").read_text())
+    assert report["ok"] is False
+    assert report["counts"]["error"] >= 1
+
+
+def test_preflight_strict_stops_before_anything_is_written(harness, tmp_path, capsys):
+    """The whole point: refuse while it is still one line in a widget."""
+    d = list(SESSIONS)[0]
+    folder = _unwritable_session(tmp_path, d)
+    output, bar = _Output(), _ProgressBar()
+    status = _Value("")
+    try:
+        ai._commit_button_callback(
+            None, [d], [_widgets_for(d, [EYE_MODEL], [EYE_MODEL])],
+            ([0], ["dummy"]), output, _Container(), _Container(), bar,
+            status, _Value(""), _Container(),
+            False, False, "trigger", True, True,      # preflight_strict=True
+        )
+    finally:
+        folder.chmod(0o700)
+
+    printed = capsys.readouterr().out
+    assert "Nothing was written" in printed
+    assert bar.bar_style == "danger"
+    assert "Preflight failed" in status.value
+    # no session was processed at all
+    assert not any(s["description"] == "Session/scan discovery"
+                   for s in _steps(tmp_path))
+    summary = json.loads((_latest_run(tmp_path) / "summary.json").read_text())
+    assert summary["result"] == "preflight failed"
+
+
+def test_a_model_that_resolves_no_video_is_caught_before_the_run(harness, tmp_path,
+                                                                 capsys):
+    """`; Topcam` against a mini2p1 folder: an error at second zero, not a silent
+    skip discovered days later."""
+    d = list(SESSIONS)[0]
+    topcam = "JJ; Topcam_mini2p2_Effnet-JJ-2026-02-23; Topcam"
+    widgets = _widgets_for(d, [], [])
+    widgets["dlc1_multi"] = _Value((topcam,))
+    _run_commit([d], [widgets])
+
+    report = json.loads((_latest_run(tmp_path) / "preflight.json").read_text())
+    bad = [f for f in report["findings"] if f["check"] == "no video matches this model"]
+    assert bad and bad[0]["model_name"] == topcam
+    assert "*Topcam*.mp4*" in bad[0]["detail"]
+
+
+def _steps(tmp_path):
+    path = _latest_run(tmp_path) / "steps.jsonl"
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text().splitlines()]

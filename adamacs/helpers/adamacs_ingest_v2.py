@@ -437,6 +437,58 @@ def ingest_context(**key):
         _KEY.reset(token)
 
 
+def _run_preflight(run, selections, user_cam_defaults, strict=False):
+    """Check what the ingest is about to need. Returns False only to stop the run.
+
+    The report is printed and written to the run directory either way. `strict`
+    decides whether an error stops the run or is only reported: warn-and-continue is
+    the default, because a preflight that refuses on a check it got wrong is worse
+    than one nobody reads.
+    """
+    try:
+        from adamacs.ingest_preflight import run_preflight
+        from adamacs.paths import get_dlc_processed_data_dir
+    except Exception as exc:
+        print(f'-- preflight unavailable ({type(exc).__name__}: {exc}); continuing')
+        return True
+
+    try:
+        data_root = dj.config.get('custom', {}).get('exp_root_data_dir', [None])
+        data_root = data_root[0] if isinstance(data_root, (list, tuple)) else data_root
+        report = run_preflight(
+            selections, data_root,
+            cameras=user_cam_defaults,
+            model_table=model.Model,
+            get_processed_dir=get_dlc_processed_data_dir,
+        )
+    except Exception as exc:
+        print(f'-- preflight could not run ({type(exc).__name__}: {exc}); continuing')
+        traceback.print_exc(limit=2)
+        return True
+
+    print(report.format())
+    run.record('preflight', report.as_json())
+    with run.step('preflight', key=None) as s:
+        counts = report.counts
+        if report.ok:
+            s.ok('%d checks, %d warnings' % (sum(counts.values()), counts['warning']))
+        else:
+            s.failed(RuntimeError(
+                '%d preflight error(s): %s' % (
+                    counts['error'],
+                    '; '.join('%s %s' % (f.where(), f['check'])
+                              for f in report.of('error')[:5]))))
+
+    if report.ok:
+        return True
+    if strict:
+        print('\nPreflight found errors and strict mode is on. Nothing was written.')
+        return False
+    print('\nPreflight found errors. Continuing anyway (pass preflight_strict=True '
+          'to select_sessions to stop instead).')
+    return True
+
+
 def _record_run_in_database(run, summary):
     """Mirror the run into roselab_ingest.IngestRun, so that "which run produced this
     session, and what did it report" stays answerable after the log directory is gone.
@@ -654,29 +706,57 @@ def _populate_cascade(scansi, paramset_idx, populate_settings):
         # This can fail if upstream tables aren't populated (e.g., do_population=False), which is expected.
         pass
 
+def dlc_search_name(model_name, video_idx):
+    """The model name used for video lookup on camera `video_idx`.
+
+    The third camera is the right eye, and the eye models are all named for eye1, so
+    the lookup name swaps in eye2. Factored out so that the preflight check and the
+    ingest itself cannot drift apart.
+    """
+    if video_idx == 2 and "eye1" in model_name:
+        return model_name.replace("eye1", "eye2")
+    return model_name
+
+
+def dlc_search_string(search_name):
+    """The filename pattern a model name resolves to: its third ';'-separated field.
+
+    This is a convention, not something the Model table enforces, so a model
+    registered as 'JJ; Topcam_mini2p2_Effnet-JJ-2026-02-23; Topcam' searches for
+    '*Topcam*.mp4*' and matches nothing in a mini2p1 folder. The preflight check
+    reports that before anything is written.
+    """
+    try:
+        return search_name.split(';')[2].replace(" ", "")
+    except IndexError:
+        return "top"  # Default search string if not specified in model name
+
+
+def dlc_video_candidates(scan_path, search_name):
+    """(search_str, [paths]) that `search_name` resolves to in `scan_path`.
+
+    Deliberately unsorted, matching what the ingest has always done: the first hit
+    wins and the order is the filesystem's. The preflight reports when there is more
+    than one rather than quietly picking differently.
+    """
+    search_str = dlc_search_string(search_name)
+    base = pathlib.Path(scan_path)
+    if "deinterlaced" in search_name:
+        hits = list(base.glob(f"*{search_str}*deinterlaced*.mp4*"))
+        if hits:
+            return search_str, hits
+    return search_str, list(base.glob(f"*{search_str}*.mp4*"))
+
+
 def _ingest_dlc_model(scan_key, model_name, camera, aux_setup_typestr, search_model_name=None, use_cropping=True):
     """Ingest a single DLC model, including video file and pose estimation task."""
-    try:
-        # Use search_model_name if provided (for eye camera handling), otherwise use model_name
-        search_name = search_model_name if search_model_name is not None else model_name
-        # Extract search string from model name (e.g., 'DLC_resnet50_top_cam_May23')
-        search_str = search_name.split(';')[2].replace(" ", "")
-    except IndexError:
-        search_str = "top" # Default search string if not specified in model name
-    
-    scan_path = (scan.ScanPath() & scan_key).fetch1("path")
-    movie_paths = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
-    
-    additional_pattern = "deinterlaced"
+    # Use search_model_name if provided (for eye camera handling), otherwise model_name
+    search_name = search_model_name if search_model_name is not None else model_name
+    search_str = dlc_search_string(search_name)
 
-    # Try deinterlaced first if mentioned in model name, then fallback
-    if additional_pattern in search_name:
-        movie_paths = list(pathlib.Path(scan_path).glob(f"*{search_str}*{additional_pattern}*.mp4*"))
-        if not movie_paths:
-            movie_paths = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
-    else:
-        movie_paths = list(pathlib.Path(scan_path).glob(f"*{search_str}*.mp4*"))
-    
+    scan_path = (scan.ScanPath() & scan_key).fetch1("path")
+    search_str, movie_paths = dlc_video_candidates(scan_path, search_name)
+
     if not movie_paths:
         # Not an error, but not success either: the model's name did not resolve to a
         # video in this scan's directory. Raised rather than printed so that it is
@@ -769,10 +849,8 @@ def _populate_dlc(scans_to_process, session_info, usercam_defaults_i, useraux_de
                 if model_name != 'dummy':
                     # Special handling for eye cameras: if model contains "eye1" and this is the third video (video_idx == 2),
                     # replace "eye1" with "eye2" in the search string for video file detection
-                    search_model_name = model_name
-                    if video_idx == 2 and "eye1" in model_name:
-                        search_model_name = model_name.replace("eye1", "eye2")
-                    
+                    search_model_name = dlc_search_name(model_name, video_idx)
+
                     with ingest_context(scan_id=scansi, camera=camera,
                                         model_name=model_name):
                         _run_ingestion_task(
@@ -981,7 +1059,7 @@ def _get_widget_values(available_sessions, all_widgets, s2pparm_options):
             })
     return selections
 
-def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options, output_widget, progress_container, spinner_container, progress_bar, progress_status_label, timer_label, success_container, do_population, rspace_upload, ingest_opt, suppress_errors=True):
+def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options, output_widget, progress_container, spinner_container, progress_bar, progress_status_label, timer_label, success_container, do_population, rspace_upload, ingest_opt, suppress_errors=True, preflight_strict=False):
     """Callback function for the 'Commit' button. Gathers UI data and starts processing."""
     output_widget.clear_output()
     success_container.layout.visibility = 'hidden'
@@ -1019,6 +1097,7 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
             'rspace_upload': rspace_upload,
             'ingest_opt': ingest_opt,
             'suppress_errors': suppress_errors,
+            'preflight_strict': preflight_strict,
         },
     )
 
@@ -1044,6 +1123,17 @@ def _commit_button_callback(b, available_sessions, all_widgets, s2pparm_options,
             user_cam_defaults = get_user_cam_defaults([s['path'] for s in selections])
             user_aux_defaults = get_user_aux_defaults([s['path'] for s in selections])
             populate_settings = {'display_progress': False, 'suppress_errors': True}
+
+            # Everything this run is about to need, checked before anything is
+            # written: can we create files where the output goes, is each selected
+            # model registered, and does its name actually resolve to a video?
+            if not _run_preflight(run, selections, user_cam_defaults,
+                                  strict=preflight_strict):
+                progress_status_label.value = "Preflight failed. Nothing was written."
+                progress_bar.bar_style = 'danger'
+                spinner_container.layout.visibility = 'hidden'
+                _record_run_in_database(run, run.finish({'result': 'preflight failed'}))
+                return
 
             num_sessions = len(selections)
             progress_bar.max = num_sessions
@@ -1471,7 +1561,8 @@ def select_sessions(
     do_population=False, 
     rspace_upload=False, 
     ingest_opt='trigger',
-    suppress_errors=True
+    suppress_errors=True,
+    preflight_strict=False
 ):
     """
     Main function to display a UI for selecting and configuring sessions for ingestion and processing.
@@ -1967,7 +2058,7 @@ def select_sessions(
         _commit_button_callback(
             b, AvailableSessionDirB, all_widgets, latest_lookup['s2p_parms'], 
             output_widget, progress_container, spinner_container, progress_bar, progress_status_label, timer_label, success_container, 
-            do_population, rspace_upload, ingest_opt, suppress_errors
+            do_population, rspace_upload, ingest_opt, suppress_errors, preflight_strict
         )
         # The UI is NOT refreshed automatically. The user must click the "Refresh GUI" button.
 
