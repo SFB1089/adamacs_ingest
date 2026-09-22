@@ -12,6 +12,13 @@ from tqdm.notebook import tqdm
 from tqdm import tqdm
 
 from scipy.interpolate import interp1d, Akima1DInterpolator
+# The numerical core of the gaze chain lives in a module that declares nothing, so the
+# DISK-imputed sibling chain in adamacs/schemas/disk.py runs exactly this code. See that
+# module's docstring for why it cannot simply be functions on this one.
+from adamacs.helpers.eye_geometry import (  # noqa: F401  (re-exported for callers)
+    interpolate_fill_gaps, resample_eyecam_to_optitrack, upsample_eye_trace,
+    rot_x, rot_y, rot_z, side_sign_from_recording_id, eye_camera_event_type,
+    compute_gaze_vectors)
 schema = dj.schema(db_prefix + 'pupil_tracking')
 
 @schema
@@ -372,7 +379,35 @@ class PupilEllipseFittingFreeMoving(dj.Computed):
     theta: longblob # eye rotation in radians at azimuth direction (left/right = negative/positive), centered by eye center
     phi: longblob # eye rotation in elevation direction
     diameter: longblob # long axis of the fitted ellipse (equals pupil diameter)
-    """    
+    """
+
+    @property
+    def key_source(self):
+        """Eye recordings only, crossed with the parameter sets.
+
+        Without this the default key source is every PoseEstimationNew row crossed with
+        every parameter set. Measured on 2026-09-15 that is 6 x 4,779 = 28,674 candidates,
+        of which 28,278 are not yet fit. 2,797 of the 4,779 pose estimations (58.5%) come
+        from topcam, side-cam and other-user models carrying none of the eleven markers
+        make() indexes by fixed column position, so a bare populate() would raise on
+        roughly 16,782 of them and flood ~jobs. Until now nothing stopped that structurally;
+        safety rested on every caller remembering to scope its own restriction.
+
+        The restriction is to models that actually carry the markers this table reads --
+        the corneal reflection, both eye corners, and at least one pupil marker. Anything
+        narrower than that, a particular cohort or parameter set, belongs in the populate()
+        restriction rather than here.
+
+        This mirrors the same fix applied to PupilFrameQuality in b84c3be. It is a
+        Python-side property only: the declared table is unchanged, so no migration and no
+        effect on the 396 rows already stored.
+        """
+        bp = model.Model.BodyPart
+        eye_models = (dj.U("model_name") & (bp & 'body_part = "IR"')) \
+            & (dj.U("model_name") & (bp & 'body_part = "nose_corner"')) \
+            & (dj.U("model_name") & (bp & 'body_part = "lateral_corner"')) \
+            & (dj.U("model_name") & (bp & 'body_part like "pupil%"'))
+        return (PoseEstimationNew & eye_models) * PupilEllipseParameterFreeMoving
 
     def fit_ellipse(self, i, x, y):
         # NaN need to be removed for SVD convergence
@@ -631,6 +666,94 @@ class PupilEllipseFittingFreeMoving(dj.Computed):
         self.insert1({**key, 'ellipse_dict': ellipse_dict_all, 'cam_center': cam_center, 'eye_center': eye_center, 'pupil_center': pupil_center, 'scale': scale, 'theta': theta, 'phi': phi, 'diameter': long_axis_all})
 
 
+# ======================================================================================
+# Eye-trace upsampling and gaze geometry, as module-level functions
+# ======================================================================================
+#
+# These carry the numerical bodies of PupilRotationOptiTrack.make() and
+# GazeReconstruction3D.make(). They sit at module level so the DISK-imputed sibling chain
+# in adamacs/schemas/disk.py can call exactly this code rather than reimplementing it.
+# The imputed tables differ from these two only in where their theta/phi come from --
+# PupilEllipseFittingImputed instead of PupilEllipseFittingFreeMoving -- so a second copy
+# of the interpolation and the rotation maths would be a second thing to keep correct, and
+# the two chains would be free to drift apart in exactly the way that would invalidate
+# every comparison between them.
+#
+# The methods below now delegate here and are kept as thin wrappers, because callers
+# outside this module already reach them through the class. Nothing about production
+# behaviour changes: the bodies were moved, not rewritten.
+
+
+def resolve_eye_event_type(recording_id, eyecam_time_source):
+    """The event_type carrying this recording's eye-camera frame timestamps."""
+    suffix = (EyeCamTimeSource & {'eyecam_time_source': eyecam_time_source}).fetch1('event_suffix')
+    return eye_camera_event_type(recording_id, suffix)
+
+
+def fetch_eye_and_optitrack_clocks(base_key, eyecam_time_source):
+    """The eye-camera and OptiTrack frame timestamps for a recording, in session time.
+
+    ``base_key`` is the recording key without ``eyecam_time_source``. Both clocks come off
+    the shared aux-DAQ acquisition, so they are directly comparable.
+    """
+    recording_id = base_key['recording_id']
+    event_key = {k: base_key[k] for k in ('session_id', 'scan_id') if k in base_key}
+    event_type = resolve_eye_event_type(recording_id, eyecam_time_source)
+
+    # order_by is load-bearing, not tidiness. The caller pairs theta[i] with t[i] by
+    # POSITION and then hands the result to interp1d(assume_sorted=True). Nothing in an
+    # unordered fetch guarantees chronological rows -- measured on 30 recordings they do
+    # come back sorted today, so this is a latent fault rather than a live one, and the
+    # sibling fetch for optitrack_frames in multi_trial_lib has always passed order_by.
+    t_eyecam = (event.Event & event_key & f'event_type="{event_type}"').fetch(
+        'event_start_time', order_by='event_start_time').astype(float)
+    if len(t_eyecam) == 0:
+        raise ValueError(f"No eye camera events found for {event_type} ({recording_id})")
+    t_optitrack = (event.Event & event_key & 'event_type="optitrack_frames"').fetch(
+        'event_start_time', order_by='event_start_time').astype(float)
+    if len(t_optitrack) == 0:
+        raise ValueError("No optitrack_frames events found for this session/scan")
+    return t_eyecam, t_optitrack
+
+
+def eye_side_sign(recording_id, subject_name):
+    """+1 for a left eye, -1 for a right one, after the known mislabelling correction.
+
+    recording_id says which eye this is, but for some subjects that label is known to be
+    wrong: the video files were named incorrectly at acquisition, so a recording labelled
+    "eye_left" actually shows the right eye. EyeSideNote records those subjects; the most
+    recent note for the subject wins, so clearing the flag (or adding a newer note with
+    sides_swapped=0) undoes this correction. If the underlying files and recording_ids are
+    ever renamed, the note MUST be updated in the same change - otherwise the side is
+    corrected twice and the error comes back.
+
+    This deliberately corrects ONLY the eye-in-head azimuth sign. It must NOT be applied to
+    resolve_eye_event_type(), whose event_type is still correct despite the wrong label:
+    the video, its DLC output and its frame events all come from the same physical camera,
+    so they share one self-consistent time base.
+    """
+    s = side_sign_from_recording_id(recording_id)
+
+    notes = (EyeSideNote & {'subject': subject_name}).fetch(
+        as_dict=True, order_by='note_date DESC', limit=1)
+    if notes and notes[0]['sides_swapped']:
+        s = -s
+    return s
+
+
+def compute_torsion(key):
+    """Torsion from head pitch, through the subject's manual linear calibration.
+
+    Despite being stored per frame, this is not a per-frame measurement: it is a linear
+    function of pitch with per-animal coefficients, so it carries no information the pitch
+    does not already carry.
+    """
+    param_coeff = (TorsionCalibManual & key).fetch1('param_coeff')
+    param_intercept = (TorsionCalibManual & key).fetch1('param_intercept')
+    pitch = (RigidMouseTracking & key).fetch1('pitch')
+    return param_coeff * pitch + param_intercept
+
+
 @schema
 class PupilRotationOptiTrack(dj.Computed):
     """Upsampling results from PupilEllipseFittingFreeMoving table so that synchronized with optitracking frames"""
@@ -648,56 +771,18 @@ class PupilRotationOptiTrack(dj.Computed):
     def key_source(self):
         return PupilEllipseFittingFreeMoving * EyeCamTimeSource
 
+    # The four methods below delegate to the module-level functions of the same name, which
+    # the DISK-imputed sibling chain in adamacs/schemas/disk.py also calls. They are kept
+    # because callers outside this module reach them through the class.
+
     def _resolve_eye_event_type(self, recording_id, eyecam_time_source):
-        if 'eye_left' in recording_id:
-            camera_type = 'mini2p1_eye_left'
-        elif 'eye_right' in recording_id:
-            camera_type = 'mini2p1_eye_right'
-        else:
-            raise ValueError(f"Cannot resolve eye side from recording_id: {recording_id}")
-        suffix = (EyeCamTimeSource & {'eyecam_time_source': eyecam_time_source}).fetch1('event_suffix')
-        return f"{camera_type}_{suffix}"
+        return resolve_eye_event_type(recording_id, eyecam_time_source)
 
-    def interpolate_fill_gaps(self,data, t_orig):
-        t = np.asarray(t_orig, float)
-        y = np.asarray(data, float)
-
-        good = np.isfinite(y)
-        if good.sum() < 2:
-            raise ValueError(
-                f"interpolate_fill_gaps: need ≥2 finite samples to interpolate; got {good.sum()}."
-            )
-
-        # f = Akima1DInterpolator(t[good], y[good])
-        # linear interpolant on the good samples
-        f = interp1d(t[good], y[good], kind="linear", bounds_error=False, fill_value=np.nan, assume_sorted=True)
-
-        y_filled = y.copy()
-        bad_idx = np.flatnonzero(~good)
-        if bad_idx.size == 0:
-            print("No gaps to fill.")
-            return y_filled
-
-        # fill only internal NaN runs (no edge extrapolation)
-        cuts = np.where(np.diff(bad_idx) > 1)[0] + 1
-        for run in np.split(bad_idx, cuts):
-            i0, i1 = run[0], run[-1]
-            left_ok  = (i0 - 1) >= 0 and np.isfinite(y[i0 - 1])
-            right_ok = (i1 + 1) < len(y) and np.isfinite(y[i1 + 1])
-            if left_ok and right_ok:
-                y_filled[i0:i1+1] = f(t[i0:i1+1])
-        return y_filled
+    def interpolate_fill_gaps(self, data, t_orig):
+        return interpolate_fill_gaps(data, t_orig)
 
     def resample_eyecam_to_optitrack(self, data, t_orig, t_resample):
-        t = np.asarray(t_orig, float)
-        y = np.asarray(data, float)
-        t_new = np.asarray(t_resample, float)
-
-        # linear onto t_new, no extrapolation
-        f = interp1d(t, y, kind="linear", bounds_error=False, fill_value=np.nan, assume_sorted=True)
-        y_new = f(t_new)
-
-        return y_new
+        return resample_eyecam_to_optitrack(data, t_orig, t_resample)
 
     def make(self, key):
         # 1) Fill gaps on original timestamp with Akima (no edge extrapolation).
@@ -707,25 +792,12 @@ class PupilRotationOptiTrack(dj.Computed):
         theta = (PupilEllipseFittingFreeMoving & base_key).fetch1('theta')
         phi = (PupilEllipseFittingFreeMoving & base_key).fetch1('phi')
         diameter = (PupilEllipseFittingFreeMoving & base_key).fetch1('diameter')
-        
-        recording_id = base_key['recording_id']
-        event_key = {k: base_key[k] for k in ('session_id', 'scan_id') if k in base_key}
-        event_type = self._resolve_eye_event_type(recording_id, key['eyecam_time_source'])
 
-        t_eyecam = (event.Event & event_key & f'event_type="{event_type}"').fetch('event_start_time').astype(float)
-        if len(t_eyecam) == 0:
-            raise ValueError(f"No eye camera events found for {event_type} ({recording_id})")
-        t_optitrack = (event.Event & event_key & 'event_type="optitrack_frames"').fetch('event_start_time').astype(float)
-        if len(t_optitrack) == 0:
-            raise ValueError("No optitrack_frames events found for this session/scan")
+        t_eyecam, t_optitrack = fetch_eye_and_optitrack_clocks(
+            base_key, key['eyecam_time_source'])
 
-        theta_filled = self.interpolate_fill_gaps(theta, t_eyecam)
-        phi_filled = self.interpolate_fill_gaps(phi, t_eyecam)
-        diameter_filled = self.interpolate_fill_gaps(diameter, t_eyecam)
-
-        theta_opt = self.resample_eyecam_to_optitrack(theta_filled, t_eyecam, t_optitrack)
-        phi_opt = self.resample_eyecam_to_optitrack(phi_filled, t_eyecam, t_optitrack)
-        diameter_opt = self.resample_eyecam_to_optitrack(diameter_filled, t_eyecam, t_optitrack)
+        theta_opt, phi_opt, diameter_opt = upsample_eye_trace(
+            theta, phi, diameter, t_eyecam, t_optitrack)
 
         self.insert1({**key, 'theta_opt': theta_opt, 'phi_opt': phi_opt, 'diameter_opt': diameter_opt})
 
@@ -804,141 +876,38 @@ class GazeReconstruction3D(dj.Computed):
     torsion: longblob # torsion angle of the eye
     """
 
+    # Delegates to the module-level rotation helpers, which the DISK-imputed sibling
+    # chain in adamacs/schemas/disk.py also uses.
     def Rx(self, x):
-        return np.array([[1, 0, 0],
-                        [0, np.cos(x), -np.sin(x)],
-                        [0, np.sin(x), np.cos(x)]])    
+        return rot_x(x)
+
     def Ry(self, y):
-        return np.array([[np.cos(y), 0, np.sin(y)],
-                        [0, 1, 0],
-                        [-np.sin(y), 0, np.cos(y)]])
+        return rot_y(y)
+
     def Rz(self, z):
-        return np.array([[np.cos(z), -np.sin(z), 0],
-                        [np.sin(z), np.cos(z), 0],
-                        [0, 0, 1]])
-    
+        return rot_z(z)
+
     def make(self, key):
-        # --- eye in head position ---  
-        # +/- 1 for left/right eye axes
-        eye_in_head_azimuth = np.radians((EyeModel & key).fetch1('eye_model_azimuth')) # pi/3 in literature
-        eye_in_head_elevation = np.radians((EyeModel & key).fetch1('eye_model_elevation')) # pi/6 in literature
+        # Every numerical step below lives in a module-level function, so the DISK-imputed
+        # sibling GazeReconstruction3DImputed computes gaze the same way by construction.
+        eye_model_azimuth = (EyeModel & key).fetch1('eye_model_azimuth')
+        eye_model_elevation = (EyeModel & key).fetch1('eye_model_elevation')
 
         rec_id = (PupilRotationOptiTrack & key).fetch1('recording_id')
-        if "eye_right" in rec_id:
-            s = -1
-        elif "eye_left" in rec_id:
-            s = 1
-        else:
-            raise ValueError(f"Cannot resolve eye side from recording_id: {rec_id}")
+        s = eye_side_sign(rec_id, key['subject'])
 
-        # recording_id says which eye this is, but for some subjects that label is
-        # known to be wrong: the video files were named incorrectly at acquisition,
-        # so a recording labelled "eye_left" actually shows the right eye. EyeSideNote
-        # records those subjects; the most recent note for the subject wins, so
-        # clearing the flag (or adding a newer note with sides_swapped=0) undoes this
-        # correction. If the underlying files and recording_ids are ever renamed, the
-        # note MUST be updated in the same change - otherwise the side is corrected
-        # twice and the error comes back.
-        #
-        # This deliberately corrects ONLY the eye-in-head azimuth sign. It must NOT be
-        # applied to PupilRotationOptiTrack._resolve_eye_event_type, whose event_type
-        # is still correct despite the wrong label: the video, its DLC output and its
-        # frame events all come from the same physical camera, so they share one
-        # self-consistent time base.
-        notes = (EyeSideNote & {'subject': key['subject']}).fetch(
-            as_dict=True, order_by='note_date DESC', limit=1)
-        if notes and notes[0]['sides_swapped']:
-            s = -s
-
-        R_eye_in_head = self.Rz(s * eye_in_head_azimuth) @ self.Rx(eye_in_head_elevation)  # (3,3)
-
-        # turn static eye-in-head rotation into a Rotation object once
-        R_eye_in_head_static = R.from_matrix(R_eye_in_head)
-
-        # --- dynamic eye rotation (per frame): clockwise rightward -> -theta around z, then +phi around x ---
-        # Build as a vectorized stack (n,3,3)
         theta = (PupilRotationOptiTrack & key).fetch1('theta_opt')
         phi = (PupilRotationOptiTrack & key).fetch1('phi_opt')
 
         # --- head->world rotation from quaternions ---
-        qx, qy, qz, qw = (RigidMouseTracking() & key).fetch1("q_x","q_y","q_z","q_w")
-        q_head_world_xyzw = np.column_stack([qx, qy, qz, qw]) # (n,4)
-        n = min(q_head_world_xyzw.shape[0], theta.shape[0])
-        q_head_world_xyzw = q_head_world_xyzw[:n]
-        theta = theta[:n]
-        phi = phi[:n]
+        qx, qy, qz, qw = (RigidMouseTracking() & key).fetch1("q_x", "q_y", "q_z", "q_w")
+        q_head_world_xyzw = np.column_stack([qx, qy, qz, qw])  # (n,4)
 
-        # find invalid quaternions
-        invalid_mask = np.any(~np.isfinite(q_head_world_xyzw), axis=1) | np.isclose(
-            np.linalg.norm(q_head_world_xyzw, axis=1), 0
-        )
-        invalid_idx = np.where(invalid_mask)[0]
-
-
-        # also require finite theta/phi
-        valid_eye = np.isfinite(theta) & np.isfinite(phi)
-        valid_mask = (~invalid_mask) & valid_eye
-
-        print("Invalid quaternion indices:", invalid_idx)
-
-        # --- eye->world rotation per frame ---
-        # allocate outputs instead of (n,3,3) rotation matrices
-        eye_axis = np.array([0, 1, 0])
-        gaze_in_head  = np.full((n, 3), np.nan, float)
-        gaze_in_space = np.full((n, 3), np.nan, float)
-
-        chunk_size = 100000
-        total_chunks = (n + chunk_size - 1) // chunk_size
-        for start in tqdm(range(0, n, chunk_size), total=total_chunks, desc="computing gaze by chunks"):
-            stop = min(start + chunk_size, n)
-            sl = slice(start, stop)
-
-            mask_chunk = valid_mask[sl]
-
-            # indices in full array for valid frames in this chunk
-            idx_rel = np.nonzero(mask_chunk)[0]
-            idx = idx_rel + start
-
-            # dynamic eye rotation for this chunk
-            theta_chunk = theta[idx]
-            phi_chunk   = phi[idx]
-            angles_chunk = np.column_stack((-theta_chunk, phi_chunk))  # (k,2) # originally theta: left = negative, but in head system left is positive
-
-            R_eye_in_orbit = R.from_euler('zx', angles_chunk)  # dynamic eye rotation (k,)
-
-            # Eye->head rotation per frame: R_eye_in_orbit @ R_eye_in_head
-            # Rotation composition: apply rightmost first → R_eye_head = R_eye_in_orbit * R_eye_in_head_static
-            R_eye_in_head_dyn = R_eye_in_orbit * R_eye_in_head_static
-
-            # --- Gaze directions in head coords ---
-            gaze_head_chunk = R_eye_in_head_dyn.apply(eye_axis)   # (k,3)
-            gaze_in_head[idx] = gaze_head_chunk
-
-            # head->world rotation from quaternions for this chunk
-            q_chunk = q_head_world_xyzw[idx]  # (k,4)
-            R_head_in_space_chunk = R.from_quat(q_chunk)
-
-            # eye->world rotation: R_head_in_space @ R_eye_in_head_dyn
-            R_eye_in_space_chunk = R_head_in_space_chunk * R_eye_in_head_dyn
-
-            # --- Gaze in world coords ---
-            gaze_space_chunk = R_eye_in_space_chunk.apply(eye_axis)  # (k,3)
-            gaze_in_space[idx] = gaze_space_chunk
-
-        # Normalize row-wise (Rotation.apply should already give unit vectors, but this is cheap and safe)
-        norms = np.linalg.norm(gaze_in_head, axis=1, keepdims=True)
-        gaze_in_head = np.divide(gaze_in_head, norms, out=gaze_in_head, where=norms != 0)
-        print("gaze_in_head:", gaze_in_head.shape)
-
-        norms_w = np.linalg.norm(gaze_in_space, axis=1, keepdims=True)
-        gaze_in_space = np.divide(gaze_in_space, norms_w, out=gaze_in_space, where=norms_w != 0)
-        print("gaze_in_space:", gaze_in_space.shape)
+        gaze_in_head, gaze_in_space = compute_gaze_vectors(
+            theta, phi, q_head_world_xyzw, eye_model_azimuth, eye_model_elevation, s)
 
         # --- calculate torsion angle ---
-        param_coeff = (TorsionCalibManual & key).fetch1('param_coeff') # (TorsionCalibLinear & key).fetch1('param_coeff') 
-        param_intercept = (TorsionCalibManual & key).fetch1('param_intercept') # (TorsionCalibLinear & key).fetch1('param_intercept')
-        pitch = (RigidMouseTracking & key).fetch1('pitch')
-        torsion = param_coeff * pitch + param_intercept
+        torsion = compute_torsion(key)
 
         self.insert1({**key, 'gaze_in_head': gaze_in_head, 'gaze_in_space': gaze_in_space, 'torsion': torsion})
 
