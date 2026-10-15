@@ -372,7 +372,7 @@ def resolve_column(column_masks, candidates, *, log_scan_id=None,
     caller) to that scan's mask-id set. Jaccard is computed against **every** candidate and
     reported whatever the outcome, because a low overlap on a column the log resolved is
     evidence of a stale ``Fall.mat`` rather than a resolution failure (Leon Kremers /
-    Tobias Rose, 2024-05-24, ts=1716546557.549569).
+    Tobias Rose / Setup User, 2024-05-24, ts=1716546557.549569).
 
     Returns ``resolution_method``, ``scan_key`` (None when unresolved), ``mask_set_jaccard``
     and ``ambiguous``.
