@@ -1,0 +1,511 @@
+"""Cell-registration schema: versioned cross-session cell identity with match quality.
+
+Longitudinal imaging rests on the claim that *this cell on day 20 is that cell on day 0*.
+Today that claim is carried by ``roselab_imaging.Segmentation.Mask.roi_group`` -- a
+``smallint`` that is **not part of the primary key** and is overwritten in place by whichever
+CellReg ingest ran last. Nothing records which run produced it, with what parameters, how
+good the matches were, who checked them, or what the column held before. Wiki issue D1 is
+the consequence: counts recorded by an analysis (111, 146) disagree with the live database
+(116, 120), and T1 notes the delta can no longer be reconstructed.
+
+This schema makes cross-session identity a first-class, versioned, queryable entity. The
+design review beside this file (``CELL_REGISTRATION_SCHEMA_DESIGN_REVIEW.md``) carries the
+evidence, the rejected alternatives and the open questions; read it before changing a key.
+
+Design decisions that a reader must know
+----------------------------------------
+* **Strictly additive.** ``roi_group`` is not written, altered or deprecated here. The
+  importer deliberately does *not* update it (design review ADR-R3), because that mutation
+  is what produced D1. :class:`RoiGroupSnapshot` preserves its state instead.
+* **Per-session local ``mask`` ids are the durable anchor.** A CellReg re-ingest rewrites
+  ``roi_group`` but never the mask numbering, so ``(session_id, scan_id, paramset_idx,
+  curation_id, mask)`` is stable and identity can be rebuilt on top of it.
+* **Runs are content-addressed.** 100 distinct sha256 across 108 files on this server: the
+  same run is reachable by several paths because scan folders hold byte-identical backups.
+  Keyed on path, one registration would enter as up to three runs.
+* **Quality is rows with columns, never blob arrays.** A value inside a ``longblob`` cannot
+  be restricted, joined or selected on, which is precisely what cell-level QC requires.
+* **Thresholds live downstream.** This schema stores continuous match quality only.
+  Eligibility is a QC and cohort-selection act with its own version history.
+* **The matching method is a lookup**, so a second method is a row rather than a migration.
+
+Nothing is declared on import
+-----------------------------
+Deferred activation, as in ``disk.py`` and the ``element_*`` schemas. Importing this module
+creates no tables; someone must call :func:`activate` explicitly. ``disk.py`` records why
+this matters: its predecessor declared at import time, so the tables appeared the first time
+anyone imported the pipeline, with no migration and no decision.
+
+Parsing notes for ``CellRegResult.make()``
+------------------------------------------
+* CellReg writes 1-based mask indices and uses ``0`` for *not present*. The conversion is
+  ``map - 1``, which sends absent to ``-1``; absence is then stored as **no Member row**,
+  never as a sentinel. (Leon Kremers, 2024-05-24, ts=1716542082.875469.)
+* ``mat73`` is the lab's sanctioned loader for these files; v7.3/HDF5 is 107 of 108 files on
+  this server, the remaining one is an older MAT that ``scipy.io`` must handle.
+* The score fields exist only when ``registration_approach = 'Probabilistic'`` and
+  ``alignment_rotations`` only under ``'Translations and Rotations'``. Absent fields are
+  NULL with a stated reason, never zero.
+* **Parameters and run accuracy are not in the .mat at all** -- they live in the sibling
+  ``logFile_*.txt``, whose timestamp trails the result file (76 s in a verified pair).
+"""
+from __future__ import annotations
+
+import datetime as _dt
+import hashlib
+import importlib
+import json
+
+import datajoint as dj
+
+schema = dj.Schema()
+
+# Values CellReg can write for these two settings, normalised to lowercase snake case.
+ALIGNMENT_MODES = ("translations", "translations_and_rotations", "non_rigid", "unknown")
+REGISTRATION_APPROACHES = ("probabilistic", "simple_threshold", "unknown")
+
+#: Bumped whenever ``CellRegResult.make`` changes how it reads a file, so that rows can be
+#: told apart by the code that produced them rather than by their ingest date.
+PARSER_VERSION = "1.0.0"
+
+#: Sentinel parameter set for runs whose ``logFile_*.txt`` / ``settings.mat`` is missing.
+#: A run with no recoverable parameters gets this rather than a plausible default.
+UNKNOWN_PARAMSET = "unknown"
+
+
+def activate(schema_name: str, *, create_schema: bool = True, create_tables: bool = True,
+             linking_module: str = "adamacs.pipeline"):
+    """Activate the cell-registration schema.
+
+    Nothing is declared until this is called. ``linking_module`` supplies ``imaging`` (for
+    the nullable ``Curation`` dependency) the same way the ``element_*`` schemas receive
+    their dependencies from ``adamacs.pipeline``.
+    """
+    module = importlib.import_module(linking_module)
+    schema.activate(schema_name, create_schema=create_schema, create_tables=create_tables,
+                    add_objects={"imaging": module.imaging, **globals()})
+    return schema
+
+
+def canonical_json(params: dict) -> str:
+    """Stable JSON for hashing: sorted keys, no insignificant whitespace."""
+    return json.dumps(params, sort_keys=True, separators=(",", ":"), default=str)
+
+
+def config_hash(params: dict) -> str:
+    """sha1 of the canonical JSON -- the identity of a parameter set's *content*."""
+    return hashlib.sha1(canonical_json(params).encode("utf-8")).hexdigest()
+
+
+class _HashedConfig:
+    """Mixin making a parameter table immutable by content.
+
+    Re-registering a slug with different parameters raises rather than updating, so a
+    changed parameter is a new slug and every downstream key names the parameters that
+    produced it. Same pattern as ``roselab_leondrift`` (its ADR-005).
+    """
+
+    @classmethod
+    def register(cls, slug: str, params: dict, label: str = "", **extra) -> str:
+        digest = config_hash(params)
+        existing = (cls & {cls.primary_key[0]: slug}).fetch(as_dict=True)
+        if existing:
+            if existing[0]["params_hash"] != digest:
+                raise ValueError(
+                    f"{cls.__name__} slug {slug!r} already exists with different parameters "
+                    f"({existing[0]['params_hash'][:8]} != {digest[:8]}); use a new slug")
+            return slug
+        cls.insert1({cls.primary_key[0]: slug, "params": params, "params_hash": digest,
+                     "params_json": canonical_json(params), "label": label,
+                     "created": _dt.datetime.now(), **extra})
+        return slug
+
+    @classmethod
+    def params_of(cls, slug: str) -> dict:
+        return (cls & {cls.primary_key[0]: slug}).fetch1("params")
+
+
+# --------------------------------------------------------------------------- reference
+@schema
+class MatchingMethod(dj.Lookup):
+    definition = """
+    # How cells were matched across sessions. A second method is a row, not a migration.
+    matching_method     : varchar(32)
+    ---
+    software            : varchar(64)      # e.g. 'CellReg'
+    software_reference  : varchar(255)     # DOI or repository URL
+    method_description  : varchar(512)
+    """
+
+    contents = [
+        ("cellreg_probabilistic", "CellReg",
+         "https://doi.org/10.1016/j.celrep.2017.10.013",
+         "CellReg probabilistic modelling: p_same from a centroid-distance or "
+         "spatial-correlation model, clustered at a p_same threshold."),
+        ("cellreg_simple_threshold", "CellReg",
+         "https://doi.org/10.1016/j.celrep.2017.10.013",
+         "CellReg simple threshold: a fixed correlation or distance cut, no probability "
+         "model. Produces no cell scores and no p_same."),
+    ]
+
+
+@schema
+class CellRegParamSet(dj.Lookup, _HashedConfig):
+    definition = """
+    # Immutable, content-hashed registration parameters. Register via .register().
+    cellreg_paramset_id : varchar(40)      # human-readable slug
+    ---
+    -> MatchingMethod
+    params              : longblob         # the parameter dict as recovered
+    params_hash         : char(40)         # sha1 of canonical JSON
+    params_json         : varchar(4000)
+    label               : varchar(128)
+    created             : datetime
+    """
+
+
+# --------------------------------------------------------------------------- the run
+@schema
+class CellRegRun(dj.Manual):
+    definition = """
+    # One CellReg execution, identified by the content of its result file.
+    cellreg_run_id          : char(40)     # first 40 hex chars of result_file_sha256
+    ---
+    -> CellRegParamSet
+    subject                 : varchar(16)
+    result_file             : varchar(512) # canonical path; copies live in .Copy
+    result_file_sha256      : char(64)
+    result_file_bytes       : bigint
+    result_file_mtime       : datetime
+    log_file=''             : varchar(512) # '' when no logFile_*.txt was found
+    log_file_sha256=''      : char(64)
+    mat_format              : enum('v7.3_hdf5','v5_v7')
+    registration_approach   : enum('probabilistic','simple_threshold','unknown')
+    alignment_mode          : enum('translations','translations_and_rotations','non_rigid','unknown')
+    reference_session_index=null : smallint  # 1-based, as CellReg reports it
+    n_sessions              : smallint
+    n_registered_cells      : int
+    ingested_at             : datetime
+    ingest_host             : varchar(64)
+    adamacs_sha=''          : varchar(40)
+    run_note=''             : varchar(512)
+    """
+
+    class Copy(dj.Part):
+        definition = """
+        # Other paths holding a byte-identical copy of this run's result file.
+        -> master
+        copy_path           : varchar(512)
+        ---
+        copy_mtime          : datetime
+        """
+
+    class Quality(dj.Part):
+        definition = """
+        # Run-level accuracy. Present ONLY in logFile_*.txt, in no field of the .mat.
+        -> master
+        ---
+        frac_false_positives=null    : float
+        frac_false_negatives=null    : float
+        frac_uncertain_pairs=null    : float
+        avg_register_score=null      : float
+        avg_true_positive_score=null : float
+        avg_true_negative_score=null : float
+        avg_exclusivity_score=null   : float
+        model_discrepancy=null       : float
+        avg_fraction_active=null     : float
+        initial_threshold=null       : float
+        final_threshold=null         : float
+        maximal_distance_um=null     : float
+        n_bins=null                  : smallint
+        microns_per_pixel=null       : float
+        quality_source               : enum('log_file','absent')
+        """
+
+    class Session(dj.Part):
+        definition = """
+        # One RESOLVED column: this curation participated in this run, as this column.
+        # The curation is in the primary key, so a row carries session_id, scan_id,
+        # paramset_idx and curation_id and joins straight to Segmentation.Mask,
+        # Fluorescence and Activity without a projection. Same shape as
+        # roselab_leondrift.RunSet.Scan, which also keys on the upstream identity.
+        # Columns that could NOT be resolved live in .UnresolvedColumn, so that this
+        # table's key never has to be nullable.
+        -> master
+        -> imaging.Curation
+        ---
+        column_index                : smallint   # 0-based column of cell_to_index_map
+        source_file=''              : varchar(512)  # the converted_*.mat named in the log
+        resolution_method           : enum('log_file','mask_jaccard','manual')
+        mask_set_jaccard=null       : float      # stored ALWAYS: also a staleness measure
+        n_masks_cellreg             : int
+        n_masks_db=null             : int
+        alignment_x_translation=null : float
+        alignment_y_translation=null : float
+        alignment_rotation=null     : float      # NULL unless translations_and_rotations
+        zero_padding_x=null         : float
+        zero_padding_y=null         : float
+        unique index (cellreg_run_id, column_index)
+        """
+
+    class UnresolvedColumn(dj.Part):
+        definition = """
+        # A column of cell_to_index_map that could not be tied to exactly one curation.
+        # Kept as evidence rather than guessed: the lab's realign_global_ids helper
+        # majority-votes in this situation and returns -1, which is how wrong joins happen.
+        -> master
+        column_index            : smallint
+        ---
+        n_masks_cellreg         : int
+        best_jaccard=null       : float
+        ambiguous               : bool       # >1 candidate scan cleared the threshold
+        candidates=null         : longblob   # [(scan key, jaccard), ...] as evidence
+        reason                  : varchar(255)
+        """
+
+
+# --------------------------------------------------------------------------- the result
+@schema
+class CellRegResult(dj.Imported):
+    definition = """
+    # Parsed contents of one run's result file. All .mat reading happens in make().
+    -> CellRegRun
+    ---
+    parse_ok                : bool
+    parse_error=''          : varchar(512)
+    parser_version          : varchar(16)
+    source_sha256           : char(64)     # re-hashed at parse time; must match the run
+    n_cells                 : int
+    n_sessions              : smallint
+    has_score_fields        : bool
+    missing_fields=''       : varchar(255)
+    p_same_consistent       : bool         # p_same matrix side == n_sessions
+    footprints_storage      : enum('in_file','external_path','absent')
+    footprints_path=''      : varchar(512)
+    parsed_at               : datetime
+    compute_seconds         : float
+    """
+
+    class Cell(dj.Part):
+        definition = """
+        # One registered cell. Scores are NULL under the simple-threshold approach.
+        -> master
+        cell_index              : int          # 0-based row of cell_to_index_map
+        ---
+        cell_score=null             : float
+        true_positive_score=null    : float
+        true_negative_score=null    : float
+        exclusivity_score=null      : float
+        in_overlapping_fov=null     : bool
+        centroid_x_registered=null  : float
+        centroid_y_registered=null  : float
+        n_sessions_present          : smallint
+        min_p_same=null             : float    # weakest present pair -- the selector column
+        median_p_same=null          : float
+        """
+
+    class Member(dj.Part):
+        definition = """
+        # The join bridge: this cell is this mask in this scan. Absent = no row.
+        # Inheriting CellRegRun.Session's key means a Member row carries session_id,
+        # scan_id, paramset_idx and curation_id, so
+        #   (CellRegResult.Member * imaging.Segmentation.Mask)
+        # joins on the full curation key plus mask with no renaming. This is the table
+        # that replaces roi_group as a join key.
+        -> CellRegResult.Cell
+        -> CellRegRun.Session
+        ---
+        mask                    : smallint     # local mask id, 0-based after conversion
+        """
+
+    class PairQuality(dj.Part):
+        definition = """
+        # p_same for one cell between two sessions it is present in. ~10.7 M rows lab-wide.
+        # Keyed on the two COLUMN indices rather than two curation keys: p_same_registered_
+        # pairs is indexed by column, and two renamed 5-attribute foreign keys would put ten
+        # key columns on a ten-million-row table to say what two smallints already say.
+        # Resolve a column to its curation through CellRegRun.Session.column_index.
+        -> CellRegResult.Cell
+        column_a                : smallint
+        column_b                : smallint     # column_a < column_b
+        ---
+        p_same                  : float
+        """
+
+    def make(self, key):
+        importlib.import_module("adamacs.ingest.cellreg").make_cellreg_result(self, key)
+
+
+@schema
+class MaskCoordinates(dj.Imported):
+    definition = """
+    # Mask centroids in the scan's own frame and after this run's alignment.
+    # Keyed through CellRegRun.Session, so the curation key is present and the native
+    # centroid can be checked against Segmentation.Mask.mask_center_x/y by direct join.
+    -> CellRegRun.Session
+    mask                        : smallint
+    ---
+    centroid_x_native           : float    # copy of Segmentation.Mask.mask_center_x
+    centroid_y_native           : float    # copied AS OF this run, so re-segmentation shows
+    centroid_x_registered=null  : float
+    centroid_y_registered=null  : float
+    """
+
+    def make(self, key):
+        importlib.import_module("adamacs.ingest.cellreg").make_mask_coordinates(self, key)
+
+
+# --------------------------------------------------------------------- stable identity
+@schema
+class RegistrationSite(dj.Manual):
+    definition = """
+    # A field of view followed over days. same_site_id is the site's FIRST session id
+    # ('sess9FOTVMAL'), matching the cellreg folder convention, upstream
+    # roselab_session.session_same_site, and roselab_leondrift.RunSet.Site.
+    #
+    # varchar(12) deliberately mirrors roselab_session.session_same_site.same_site_id
+    # exactly, so that if the upstream grouping is ever repaired this table can take a
+    # real foreign key to it without a type migration. (leondrift chose varchar(16); the
+    # live values are 12 characters.)
+    #
+    # Why a local table rather than an FK today: upstream is populated for all 3,460
+    # sessions but DEFAULTS TO SELF-REFERENCE -- 2,561 of them have
+    # same_site_id = session_id -- so "never assigned to a site" and "a site of exactly
+    # one session" are indistinguishable there. 41 sites do carry genuine multi-session
+    # groupings (up to 66 sessions). site_id_source records which case a row came from.
+    subject                 : varchar(16)
+    same_site_id            : varchar(12)
+    ---
+    site_description=''     : varchar(255)
+    site_id_source          : enum('cellreg_folder','manual','same_site_id')
+    created                 : datetime
+    """
+
+
+@schema
+class StableCell(dj.Manual):
+    definition = """
+    # An identity that outlives any single registration run.
+    -> RegistrationSite
+    stable_cell_id          : int
+    ---
+    minted_at               : datetime
+    minted_from_run         : char(40)     # the run that first produced this cell
+    """
+
+
+@schema
+class StableCellMap(dj.Manual):
+    definition = """
+    # Which cell_index of which run this stable identity corresponds to.
+    # Replaces recomputing realign_global_ids_to_current_roi_group() in every analysis.
+    -> StableCell
+    -> CellRegResult.Cell
+    ---
+    mapping_method          : enum('mask_set_exact','mask_set_majority','manual')
+    support_n_masks         : smallint     # masks agreeing between the two runs
+    conflict=0              : bool
+    mapped_at               : datetime
+    """
+
+
+# --------------------------------------------------------------------------- curation
+@schema
+class RegistrationCuration(dj.Manual):
+    definition = """
+    # A curation pass over one run. Append-only: disagreeing means a new curation_id.
+    -> CellRegRun
+    curation_id             : int
+    ---
+    curator                 : varchar(64)
+    curated_at              : datetime
+    curation_note=''        : varchar(512)
+    """
+
+    class CellDecision(dj.Part):
+        definition = """
+        # One judgement about one registered cell. Never updated; superseded by a new pass.
+        -> master
+        -> CellRegResult.Cell
+        ---
+        decision            : enum('accept','reject','split','merge','uncertain')
+        reason=''           : varchar(255)
+        """
+
+
+# ------------------------------------------------------- roi_group as a derived cache
+@schema
+class RoiGroupProjection(dj.Manual):
+    """What ``roi_group`` currently reflects, and where it came from.
+
+    Design decision ADR-R6 (Tobias, 2026-10-15): ``roi_group`` is not an independent fact
+    but a **derived projection** -- the cell identity of the latest curated run for a site,
+    materialised onto ``imaging.Segmentation.Mask`` because that is the query path the lab
+    already uses. Overwriting a cache whose source is recorded is not data loss, which is
+    what made the original D1 overwrite harmful.
+
+    What is projected is ``cell_index``, not ``stable_cell_id``: upstream ``roi_group`` is
+    ``smallint`` (max 32,767) and the largest single run already holds 25,724 registered
+    cells, so an identifier that accumulates across re-registrations would eventually
+    overflow a production column. Widening it to ``int`` is the follow-on migration, not
+    part of this pass.
+
+    This table only RECORDS a projection. Performing one writes to a production table and
+    requires explicit authorisation in that conversation turn; see the dry-run helper in
+    ``adamacs.ingest.cellreg``.
+    """
+
+    definition = """
+    # One projection of cell identity onto imaging.Segmentation.Mask.roi_group.
+    projection_id           : char(40)     # sha1 over the projected (mask -> value) rows
+    ---
+    -> CellRegRun
+    registration_curation_id=null : int    # the RegistrationCuration pass, if curated
+    projected_value         : enum('cell_index','stable_cell_id')
+    unmatched_value         : smallint     # convention: -1
+    projected_at            : datetime
+    projected_by            : varchar(64)
+    n_masks_written         : int
+    n_unmatched             : int
+    pre_snapshot_id=''      : char(40)     # RoiGroupSnapshot taken immediately before
+    dry_run                 : bool         # 1 = computed and compared, nothing written
+    note=''                 : varchar(512)
+    """
+
+    class Scan(dj.Part):
+        definition = """
+        # Per-scan outcome of the projection.
+        -> master
+        -> imaging.Curation
+        ---
+        n_masks             : int
+        n_unmatched         : int
+        n_changed=null      : int          # vs the roi_group present before the projection
+        """
+
+
+# ------------------------------------------------------------------ legacy preservation
+@schema
+class RoiGroupSnapshot(dj.Manual):
+    definition = """
+    # What Segmentation.Mask.roi_group held at one moment. Reads production, writes here.
+    snapshot_id             : char(40)     # sha1 over the part rows
+    ---
+    taken_at                : datetime
+    taken_by                : varchar(64)
+    note=''                 : varchar(512)
+    n_rows                  : int
+    fingerprint             : char(40)
+    """
+
+    class Mask(dj.Part):
+        definition = """
+        -> master
+        session_id          : varchar(12)
+        scan_id             : varchar(12)
+        paramset_idx        : smallint
+        curation_id         : int
+        mask                : smallint
+        ---
+        roi_group           : smallint
+        """

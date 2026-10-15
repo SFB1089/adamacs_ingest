@@ -2,7 +2,7 @@ from . import db_prefix
 
 __all__ = ['subject', 'surgery', 'session', 'behavior', 'equipment', 'scan', 'imaging',
            'train', 'model', 'trial', 'event', 'analysis', 'mocap', 'virtual_markers_optitrack', 
-           'pupil_tracking', 'denoising', 'disk', 'wfield',
+           'pupil_tracking', 'denoising', 'disk', 'wfield', 'cell_registration',
            'Equipment', 'Location', 'Subject', 'Project', 'Lab', 'User', 
            'Session',
            'get_session_dir', 'get_bpod_root_data_dir', 'get_dlc_root_data_dir',
@@ -88,3 +88,9 @@ from adamacs.schemas import disk
 # Widefield schema - Activate AFTER scan and session are ready
 from adamacs.schemas import wfield
 # from adamacs.schemas import behavior
+
+# Cell registration (CellReg) --------------------------------------------------
+# Deferred activation, like disk/wfield: importing declares NOTHING. Call
+# cell_registration.activate(db_prefix + 'cell_registration') explicitly to create it.
+# See adamacs/schemas/CELL_REGISTRATION_SCHEMA_DESIGN_REVIEW.md before doing so.
+from adamacs.schemas import cell_registration

@@ -1,0 +1,611 @@
+"""Reading CellReg output into the cell-registration schema.
+
+Every function that touches a ``.mat`` or a ``logFile_*.txt`` lives here; the schema module
+only declares tables. The pure parsers below take paths or strings and return plain Python,
+so they are unit-testable without a database connection -- which matters because the
+production database is read-only for this work.
+
+What the files actually look like (measured on 108 files, 2026-10-15)
+--------------------------------------------------------------------
+* 107 are MATLAB v7.3 (HDF5), 1 is an older v5/v7. The v7.3 files do **not** begin with the
+  HDF5 signature: they carry a 116-byte ASCII userblock, so the signature sits at offset
+  512 and the first bytes read ``MATLAB 7.3 MAT-file``. Detect by content, not by a guess.
+* ``cell_to_index_map`` is 1-based with ``0`` meaning *not present*.
+* ``cell_scores`` / ``true_positive_scores`` / ``true_negative_scores`` /
+  ``exclusivity_scores`` / ``p_same_registered_pairs`` exist only when the run used the
+  probabilistic approach; ``alignment_rotations`` only under translations-and-rotations
+  (86 of 107 files).
+* ``p_same_registered_pairs`` holds one ``n_sessions x n_sessions`` matrix per registered
+  cell (verified square and equal to the session count in 106 of 107 files).
+* ``spatial_footprints_corrected`` is either an in-file 3-D stack (up to 513x513x3363,
+  ~7.1 GB as float64) or a path string. Never load it into the database.
+* The result file contains **no parameters**. Those and the run-level accuracy live in the
+  sibling ``logFile_*.txt``, whose timestamp trails the result file's.
+"""
+from __future__ import annotations
+
+import datetime as _dt
+import hashlib
+import os
+import re
+import socket
+import time
+
+import numpy as np
+
+#: Fields present only under the probabilistic registration approach.
+SCORE_FIELDS = ("cell_scores", "true_positive_scores", "true_negative_scores",
+                "exclusivity_scores", "p_same_registered_pairs")
+
+#: Minimum mask-set overlap for Jaccard-based column resolution to be accepted at all.
+#: Matches the threshold the lab's own realign_global_ids_to_current_roi_group() uses.
+MIN_JACCARD = 0.5
+
+#: If a second candidate scan is within this of the best one, the column is ambiguous
+#: rather than resolved -- we do not pick a winner by a hair.
+AMBIGUITY_MARGIN = 0.1
+
+
+# --------------------------------------------------------------------------- hashing
+def file_sha256(path, chunk=1 << 20) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for block in iter(lambda: fh.read(chunk), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def run_id_from_sha(sha256_hex: str) -> str:
+    """The run's primary key: the first 40 hex chars of its content hash."""
+    if len(sha256_hex) != 64:
+        raise ValueError(f"expected a 64-char sha256, got {len(sha256_hex)} chars")
+    return sha256_hex[:40]
+
+
+# --------------------------------------------------------------------- format detection
+def detect_mat_format(path) -> str:
+    """``'v7.3_hdf5'``, ``'v5_v7'``, or ``'unknown:<header>'``.
+
+    MATLAB v7.3 files are HDF5 behind a 116-byte ASCII userblock, so the signature is at
+    offset 512 and byte 0 is text. Checking only offset 0 for the HDF5 magic misclassifies
+    every v7.3 file -- which is exactly what happened on the first inventory pass.
+    """
+    with open(path, "rb") as fh:
+        head = fh.read(140)
+        fh.seek(512)
+        sig = fh.read(8)
+    text = head[:20].decode("latin-1", "replace")
+    if sig == b"\x89HDF\r\n\x1a\n" or text.startswith("MATLAB 7.3"):
+        return "v7.3_hdf5"
+    if text.startswith("MATLAB 5.0"):
+        return "v5_v7"
+    return "unknown:" + text.strip()
+
+
+# --------------------------------------------------------------------------- loading
+#: The only fields the parser reads. Everything else is deliberately left on disk.
+#:
+#: ``spatial_footprints_corrected`` is excluded ON PURPOSE and this is load-bearing: 93 of
+#: 107 files embed the stack, the largest is 513x513x3363 (~7.1 GB as float64), and nothing
+#: in this schema stores it. An unrestricted ``mat73.loadmat()`` materialises it anyway and
+#: will exhaust memory on the big runs for a field that is then discarded. Storage type is
+#: determined from HDF5 *metadata* instead -- see :func:`probe_footprints_storage`.
+#:
+#: ``centroid_locations_corrected`` is also excluded for now: only MaskCoordinates needs it
+#: and that make() is deliberately unimplemented pending the ordering check.
+NEEDED_FIELDS = (
+    "cell_to_index_map",
+    "cell_scores", "true_positive_scores", "true_negative_scores", "exclusivity_scores",
+    "p_same_registered_pairs",
+    "is_cell_in_overlapping_FOV",
+    "registered_cells_centroids",
+    "alignment_x_translations", "alignment_y_translations", "alignment_rotations",
+    "adjustment_x_zero_padding", "adjustment_y_zero_padding",
+)
+
+STRUCT_NAME = "cell_registered_struct"
+
+
+def list_fields(path) -> list:
+    """Field names present in the struct, read from HDF5 metadata without loading values."""
+    if detect_mat_format(path) != "v7.3_hdf5":
+        import scipy.io
+        raw = scipy.io.loadmat(path, struct_as_record=False, squeeze_me=True)
+        return list(getattr(raw[STRUCT_NAME], "_fieldnames", []))
+    import h5py
+    with h5py.File(path, "r") as f:
+        grp = f.get(STRUCT_NAME)
+        return list(grp.keys()) if grp is not None else []
+
+
+def probe_footprints_storage(path) -> tuple:
+    """``(storage, path)`` for the footprints, from metadata only.
+
+    Opens the dataset but reads at most one small char array, so the multi-gigabyte stack is
+    never materialised. Returns ``('in_file', '')``, ``('external_path', <path>)`` or
+    ``('absent', '')``.
+    """
+    if detect_mat_format(path) != "v7.3_hdf5":
+        return "absent", ""
+    import h5py
+    with h5py.File(path, "r") as f:
+        ds = f.get(f"{STRUCT_NAME}/spatial_footprints_corrected")
+        if ds is None:
+            return "absent", ""
+        if ds.dtype == object and ds.size:
+            ref = ds[0, 0] if ds.ndim == 2 else ds[0]
+            sub = f[ref]
+            # A path is stored as a short char array; a stack is 3-D float. Only the
+            # former is ever read.
+            if sub.dtype.kind in "iu" and sub.ndim <= 2 and max(sub.shape or (0,)) < 4096:
+                text = "".join(chr(int(c)) for c in np.asarray(sub).ravel())
+                if "/" in text or "\\" in text:
+                    return "external_path", text
+            return "in_file", ""
+        return "in_file", ""
+
+
+def _load_v73_h5py(path, names) -> dict:
+    """Read named struct fields with plain h5py, dereferencing cell arrays.
+
+    Only the fields in ``names`` are touched, so the footprint stack is never read. Arrays
+    come back in HDF5 (transposed) order; that is handled by :func:`orient_index_map` for
+    the index map and by :func:`_centroid` for the centroids, and is irrelevant for vectors
+    and for the square p_same matrices.
+    """
+    import h5py
+    out = {}
+    with h5py.File(path, "r") as f:
+        grp = f[STRUCT_NAME]
+        for name in names:
+            ds = grp[name]
+            if ds.dtype == object:                      # MATLAB cell array
+                items = []
+                refs = np.asarray(ds).ravel()
+                for ref in refs:
+                    try:
+                        items.append(np.asarray(f[ref], dtype=float))
+                    except (KeyError, ValueError, TypeError):
+                        items.append(None)
+                out[name] = items
+            else:
+                out[name] = np.asarray(ds)
+    return out
+
+
+def load_cellreg_struct(path, fields=NEEDED_FIELDS) -> dict:
+    """Load the needed fields of ``cell_registered_struct`` as numpy arrays.
+
+    ``mat73`` is the loader the lab documents for these files (Leon Kremers, 2024-05-24,
+    ts=1716542082.875469) and it accepts ``only_include`` as a list of HDF5 paths, so the
+    read is restricted to ``fields`` -- which is what keeps the footprint stack out of
+    memory. Paths are intersected with what the file actually contains first, because 21 of
+    107 files have no ``alignment_rotations`` and the score fields are absent from any
+    simple-threshold run.
+    """
+    fmt = detect_mat_format(path)
+    if fmt == "v7.3_hdf5":
+        present = set(list_fields(path))
+        names = [name for name in fields if name in present]
+        try:
+            import mat73
+        except ImportError:
+            # mat73 is absent on ibehavegpu1's shared environments and those are not ours
+            # to mutate (leondrift ADR-008). For the handful of fields read here -- numeric
+            # vectors, one 2-D map, and a cell array of square matrices -- plain h5py is
+            # equivalent, because orientation is either irrelevant (vectors, square
+            # matrices) or normalised downstream (orient_index_map, _centroid).
+            return _load_v73_h5py(path, names)
+        wanted = [f"{STRUCT_NAME}/{name}" for name in names]
+        raw = mat73.loadmat(path, only_include=wanted, verbose=False)
+        struct = raw.get(STRUCT_NAME, {})
+        return {k: v for k, v in struct.items() if v is not None}
+    if fmt == "v5_v7":
+        # scipy cannot restrict to a struct field, so the whole struct is read. Acceptable
+        # only because exactly one file on this server is in this format; if more appear,
+        # this path needs its own memory story.
+        import scipy.io
+        raw = scipy.io.loadmat(path, struct_as_record=False, squeeze_me=True)
+        struct = raw[STRUCT_NAME]
+        return {name: getattr(struct, name) for name in struct._fieldnames
+                if name in set(fields)}
+    raise ValueError(f"unrecognised MAT format for {path}: {fmt}")
+
+
+def orient_index_map(arr, n_sessions_hint=None) -> np.ndarray:
+    """Return ``cell_to_index_map`` as ``[n_cells, n_sessions]``.
+
+    Loaders disagree about orientation: raw ``h5py`` yields ``[n_sessions, n_cells]`` while
+    ``mat73`` transposes back to MATLAB's ``[n_cells, n_sessions]``. Rather than trusting
+    either, orient explicitly -- and refuse when the answer is genuinely ambiguous instead
+    of assuming "sessions are the shorter axis", which is false for a 2-cell test file.
+    """
+    a = np.asarray(arr)
+    if a.ndim != 2:
+        raise ValueError(f"cell_to_index_map must be 2-D, got shape {a.shape}")
+    if n_sessions_hint is not None:
+        if a.shape[1] == n_sessions_hint and a.shape[0] != n_sessions_hint:
+            return a
+        if a.shape[0] == n_sessions_hint and a.shape[1] != n_sessions_hint:
+            return a.T
+        if a.shape == (n_sessions_hint, n_sessions_hint):
+            return a  # square: orientation is unknowable and also irrelevant
+        raise ValueError(
+            f"cell_to_index_map shape {a.shape} matches neither axis to the "
+            f"{n_sessions_hint} sessions the log file reports")
+    if a.shape[0] == a.shape[1]:
+        raise ValueError(
+            f"cell_to_index_map is square {a.shape} and no session count was supplied; "
+            "orientation cannot be determined -- pass n_sessions_hint from the log file")
+    return a if a.shape[0] > a.shape[1] else a.T
+
+
+# --------------------------------------------------------------------------- log file
+_LOG_PATTERNS = {
+    "n_sessions": r"Number of sessions\s*-\s*(\d+)",
+    "reference_session_index": r"Reference session\s*-\s*(\d+)",
+    "alignment_type": r"Alignment Type\s*-\s*(.+)",
+    "maximal_distance_um": r"Model maximal distance\s*-\s*([\d.]+)",
+    "n_bins": r"Number of bins\s*-\s*(\d+)",
+    "initial_registration_type": r"Initial registration type\s*-\s*(.+)",
+    "initial_threshold": r"Initial threshold\s*-\s*([\d.]+)",
+    "registration_approach": r"Registration approach\s*-\s*(.+)",
+    "model_type": r"Final registration type\s*-\s*(.+)",
+    "final_threshold": r"P_same threshold\s*-\s*([\d.]+)",
+    "n_cells_final": r"Final number of cells\s*-\s*(\d+)",
+    "avg_fraction_active": r"Average fraction of active cells\s*-\s*([\d.]+)",
+    "frac_false_positives": r"Fraction of false positives\s*-\s*([\d.]+)",
+    "frac_false_negatives": r"Fraction of false negatives\s*-\s*([\d.]+)",
+    "frac_uncertain_pairs": r"Fraction of uncertain cell-pairs\s*-\s*([\d.]+)",
+    "avg_register_score": r"Average register score\s*-\s*([\d.]+)",
+    "avg_true_positive_score": r"Average true positive score\s*-\s*([\d.]+)",
+    "avg_true_negative_score": r"Average true negative score\s*-\s*([\d.]+)",
+    "avg_exclusivity_score": r"Average exclusivity score\s*-\s*([\d.]+)",
+    "model_discrepancy": r"Discrepancy of the model\s*-\s*([\d.]+)",
+}
+_FLOAT_KEYS = {"maximal_distance_um", "initial_threshold", "final_threshold",
+               "avg_fraction_active", "frac_false_positives", "frac_false_negatives",
+               "frac_uncertain_pairs", "avg_register_score", "avg_true_positive_score",
+               "avg_true_negative_score", "avg_exclusivity_score", "model_discrepancy"}
+_INT_KEYS = {"n_sessions", "reference_session_index", "n_bins", "n_cells_final"}
+
+
+def parse_log_file(text: str) -> dict:
+    """Parse ``logFile_*.txt`` into parameters, accuracy and the session list.
+
+    Returns a dict with the scalar fields above plus ``session_files``: the per-column
+    source paths, in column order, as listed under "Sessions list".
+    """
+    out = {}
+    for key, pattern in _LOG_PATTERNS.items():
+        m = re.search(pattern, text)
+        if not m:
+            continue
+        value = m.group(1).strip()
+        if key in _FLOAT_KEYS:
+            out[key] = float(value)
+        elif key in _INT_KEYS:
+            out[key] = int(value)
+        else:
+            out[key] = value
+    sessions = re.findall(r"^Session\s+(\d+)\s*-\s*(.+?)\s*$", text, re.M)
+    out["session_files"] = [path for _, path in sorted(sessions, key=lambda kv: int(kv[0]))]
+    return out
+
+
+def normalise_alignment_mode(alignment_type) -> str:
+    text = (alignment_type or "").strip().lower()
+    if text.startswith("translations and rotations"):
+        return "translations_and_rotations"
+    if text.startswith("non-rigid") or text.startswith("non rigid"):
+        return "non_rigid"
+    if text.startswith("translations"):
+        return "translations"
+    return "unknown"
+
+
+def normalise_registration_approach(approach) -> str:
+    text = (approach or "").strip().lower()
+    if text.startswith("probabilistic"):
+        return "probabilistic"
+    if text.startswith("simple"):
+        return "simple_threshold"
+    return "unknown"
+
+
+def find_log_file(result_path) -> str | None:
+    """The ``logFile_*.txt`` belonging to a result file.
+
+    The log is written *after* the ``.mat`` (76 s later in a verified pair), so the
+    timestamps do not match and an exact-name pairing finds nothing. Rule: within the same
+    directory, the nearest log at or after the result file's own timestamp; failing that,
+    the nearest earlier one. Returns ``None`` when the directory has no log at all.
+    """
+    directory = os.path.dirname(result_path)
+    stamp = re.search(r"(\d{8}_\d{6})", os.path.basename(result_path))
+    try:
+        logs = [f for f in os.listdir(directory)
+                if f.lower().startswith("logfile") and f.lower().endswith(".txt")]
+    except OSError:
+        return None
+    if not logs:
+        return None
+    if stamp is None or len(logs) == 1:
+        return os.path.join(directory, sorted(logs)[0])
+    target = stamp.group(1)
+    stamped = []
+    for name in logs:
+        m = re.search(r"(\d{8}_\d{6})", name)
+        if m:
+            stamped.append((m.group(1), name))
+    if not stamped:
+        return os.path.join(directory, sorted(logs)[0])
+    later = sorted(s for s in stamped if s[0] >= target)
+    if later:
+        return os.path.join(directory, later[0][1])
+    return os.path.join(directory, sorted(stamped)[-1][1])
+
+
+# ------------------------------------------------------------------- column resolution
+def scan_id_from_source_file(name) -> str | None:
+    """Pull the scan id out of a converted session filename.
+
+    ``converted_Fall_01_scan9FOW97IH.mat`` -> ``scan9FOW97IH``. This is what makes the log
+    file authoritative for the column-to-scan mapping rather than merely suggestive.
+    """
+    m = re.search(r"(scan[0-9A-Za-z]{8})", os.path.basename(str(name)))
+    return m.group(1) if m else None
+
+
+def jaccard(a, b) -> float:
+    """Overlap of two mask-id sets; 0.0 when both are empty."""
+    sa, sb = set(a), set(b)
+    union = sa | sb
+    return (len(sa & sb) / len(union)) if union else 0.0
+
+
+def resolve_column(column_masks, candidates, *, log_scan_id=None,
+                   min_jaccard=MIN_JACCARD, margin=AMBIGUITY_MARGIN) -> dict:
+    """Decide which scan a CellReg column belongs to.
+
+    ``candidates`` maps a scan key (any hashable, typically a dict made hashable by the
+    caller) to that scan's mask-id set. Jaccard is computed against **every** candidate and
+    reported whatever the outcome, because a low overlap on a column the log resolved is
+    evidence of a stale ``Fall.mat`` rather than a resolution failure (Leon Kremers /
+    Tobias Rose, 2024-05-24, ts=1716546557.549569).
+
+    Returns ``resolution_method``, ``scan_key`` (None when unresolved), ``mask_set_jaccard``
+    and ``ambiguous``.
+    """
+    scores = {key: jaccard(column_masks, masks) for key, masks in candidates.items()}
+    ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    best_key, best_score = (ranked[0] if ranked else (None, 0.0))
+    runner_up = ranked[1][1] if len(ranked) > 1 else 0.0
+
+    if log_scan_id is not None:
+        match = [key for key in candidates if log_scan_id in str(key)]
+        if len(match) == 1:
+            return {"resolution_method": "log_file", "scan_key": match[0],
+                    "mask_set_jaccard": scores[match[0]], "ambiguous": False}
+
+    if best_key is not None and best_score >= min_jaccard:
+        if best_score - runner_up < margin:
+            return {"resolution_method": "unresolved", "scan_key": None,
+                    "mask_set_jaccard": best_score, "ambiguous": True}
+        return {"resolution_method": "mask_jaccard", "scan_key": best_key,
+                "mask_set_jaccard": best_score, "ambiguous": False}
+
+    return {"resolution_method": "unresolved", "scan_key": None,
+            "mask_set_jaccard": best_score if ranked else None, "ambiguous": False}
+
+
+# ------------------------------------------------------------------ map interpretation
+def members_from_index_map(index_map) -> dict:
+    """``{cell_index: [(column_index, mask_0based), ...]}`` from a 1-based index map.
+
+    CellReg writes a 1-based mask id and ``0`` for *not present*; subtracting one sends
+    absent to ``-1``. Absence is represented by **omitting the entry**, never by storing a
+    sentinel -- otherwise every consumer inherits the obligation to filter ``< 0`` forever,
+    which is what the lab's realign helper has to do today.
+    """
+    a = np.asarray(index_map)
+    out = {}
+    for cell_index in range(a.shape[0]):
+        row = a[cell_index]
+        present = [(int(col), int(row[col]) - 1)
+                   for col in range(a.shape[1]) if int(row[col]) > 0]
+        out[cell_index] = present
+    return out
+
+
+def pair_quality_rows(p_same_matrix, present_columns) -> list[tuple[int, int, float]]:
+    """Upper-triangle ``(column_a, column_b, p_same)`` for one cell's present columns.
+
+    ``p_same_registered_pairs`` is one ``n_sessions x n_sessions`` matrix per registered
+    cell. Only pairs where the cell is present in *both* sessions are emitted -- that
+    restriction is what keeps this table at ~10.7 M rows lab-wide instead of
+    cells x all-pairs.
+    """
+    if p_same_matrix is None:
+        return []
+    m = np.asarray(p_same_matrix, dtype=float)
+    # mat73 hands each cell-array entry back with a leading singleton axis -- a real file
+    # yields (1, n_sessions, n_sessions), not (n_sessions, n_sessions). Strip leading
+    # 1-axes only, so a genuinely wrong shape still raises.
+    while m.ndim > 2 and m.shape[0] == 1:
+        m = m[0]
+    if m.ndim != 2 or m.shape[0] != m.shape[1]:
+        raise ValueError(f"p_same matrix must be square, got shape {m.shape}")
+    cols = sorted(int(c) for c in present_columns)
+    rows = []
+    for i, col_a in enumerate(cols):
+        for col_b in cols[i + 1:]:
+            if col_a >= m.shape[0] or col_b >= m.shape[0]:
+                continue
+            value = m[col_a, col_b]
+            if np.isfinite(value):
+                rows.append((col_a, col_b, float(value)))
+    return rows
+
+
+def summarise_p_same(pair_rows) -> tuple[float | None, float | None]:
+    """``(min, median)`` over a cell's present pairs -- the queryable selector columns."""
+    if not pair_rows:
+        return None, None
+    values = np.array([p for _, _, p in pair_rows], dtype=float)
+    return float(values.min()), float(np.median(values))
+
+
+def footprints_storage(struct) -> tuple[str, str]:
+    """Same answer as :func:`probe_footprints_storage`, but for an ALREADY-LOADED struct.
+
+    Not the production path -- ``make()`` uses the metadata probe so that the stack is never
+    read. This variant exists for callers that already hold a struct in memory (and for the
+    tests), and it is only safe when that struct was loaded with ``spatial_footprints_
+    corrected`` restricted out or known small.
+
+    Where the stack is external the path is recorded verbatim and **not** dereferenced --
+    one such path is a Windows drive letter that cannot resolve on the Linux server.
+    """
+    value = struct.get("spatial_footprints_corrected")
+    if value is None:
+        return "absent", ""
+    first = value[0] if isinstance(value, (list, tuple)) and value else value
+    if isinstance(first, (str, bytes)):
+        text = first.decode() if isinstance(first, bytes) else first
+        return "external_path", str(text)
+    if isinstance(first, np.ndarray) and first.dtype.kind in "iu" and first.ndim <= 2:
+        try:
+            text = "".join(chr(int(c)) for c in np.asarray(first).ravel())
+            if "/" in text or "\\" in text:
+                return "external_path", text
+        except (TypeError, ValueError):
+            pass
+    return "in_file", ""
+
+
+# --------------------------------------------------------------------------- make()
+def make_cellreg_result(table, key):
+    """Populate :class:`CellRegResult` and its parts for one run.
+
+    Failure is recorded, never swallowed: an unreadable or internally inconsistent file
+    yields a master row with ``parse_ok = 0`` and a stated error, and no child rows.
+    """
+    # Imported inside the function: the schema module imports this one lazily from make(),
+    # so a module-level import here would be circular on first load.
+    from adamacs.schemas import cell_registration as schema_module
+
+    started = time.time()
+    run_row = (schema_module.CellRegRun & key).fetch1()
+    path = run_row["result_file"]
+    base = dict(key, parser_version=schema_module.PARSER_VERSION,
+                parsed_at=_dt.datetime.now())
+
+    try:
+        sha = file_sha256(path)
+        if sha != run_row["result_file_sha256"]:
+            raise ValueError(
+                f"result file changed since registration: sha256 {sha[:12]} != "
+                f"{run_row['result_file_sha256'][:12]}")
+        struct = load_cellreg_struct(path)
+    except Exception as exc:  # noqa: BLE001 -- the failure IS the record
+        table.insert1(dict(base, parse_ok=0, parse_error=f"{type(exc).__name__}: {exc}"[:512],
+                           source_sha256=run_row["result_file_sha256"], n_cells=0,
+                           n_sessions=run_row["n_sessions"], has_score_fields=0,
+                           missing_fields="", p_same_consistent=0,
+                           footprints_storage="absent", footprints_path="",
+                           compute_seconds=time.time() - started))
+        return
+
+    missing = [f for f in SCORE_FIELDS if f not in struct]
+    index_map = orient_index_map(struct["cell_to_index_map"],
+                                 n_sessions_hint=run_row["n_sessions"])
+    n_cells, n_sessions = index_map.shape
+
+    p_same_all = struct.get("p_same_registered_pairs")
+    consistent = True
+    if p_same_all is not None and len(p_same_all):
+        first = np.asarray(p_same_all[0])
+        consistent = (first.ndim == 2 and first.shape[0] == first.shape[1]
+                      and first.shape[0] == n_sessions)
+
+    # From metadata, not from the loaded struct: the footprint stack is never read.
+    storage, fp_path = probe_footprints_storage(path)
+    table.insert1(dict(base, parse_ok=1, parse_error="", source_sha256=sha,
+                       n_cells=int(n_cells), n_sessions=int(n_sessions),
+                       has_score_fields=int(not missing), missing_fields=";".join(missing)[:255],
+                       p_same_consistent=int(consistent), footprints_storage=storage,
+                       footprints_path=fp_path[:512], compute_seconds=time.time() - started))
+
+    members = members_from_index_map(index_map)
+    cell_rows, member_rows, pair_rows = [], [], []
+    for cell_index, present in members.items():
+        columns = [col for col, _ in present]
+        pairs = []
+        if consistent and p_same_all is not None and cell_index < len(p_same_all):
+            pairs = pair_quality_rows(p_same_all[cell_index], columns)
+        lo, mid = summarise_p_same(pairs)
+        cell_rows.append(dict(
+            key, cell_index=int(cell_index),
+            cell_score=_scalar(struct.get("cell_scores"), cell_index),
+            true_positive_score=_scalar(struct.get("true_positive_scores"), cell_index),
+            true_negative_score=_scalar(struct.get("true_negative_scores"), cell_index),
+            exclusivity_score=_scalar(struct.get("exclusivity_scores"), cell_index),
+            in_overlapping_fov=_bool(struct.get("is_cell_in_overlapping_FOV"), cell_index),
+            centroid_x_registered=_centroid(struct.get("registered_cells_centroids"), cell_index, 0),
+            centroid_y_registered=_centroid(struct.get("registered_cells_centroids"), cell_index, 1),
+            n_sessions_present=len(present), min_p_same=lo, median_p_same=mid))
+        for col, mask in present:
+            member_rows.append(dict(key, cell_index=int(cell_index), column_index=int(col),
+                                    mask=int(mask)))
+        for col_a, col_b, value in pairs:
+            pair_rows.append(dict(key, cell_index=int(cell_index), column_a=col_a,
+                                  column_b=col_b, p_same=value))
+
+    table.Cell.insert(cell_rows)
+    table.Member.insert(member_rows)
+    if pair_rows:
+        table.PairQuality.insert(pair_rows)
+
+
+def _scalar(array, index):
+    if array is None:
+        return None
+    flat = np.asarray(array).ravel()
+    if index >= flat.size:
+        return None
+    value = float(flat[index])
+    return None if not np.isfinite(value) else value
+
+
+def _bool(array, index):
+    value = _scalar(array, index)
+    return None if value is None else int(bool(value))
+
+
+def _centroid(array, index, axis):
+    if array is None:
+        return None
+    a = np.asarray(array, dtype=float)
+    if a.ndim != 2:
+        return None
+    if a.shape[0] == 2 and a.shape[1] != 2:
+        a = a.T
+    if index >= a.shape[0] or axis >= a.shape[1]:
+        return None
+    value = a[index, axis]
+    return None if not np.isfinite(value) else float(value)
+
+
+def make_mask_coordinates(table, key):
+    """Populate :class:`MaskCoordinates` for one resolved column."""
+    raise NotImplementedError(
+        "MaskCoordinates.make is declared but not implemented in this pass: it needs the "
+        "per-session centroid_locations_corrected indexed by the run's own mask order, "
+        "which has not been verified against Segmentation.Mask ordering. Declaring it "
+        "without that check would invite exactly the mask/trace misalignment recorded as "
+        "known issue L8.")
+
+
+def ingest_host() -> str:
+    return socket.gethostname()
