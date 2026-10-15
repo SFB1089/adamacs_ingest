@@ -21,6 +21,7 @@ All notebooks below are ingest-facing examples. Run them only against a database
 | `notebooks/14_camera_sync_ingest_qc_template.ipynb` | Camera sync ingest QC before population (adapted from tobiasr) | `event`, `behavior.CamSyncRecording`, `model.VideoRecordingNew` |
 | `notebooks/15_optitrack_redo_repopulation_template.ipynb` | OptiTrack re-do/repopulation triage (adapted from tobiasr) | `mocap.MotionCapture`, `virtual_markers_optitrack.RigidMouseTracking` |
 | `notebooks/16_timestamp_alignment_batch_qc_template.ipynb` | Batch timestamp/alignment QC (adapted from Natasha sync workflows) | `trial.TrialEvent`, `event.Event`, `behavior.CamSyncRecording` |
+| `notebooks/17_cell_registration_ingest.ipynb` | Cell registration (CellReg): MATLAB run on the server, run registration, population, and querying | `cell_registration` schema; `imaging.Segmentation.Mask`, `imaging.Activity.Trace` |
 | `notebooks/20_routine_quick_job_cleanup_template.ipynb` | Routine job cleanup triage template (derived from original notebook 20) | `schema.jobs`, `imaging/model/denoising` task triage |
 | `notebooks/21_schema_dependency_diagrams.ipynb` | Render and export `dj.Diagram` dependency maps schema-by-schema | All core schemas with parent-key context |
 
