@@ -89,8 +89,12 @@ from adamacs.schemas import disk
 from adamacs.schemas import wfield
 # from adamacs.schemas import behavior
 
-# Cell registration (CellReg) --------------------------------------------------
-# Deferred activation, like disk/wfield: importing declares NOTHING. Call
-# cell_registration.activate(db_prefix + 'cell_registration') explicitly to create it.
-# See adamacs/schemas/CELL_REGISTRATION_SCHEMA_DESIGN_REVIEW.md before doing so.
+# Activate "cell_registration" schema -----------------------------------
+# Same entry point and call style as session/scan/imaging/train/model/trial above, and as
+# adamacs.schemas.disk: the module exposes activate(schema_name, linking_module=...) and is
+# activated here, so importing adamacs.pipeline declares it like every other schema.
+# It depends on imaging.Curation, so it must come after imaging.activate.
+# Design rationale: adamacs/schemas/CELL_REGISTRATION_SCHEMA_DESIGN_REVIEW.md
 from adamacs.schemas import cell_registration
+
+cell_registration.activate(db_prefix + 'cell_registration', linking_module=__name__)
