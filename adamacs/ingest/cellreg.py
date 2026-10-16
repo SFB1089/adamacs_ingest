@@ -621,10 +621,15 @@ def make_mask_coordinates(table, key):
 
     The ordering question that blocked this (known issue L8) is settled by the file
     itself: ``centroid_locations_corrected`` is a per-session cell array whose entry for
-    session 1 of the ROS-1881 run has shape ``(1131, 2)`` -- exactly that scan's mask
-    count -- so row ``k`` is mask ``k`` in the session's own order, the same order the
-    converted input file was written in. Verified for three columns of that run
-    (1131, 1111 and 1252 rows against 1131, 1111 and 1252 masks in the database).
+    session 1 of the ROS-1881 run is a ``(1131, 2)`` MATLAB array -- exactly that scan's
+    mask count -- so row ``k`` is mask ``k`` in the session's own order, the same order
+    the converted input file was written in.
+
+    Measured by ``scripts/verify_footprints.py``, which prints the array's shape beside the
+    curation's mask count for whichever column it is given; columns 0, 4 and 7 of
+    ``cellRegistered_20260129_075504.mat`` reported ``(2, 1131)``, ``(2, 1111)`` and
+    ``(2, 1252)`` (HDF5 reverses MATLAB's dimension order) against 1131, 1111 and 1252
+    masks in ``Segmentation.Mask``. Re-run it for any run whose ordering you doubt.
 
     Centroids are in **pixels**: ``compute_centroid_locations.m`` returns
     ``max_ind + gaussfit_offset`` with no micron scaling, unlike the translations, which
@@ -675,8 +680,9 @@ def aligned_footprints_for_column(session_table, *, masks=None, dense=False) -> 
     """Implementation of :meth:`CellRegRun.Session.aligned_footprints`.
 
     See :mod:`adamacs.ingest.cellreg_footprints` for the five conventions this has to
-    respect and for the one approximation it makes (the pre-alignment centroid, which
-    CellReg does not save, is recovered from the stored aligned centroid).
+    respect. There is no approximation: the pre-alignment centroid the radius crop is
+    measured from is recomputed by ``centroid_location()`` from the mask itself, so this
+    needs neither the result file nor ``MaskCoordinates``.
     """
     from adamacs.ingest import cellreg_footprints as fpmod
     from adamacs.schemas import cell_registration as schema_module
