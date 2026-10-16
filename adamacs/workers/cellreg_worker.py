@@ -201,7 +201,7 @@ def one_pass(creg, *, matlab="matlab", cellreg_root=None, dry_run=True,
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--schema", default=None,
-                    help="cell_registration schema name; required unless --dry-run")
+                    help="cell_registration schema name. Defaults to the name pipeline.py activates, db_prefix + 'cell_registration'.")
     ap.add_argument("--matlab", default="matlab")
     ap.add_argument("--cellreg-root", default=None)
     ap.add_argument("--poll-seconds", type=int, default=DEFAULT_POLL_SECONDS)
@@ -233,10 +233,22 @@ def main(argv=None) -> int:
                     "Pass --execute to act, once that is authorised.")
 
     from adamacs.schemas import cell_registration as creg
-    if not dry_run:
-        if not args.schema:
-            raise SystemExit("--schema is required with --execute")
-        creg.activate(args.schema)
+    from adamacs import db_prefix
+
+    schema_name = args.schema or (db_prefix + "cell_registration")
+    if dry_run:
+        # A dry run still has to READ the task tables to say what it would do. The first
+        # dry run on ibehavegpu1 died in pending_job_dirs() with
+        # "'NoneType' object has no attribute 'primary_key'" because the schema was never
+        # activated, so CellRegExport had no heading. Attach read-only:
+        # create_schema/create_tables False means this path cannot declare anything, and
+        # it fails loudly if the schema is absent rather than reporting an empty queue.
+        creg.activate(schema_name, create_schema=False, create_tables=False)
+        log.info("attached read-only to %s; no table can be created on this path",
+                 schema_name)
+    else:
+        creg.activate(schema_name)
+        log.info("attached to %s with write access", schema_name)
 
     while True:
         report = one_pass(creg, matlab=args.matlab, cellreg_root=args.cellreg_root,
