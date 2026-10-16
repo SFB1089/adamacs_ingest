@@ -174,3 +174,51 @@ def test_load_mode_records_checksums_of_what_it_found(tmp_path):
 def test_load_mode_requires_the_directory_to_exist(tmp_path):
     with pytest.raises(FileNotFoundError, match="not a directory"):
         cx.inspect_existing(tmp_path / "nope", [])
+
+
+# ------------------------------------------------- the enumerated-value guard
+# These exist because the first real run silently fell through Stage 5: the driver compares
+# these fields with strcmp, so a wrong literal raises nothing in MATLAB -- the branch never
+# fires, 1985 cells are found, and then it dies on an unassigned variable with no result
+# file and a one-line error log.
+
+def test_defaults_are_values_the_driver_actually_accepts():
+    s = cx.settings_payload({})
+    for field, allowed in cx.SETTINGS_CHOICES.items():
+        assert s[field] in allowed, f"{field}={s[field]!r} not in {allowed}"
+
+
+def test_the_log_file_prose_is_rejected_outright():
+    """logFile_*.txt says 'Probabilistic modeling' and 'Spatial correlations' (plural)."""
+    with pytest.raises(ValueError, match="silently ignore"):
+        cx.settings_payload({"registration_approach": "Probabilistic modeling"})
+    with pytest.raises(ValueError, match="silently ignore"):
+        cx.settings_payload({"model_type": "Spatial correlations"})
+
+
+def test_from_log_value_maps_prose_onto_driver_literals():
+    assert cx.from_log_value("registration_approach", "Probabilistic modeling") == "Probabilistic"
+    assert cx.from_log_value("model_type", "Spatial correlations") == "Spatial correlation"
+    assert cx.from_log_value("model_type", "Centroid distances") == "Centroid distance"
+    # already-correct values pass straight through
+    assert cx.from_log_value("model_type", "Spatial correlation") == "Spatial correlation"
+
+
+def test_from_log_value_refuses_what_it_cannot_map():
+    with pytest.raises(ValueError, match="cannot map"):
+        cx.from_log_value("model_type", "Probabilistic")
+
+
+def test_a_parsed_log_can_be_turned_into_valid_settings():
+    """The round trip an importer will actually perform."""
+    parsed = {"registration_approach": "Probabilistic modeling",
+              "model_type": "Spatial correlations",
+              "alignment_type": "Translations and Rotations"}
+    fixed = {k: cx.from_log_value(k, v) for k, v in parsed.items()}
+    s = cx.settings_payload(fixed)
+    assert s["registration_approach"] == "Probabilistic"
+    assert s["model_type"] == "Spatial correlation"
+
+
+def test_every_choice_field_is_also_a_settings_field():
+    assert set(cx.SETTINGS_CHOICES) <= set(cx.SETTINGS_FIELDS)

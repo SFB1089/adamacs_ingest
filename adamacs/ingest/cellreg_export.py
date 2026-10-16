@@ -78,13 +78,57 @@ SETTINGS_FIELDS = (
     "use_parallel_processing",
 )
 
+#: The ONLY values the driver's strcmp calls accept, per literal, taken from the source.
+#: Writing anything else does not error -- the branch simply never fires, the run reaches
+#: "Stage 5 - Performing final registration", and then dies on an unassigned variable with
+#: no result file. That is how this was found; SETTINGS_CHOICES exists so it cannot recur.
+SETTINGS_CHOICES = {
+    "input_format": ("Suite2p", "CNMF-e"),                        # cellreg_run.m:129,140
+    "alignment_type": ("Translations", "Translations and Rotations",
+                       "Non-rigid"),                              # :217,244,247
+    "initial_registration_type": ("Spatial correlation", "Centroid distance",
+                                  "best_model_string"),           # :388,398
+    "registration_approach": ("Probabilistic", "Simple threshold"),   # :444,467
+    "model_type": ("Spatial correlation", "Centroid distance"),   # :445,451
+}
+
+#: logFile_*.txt prints prose, not the literals the driver compares. Feeding a parsed log
+#: straight back in is the mistake this maps away: the log says "Probabilistic modeling"
+#: and "Spatial correlations" (plural) where the driver wants "Probabilistic" and
+#: "Spatial correlation" (singular).
+LOG_PROSE_TO_SETTING = {
+    "probabilistic modeling": "Probabilistic",
+    "probabilistic": "Probabilistic",
+    "simple threshold": "Simple threshold",
+    "spatial correlations": "Spatial correlation",
+    "spatial correlation": "Spatial correlation",
+    "centroid distances": "Centroid distance",
+    "centroid distance": "Centroid distance",
+}
+
+
+def from_log_value(field: str, value: str) -> str:
+    """Translate a value parsed out of logFile_*.txt into the literal the driver accepts."""
+    if value is None:
+        raise ValueError(f"no value given for {field}")
+    v = str(value).strip()
+    if field in SETTINGS_CHOICES and v in SETTINGS_CHOICES[field]:
+        return v
+    mapped = LOG_PROSE_TO_SETTING.get(v.lower())
+    if mapped and (field not in SETTINGS_CHOICES or mapped in SETTINGS_CHOICES[field]):
+        return mapped
+    raise ValueError(
+        f"cannot map {field}={value!r} onto a value the driver accepts "
+        f"({SETTINGS_CHOICES.get(field)})")
+
+
 #: Defaults matching the lab's standard probabilistic run.
 SETTINGS_DEFAULTS = {
     "input_format": "Suite2p",
     "alignment_type": "Translations and Rotations",
     "initial_registration_type": "Spatial correlation",
-    "registration_approach": "Probabilistic modeling",
-    "model_type": "Spatial correlations",
+    "registration_approach": "Probabilistic",
+    "model_type": "Spatial correlation",
     "maximal_distance": 12.0,
     "maximal_rotation": 30.0,
     "transformation_smoothness": 2.0,
@@ -227,6 +271,16 @@ def settings_payload(params: dict) -> dict:
         raise ValueError(f"not settings the driver reads: {unknown}; "
                          f"allowed fields are {list(SETTINGS_FIELDS)}")
     out = {**SETTINGS_DEFAULTS, **params}
+    bad_choice = {k: out[k] for k, allowed in SETTINGS_CHOICES.items()
+                  if out.get(k) not in allowed}
+    if bad_choice:
+        detail = "; ".join(
+            f"{k}={v!r} is not one of {SETTINGS_CHOICES[k]}" for k, v in bad_choice.items())
+        raise ValueError(
+            f"settings the driver would silently ignore: {detail}. These are compared with "
+            f"strcmp, so a wrong literal does not raise in MATLAB -- the branch never fires "
+            f"and the run dies after Stage 5 with no result file. Use from_log_value() when "
+            f"the value came out of a log.")
     return {k: out[k] for k in SETTINGS_FIELDS}
 
 
