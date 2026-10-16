@@ -176,7 +176,7 @@ def test_import_declares_nothing():
 
 
 def test_every_table_has_a_definition():
-    """11 master tables and 10 part tables = 21 definitions.
+    """13 master tables and 12 part tables = 25 definitions.
 
     The counts are a deliberate tripwire, not a second source of truth: the *validator*
     discovers the table set from the module, so it can never fall behind. This test exists
@@ -197,8 +197,8 @@ def test_every_table_has_a_definition():
                 assert str(part.definition).strip(), \
                     f"{name}.{part_name} has an empty definition"
                 parts += 1
-    assert masters == 11, f"expected 11 master tables, found {masters}"
-    assert parts == 10, f"expected 10 part tables, found {parts}"
+    assert masters == 13, f"expected 13 master tables, found {masters}"
+    assert parts == 12, f"expected 12 part tables, found {parts}"
 
 
 def test_cell_is_session_free():
@@ -210,8 +210,19 @@ def test_cell_is_session_free():
             "cross-session identity and must stay session-free")
 
 
+def _key_block(definition):
+    """The primary-key half of a definition, with comments stripped.
+
+    Comments must go first: a comment mentioning ``column_index`` is not a key
+    attribute, and a naive substring test on the raw text reads one as the other.
+    This is the same trap the diagram generator hit with a `-> value` comment.
+    """
+    head = str(definition).split("---")[0]
+    return "\n".join(ln.split("#", 1)[0] for ln in head.splitlines())
+
+
 def test_session_part_is_keyed_on_curation():
-    pk_text = str(creg.CellRegRun.Session.definition).split("---")[0]
+    pk_text = _key_block(creg.CellRegRun.Session.definition)
     assert "-> imaging.Curation" in pk_text
     # column_index must NOT be in the key (ADR-R5) but must still be declared
     assert "column_index" not in pk_text

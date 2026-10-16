@@ -299,6 +299,152 @@ resolution method, and where more than one scan clears the threshold the column 
 `realign_global_ids_*` behaviour, which has only the Jaccard evidence and no place to
 record it.
 
+### 3.3b The curation a column came from is NOT recoverable — measured 2026-10-16
+
+ADR-R2 argued that mask-set Jaccard should be stored even when the log resolves the column,
+as a staleness measure. That argument stands but it was **too weak about what Jaccard can
+resolve**. Measurement shows the problem is structural, not incidental.
+
+**The curation was never an input.** The export step that feeds CellReg is
+`53_Leon_Multi_Sess.ipynb` cell 14, which does:
+
+```python
+data_path = (scan.ScanPath & f'scan_id = "{scansi}"').fetch("path")[0]
+data_path = data_path + "/suite2p/plane0/Fall.mat"
+output    = output_path + "/Fall_" + str(i + 1).zfill(2) + "_" + scansi + ".mat"
+shutil.copy(data_path, output)
+```
+
+The footprints are copied from a **per-scan filesystem path**. `paramset_idx` and
+`curation_id` appear nowhere in the lookup, so the run cannot record what it was never told.
+The filename carries the scan id, which is why `logFile_*.txt` lists scans — and nothing else.
+MATLAB then converts whatever `*.mat` files sit in that folder (`dir(filePattern)`, excluding
+`converted*` and `settings`), so column order is directory order, not a declared mapping.
+
+**And it cannot be recovered from the data either.** Fingerprinting every
+`(session_id, scan_id, paramset_idx, curation_id)` mask set in `__segmentation__mask`
+(3,143 groups over 1,320 scans, by count, Σnpix, Σmask and Σ(mask·npix)):
+
+| | |
+|---|---|
+| `(session, scan, paramset)` groups | 1,880 |
+| …holding more than one curation | **743** (39.5 %) |
+| …of which the curations are **byte-identical mask sets** | **696 (93.7 %)** |
+| …genuinely different mask sets (real re-curation) | 47 (6.3 %) |
+| largest number of curations on one group | **21** |
+
+When the candidate mask sets are identical, Jaccard scores **1.0 against every candidate**.
+`resolve_column` compares best against runner-up with `AMBIGUITY_MARGIN = 0.1`; a margin of 0
+falls below it, so the column is correctly marked ambiguous and refused. The conclusion is
+therefore sharper than ADR-R2 stated:
+
+> **Mask-set overlap resolves WHICH SCAN a column is. It can never resolve WHICH CURATION.**
+> On 94 % of multi-curation scans it is mathematically incapable of it.
+
+**Production already holds contradictory identities.** 99 groups have two or more curations
+that each carry a populated `roi_group`. Comparing `roi_group` mask-by-mask across every such
+pair (265 pairs over those 99 groups):
+
+| agreement | pairs |
+|---|---|
+| exactly 1.000 | 98 |
+| < 0.500 | 167 |
+| < 0.100 | 149 |
+| < 0.010 | **85** |
+| **median** | **0.035** |
+
+The distribution is **bimodal with nothing in between**: a pair either agrees perfectly (the
+duplicate twins — c10/c11, c6/c7) or disagrees almost completely. That is the signature of
+*different CellReg runs written into different curations of the same masks*, not of a slightly
+different curation. `scan9FS1YUW8` paramset 10 carries **four** populated curations over one
+identical mask set, pairwise agreement 0.9–2.2 %; `scan9FS35TLD` has c1 vs c6 agreeing on
+**1 of 1050 masks**. 53 of the 99 groups contain at least one disagreeing pair.
+
+**Consequence for the schema.** `resolution_method` gains `'manifest'` and the enum is ordered
+by trustworthiness: `('manifest','log_file','mask_jaccard','manual')`. A manifest is the only
+mechanism that makes the curation a *recorded fact* rather than an inference — the export step
+writes `(column_index, session_id, scan_id, paramset_idx, curation_id)` beside the converted
+footprints, because at that moment it is the only actor that knows. Absent a manifest the
+operator declares the mapping (`'manual'`); the importer never guesses, and an unresolved
+column goes to `.UnresolvedColumn` as evidence.
+
+**The deeper fix, which is upstream of this schema.** Exporting `Fall.mat` from a filesystem
+path is the root cause, and it also explains the known staleness problem: `Fall.mat` does not
+update when suite2p curation does (Leon Kremers / Tobias Rose / Setup User, 2024-05-24,
+ts=1716546557.549569), and on-disk folders keep only the last extraction
+(ts=1722492807.667179). So the CellReg input may correspond to **none** of the curation rows in
+the database. The correct fix is to build the footprints **from the curation**
+(`Segmentation.Mask` for an explicit `(paramset_idx, curation_id)`) instead of copying a file.
+Then the curation is an input by construction, the manifest is trivially correct, and the
+staleness class of bug disappears. That is a change to the export notebook, not to this
+schema, and it is recorded here as the recommendation it is.
+
+**There is no lab-wide workflow to change.** The driver is `Leon_CellReg.m`, which exists in
+**three divergent versions across eight locations** (`adamacs_leon/helpers/`,
+`adamacs/notebooks/leonk/88_Leon_CellReg.m`, `github/LeonKremers-adamacs/helpers/`,
+`leon_multisite_rerun/src/helpers/`, `adamacs_analysis/notebooks/…ibehavegpu1/helpers/`,
+`leon_drift_review/leon_adamacs/helpers/`, plus two worktree copies — md5 `3ae196bf`,
+`40c99da3` and `bd5a28df`). It hardcodes `/home/leonk/CellReg` on the MATLAB path and reads
+its input folder from `/home/leonk/adamacs/notebooks/temp/temp_folder.mat`, so only that
+account can run it unmodified; the notebook that drives it sits in `deprecated/` in every
+copy. `adamacs_ingest` contained nothing CellReg-related before this branch. Any manifest
+requirement therefore has to be introduced along with consolidating the driver, and whoever
+does that should treat the three md5s as three behaviours until diffed.
+
+
+### 3.3c The exporter: build the input from the curation — implemented 2026-10-16
+
+`CellRegTask` / `CellRegExport` close §3.3b at source rather than papering over it.
+
+**Why building the input works at all.** `Leon_CellReg.m` with `input_format = 'Suite2p'`
+reads **exactly** (lines 82–92): `ops.Lx`, `ops.Ly`, `size(stat, 2)` and
+`stat{k}.ypix / xpix / lam`. No `F`, no `Fneu`, no `spks`, **not even `iscell`** — it
+registers every entry of `stat`, so the file must already contain only the curation's ROIs,
+which is exactly what `Segmentation.Mask` holds. `mask_xpix`, `mask_ypix` and `mask_weights`
+*are* `xpix`, `ypix` and `lam`.
+
+**Verified against the real thing.** Generated from the database for all 11 gratings scans of
+site `sess9FPXNI8U` and compared ROI-by-ROI with the on-disk `Fall.mat`:
+
+| | |
+|---|---|
+| scans | 11 / 11 exact |
+| ROIs compared | **13,532** |
+| identical pixel sets | **13,532** |
+| identical `lam` values | **13,532** |
+| file size | ~1.8 MB each |
+
+Since the conversion is a deterministic scatter of `lam` into `(ypix+1, xpix+1)`, identical
+pixels and weights means identical converted footprints by construction — there is no residual
+numerical question.
+
+**Two hard guards, because this writes into the shared data folder.**
+`assert_safe_target` refuses any path inside a `suite2p` tree or a `plane*` directory, refuses
+any file named `Fall.mat`, and refuses to overwrite an existing file unless explicitly told.
+Inputs are named `Fall_<NN>_<scan_id>.mat` — one-based `NN`, matching the names the log
+echoes — in a new `cellreg_export/<site>[_<label>]_task<NN>/` directory. A curated suite2p
+output cannot be damaged by a mistaken task.
+
+**`settings.mat` is written from the paramset**, so the parameters the driver uses and the
+parameters recorded in the database are the same object rather than two transcriptions.
+
+**A correction this forced on the paramset.** `settings.mat` carries exactly the 16 fields the
+driver reads as `settings.*`. Two quantities that appear in `logFile_*.txt` and look like
+parameters are **not**: `number_of_bins` is computed by `estimate_number_of_bins` (line 245),
+and `initial_threshold` is the fitted model's p_same = 0.5 crossing, or a hardcoded 0.65
+fallback (lines 353–355). They are **outputs**. `settings_payload` raises if either is passed
+as a parameter, and they belong in `CellRegRun.Quality`.
+
+This also corrects an earlier reading of the two ROS-1881 gratings runs. Their genuine
+*parameter* differences are `p_same_threshold` (0.5 → 0.3), `maximal_distance` (10 → 12 µm)
+and `reference_session_index` (6 → 5); the `initial_threshold` shift 0.75 → 0.70 is a
+*consequence* of the refitted model, not an input that was changed.
+
+**What `trigger` does and does not do.** It writes the inputs and `settings.mat`; it does not
+run MATLAB. The driver is still launched by hand over the directory, because it is still
+three divergent scripts hardcoded to `/home/leonk` (§3.3b). Consolidating that is the next
+piece of work, and `cellreg_output_dir` is the seam it will plug into.
+
 ### 3.4 The result, its cells, and their quality
 
 ```
@@ -808,6 +954,43 @@ it and skip the geometric check. Source evidence forbids that: `Fall.mat` does n
 suite2p curation does (ts=1716546557.549569), so a correctly-resolved column can still have a
 mask set that disagrees with the curation's. Jaccard is therefore not a fallback — it is an
 independent staleness measurement, stored unconditionally. New failure mode 11.
+
+
+### ADR-R7 · The curation is declared by a task, and the input is built from it — accepted 2026-10-16
+
+**Context.** §3.3b: the curation a CellReg column came from was never an input (the export
+copies `Fall.mat` from a per-scan filesystem path) and cannot be recovered (696 of 743
+multi-curation groups are byte-identical, so mask overlap cannot discriminate; 99 groups
+already carry contradictory `roi_group`, median pairwise agreement 0.035).
+
+**Decision.** Two parts.
+
+1. `resolution_method` becomes `enum('manifest','log_file','mask_jaccard','manual')`.
+   `mask_jaccard` is demoted to what it can actually do — identify the **scan**, and measure
+   input staleness — and is never accepted as evidence of a **curation**.
+2. `CellRegTask` (+ `.Session`) declares the ordered curation per column *before* anything
+   runs, and `CellRegExport` builds the input files from `Segmentation.Mask` for exactly
+   those curations. The curation stops being an inference and becomes an input.
+
+**Why build rather than annotate.** A manifest alone would record which curation the operator
+*believed* the copied `Fall.mat` came from. Building the file from the curation makes the
+belief unnecessary — and removes the staleness class with it, since `Fall.mat` does not update
+after curation (ts=1716546557.549569) and on-disk folders keep only the last extraction
+(ts=1722492807.667179), so a copied input can match *no* curation row at all.
+
+**Evidence it is faithful.** 11/11 scans, 13,532 ROIs, identical pixel sets and `lam` values
+versus the on-disk file (§3.3c).
+
+**Consequence accepted.** The 100 existing runs have no task and no manifest; their columns
+are `manual` or unresolved. This schema will not retro-fit an answer it cannot support.
+
+**Rejected alternative.** Choosing the curation with the highest `curation_id`, or the one
+whose `roi_group` is populated. Both are guesses that would look authoritative; the 0.9–2.2 %
+agreement on `scan9FS1YUW8` shows how wrong such a guess can be.
+
+**Not decided here.** Whether to reimplement CellReg in Python. The exporter is a prerequisite
+either way — it gives curation-pinned inputs, and the 100 existing runs become regression
+fixtures.
 
 ### ADR-R3 · The importer does NOT write `roi_group` — accepted 2026-10-15, contradicts a 2024 plan
 **This is the one place the design knowingly departs from a recorded intent of Tobias's.** On

@@ -52,11 +52,13 @@ Parsing notes for ``CellRegResult.make()``
 from __future__ import annotations
 
 import datetime as _dt
+import pathlib as _pathlib
 import hashlib
 import importlib
 import json
 
 import datajoint as dj
+import numpy as _np
 
 schema = dj.Schema()
 
@@ -231,12 +233,26 @@ class CellRegRun(dj.Manual):
         # roselab_leondrift.RunSet.Scan, which also keys on the upstream identity.
         # Columns that could NOT be resolved live in .UnresolvedColumn, so that this
         # table's key never has to be nullable.
+        #
+        # WHICH CURATION A COLUMN CAME FROM IS NOT RECOVERABLE FROM THE RUN.
+        # The export step copies <ScanPath>/suite2p/plane0/Fall.mat -- a per-scan
+        # FILESYSTEM path with no curation in the lookup -- so the curation was never an
+        # input, and the log records only the scan id (converted_Fall_01_<scan_id>.mat).
+        # Nor can it be recovered from the data: of 743 (session, scan, paramset) groups
+        # holding more than one curation, 696 (94%) have BYTE-IDENTICAL mask sets, so
+        # mask-set overlap scores 1.0 against every candidate and cannot discriminate.
+        # Jaccard therefore resolves WHICH SCAN, never WHICH CURATION.
+        # 'manifest' is the only method that makes the curation a recorded fact: the
+        # export step writes (column_index, session_id, scan_id, paramset_idx,
+        # curation_id) beside the converted footprints. Absent a manifest the operator
+        # declares it ('manual'); the importer must not guess.
         -> master
         -> imaging.Curation
         ---
         column_index                : smallint   # 0-based column of cell_to_index_map
         source_file=''              : varchar(512)  # the converted_*.mat named in the log
-        resolution_method           : enum('log_file','mask_jaccard','manual')
+        resolution_method           : enum('manifest','log_file','mask_jaccard','manual')
+                                               # manifest = declared by the exporter
         mask_set_jaccard=null       : float      # stored ALWAYS: also a staleness measure
         n_masks_cellreg             : int
         n_masks_db=null             : int
@@ -410,6 +426,183 @@ class StableCellMap(dj.Manual):
 
 
 # --------------------------------------------------------------------------- curation
+@schema
+class CellRegTask(dj.Manual):
+    definition = """
+    # One PLANNED CellReg run over an explicit, ORDERED set of curations.
+    #
+    # This table is the fix for design review 3.3b. The existing export copies
+    # <ScanPath>/suite2p/plane0/Fall.mat -- a per-scan FILESYSTEM path with no curation in
+    # the lookup -- so the curation a column came from was never an input and cannot be
+    # recovered afterwards (696 of 743 multi-curation groups have byte-identical mask sets,
+    # so mask overlap cannot discriminate). Here the operator DECLARES the curation for each
+    # column before anything runs, and .Session is that manifest.
+    #
+    # task_mode follows the house convention (imaging.ProcessingTask, wfield.py:372,
+    # disk.py:986, denoising.py:95):
+    #   'trigger' -> build the CellReg input files from the database for the declared
+    #                curations, then run the MATLAB driver over the directory by hand
+    #   'load'    -> a run already exists in cellreg_output_dir; record what is there
+    -> RegistrationSite
+    cellreg_task_id         : smallint
+    ---
+    -> CellRegParamSet
+    task_mode='load'        : enum('load','trigger')  # 'load': record existing input; 'trigger': write it
+    cellreg_output_dir      : varchar(512)   # FLAT folder the driver consumes; it creates Results/ inside
+    task_label=''           : varchar(64)    # 'Gratings', 'Natural Images' -- one run per stimulus per site
+    task_created            : datetime
+    task_created_by=''      : varchar(64)
+    task_note=''            : varchar(512)
+    """
+
+    class Session(dj.Part):
+        definition = """
+        # THE MANIFEST. One row per column, naming the curation that column is built from.
+        # column_index is in the primary key because the ORDER is what the operator declares
+        # and what the driver consumes; the curation is the declared value. The unique index
+        # stops one curation being used for two columns of the same task.
+        -> master
+        column_index            : smallint   # 0-based; becomes CellRegRun.Session.column_index
+        ---
+        -> imaging.Curation
+        unique index (subject, same_site_id, cellreg_task_id, session_id, scan_id, paramset_idx, curation_id)
+        """
+
+    @classmethod
+    def auto_generate_entries(cls, site_key, curations, *, paramset, task_mode="trigger",
+                              output_dir=None, label="", note="", created_by=""):
+        """Plan a run from an ORDERED list of ``imaging.Curation`` keys.
+
+        The order of ``curations`` is the column order of the run; it is recorded, never
+        inferred. Nothing is written to disk here -- this only plans the task. Mirrors
+        ``ProcessingTask.auto_generate_entries`` and
+        ``PoseEstimationTask.insert_estimation_task``.
+        """
+        from adamacs.ingest.cellreg_export import export_dir_for
+
+        if len(curations) < 2:
+            raise ValueError(
+                f"a CellReg run needs at least 2 sessions; got {len(curations)}. "
+                f"Registering one session against itself is not a registration.")
+        seen = [tuple(sorted(c.items())) for c in curations]
+        if len(set(seen)) != len(seen):
+            raise ValueError("the same curation appears twice in the declared column order")
+        missing = [c for c in curations if not (imaging.Curation & c)]
+        if missing:
+            raise ValueError(f"these curations do not exist: {missing}")
+
+        existing = (cls & site_key).fetch("cellreg_task_id")
+        task_id = (max(existing) + 1) if len(existing) else 0
+        out = output_dir or export_dir_for(site_key, label=label, task_id=task_id)
+        cls.insert1({**site_key, "cellreg_task_id": task_id,
+                     "cellreg_paramset_id": paramset, "task_mode": task_mode,
+                     "cellreg_output_dir": str(out), "task_label": label,
+                     "task_created": _dt.datetime.now(), "task_created_by": created_by,
+                     "task_note": note})
+        cls.Session.insert({**site_key, "cellreg_task_id": task_id, "column_index": i, **c}
+                           for i, c in enumerate(curations))
+        return {**site_key, "cellreg_task_id": task_id}
+
+
+@schema
+class CellRegExport(dj.Imported):
+    definition = """
+    # What a 'trigger' task WROTE, or what a 'load' task FOUND. One row per task.
+    #
+    # Files are built from imaging.Segmentation.Mask for the DECLARED curation, so every
+    # column's provenance is a recorded fact rather than an inference. Verified against the
+    # existing on-disk Fall.mat for all 11 gratings scans of site sess9FPXNI8U (13,532
+    # ROIs): identical pixel sets and identical lam values throughout.
+    -> CellRegTask
+    ---
+    export_mode             : enum('load','trigger')
+    export_dir              : varchar(512)
+    settings_file=''        : varchar(512)   # settings.mat, written from the paramset
+    settings_sha256=''      : char(64)
+    n_files                 : smallint
+    n_masks_total           : int
+    exported_at             : datetime
+    exported_by=''          : varchar(64)
+    exporter_version        : varchar(16)
+    adamacs_sha=''          : varchar(40)
+    export_note=''          : varchar(512)
+    """
+
+    class File(dj.Part):
+        definition = """
+        # One input file per column, with the curation it was built from and its checksum.
+        -> master
+        column_index            : smallint
+        ---
+        -> imaging.Curation
+        file_path               : varchar(512)
+        file_name               : varchar(255)   # Fall_<NN>_<scan_id>.mat -- the name the log echoes
+        file_sha256             : char(64)
+        file_bytes              : bigint
+        n_masks                 : int
+        fov_height              : smallint
+        fov_width               : smallint
+        file_source='database'  : enum('database','suite2p_copy')
+        """
+
+    def make(self, key):
+        """Write the declared input files ('trigger'), or record an existing set ('load').
+
+        WRITES FILES in 'trigger' mode: one ``Fall_<NN>_<scan_id>.mat`` per declared column
+        plus ``settings.mat``, into a NEW directory. It never writes inside a suite2p tree
+        and never overwrites an existing file -- ``assert_safe_target`` enforces both, so a
+        curated suite2p output cannot be damaged by a mistaken task.
+        """
+        from adamacs.ingest import cellreg_export as cx
+
+        task = (CellRegTask & key).fetch1()
+        mode = task["task_mode"]
+        out = _pathlib.Path(task["cellreg_output_dir"])
+        columns = (CellRegTask.Session & key).fetch(order_by="column_index", as_dict=True)
+        if not columns:
+            raise ValueError(f"CellRegTask {key} declares no columns; nothing to export")
+        if [int(c["column_index"]) for c in columns] != list(range(len(columns))):
+            raise ValueError(
+                f"column_index must be contiguous from 0; got "
+                f"{[int(c['column_index']) for c in columns]}. A gap would silently shift "
+                f"every later column against cell_to_index_map.")
+
+        common = {"session_id", "scan_id", "paramset_idx", "curation_id"}
+        if mode == "trigger":
+            files, note = [], ""
+            for col in columns:
+                ckey = {k: col[k] for k in common}
+                masks = (imaging.Segmentation.Mask & ckey).fetch(
+                    "mask", "mask_xpix", "mask_ypix", "mask_weights",
+                    order_by="mask", as_dict=True)
+                summary = (imaging.MotionCorrection.Summary & ckey).fetch1("average_image")
+                height, width = _np.asarray(summary).shape[:2]
+                dest = out / cx.fall_name(int(col["column_index"]), col["scan_id"])
+                written = cx.write_fall_mat(dest, masks, height, width, mean_img=summary)
+                files.append({"column_index": int(col["column_index"]), **ckey, **written})
+            params = (CellRegParamSet & task).fetch1("params")
+            settings = cx.write_settings_mat(out / "settings.mat", params)
+            record = {"files": files, "note": note, **settings}
+
+        elif mode == "load":
+            record = cx.inspect_existing(out, columns)
+
+        else:
+            raise ValueError(f"Unknown task mode: {mode}")
+
+        self.insert1({**key, "export_mode": mode, "export_dir": str(out),
+                      "settings_file": record["settings_file"],
+                      "settings_sha256": record["settings_sha256"],
+                      "n_files": len(record["files"]),
+                      "n_masks_total": sum(f["n_masks"] for f in record["files"]),
+                      "exported_at": _dt.datetime.now(),
+                      "exported_by": cx.current_user(),
+                      "exporter_version": cx.EXPORTER_VERSION,
+                      "adamacs_sha": cx.adamacs_sha(),
+                      "export_note": record.get("note", "")})
+        self.File.insert({**key, **f} for f in record["files"])
+
+
 @schema
 class RegistrationCuration(dj.Manual):
     definition = """
