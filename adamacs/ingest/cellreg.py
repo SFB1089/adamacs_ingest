@@ -31,6 +31,7 @@ import re
 import socket
 import time
 
+import datajoint as dj
 import numpy as np
 
 #: Fields present only under the probabilistic registration approach.
@@ -372,7 +373,7 @@ def resolve_column(column_masks, candidates, *, log_scan_id=None,
     caller) to that scan's mask-id set. Jaccard is computed against **every** candidate and
     reported whatever the outcome, because a low overlap on a column the log resolved is
     evidence of a stale ``Fall.mat`` rather than a resolution failure (Leon Kremers /
-    Tobias Rose / Setup User, 2024-05-24, ts=1716546557.549569).
+    Tobias Rose, 2024-05-24, ts=1716546557.549569).
 
     Returns ``resolution_method``, ``scan_key`` (None when unresolved), ``mask_set_jaccard``
     and ``ambiguous``.
@@ -538,6 +539,12 @@ def make_cellreg_result(table, key):
                        footprints_path=fp_path[:512], compute_seconds=time.time() - started))
 
     members = members_from_index_map(index_map)
+    # column_index -> the curation key that column was resolved to. Unresolved columns are
+    # simply absent, which is what makes the Member loop below able to skip them.
+    curation_attrs = ("session_id", "scan_id", "paramset_idx", "curation_id")
+    column_to_curation = {
+        int(row["column_index"]): {a: row[a] for a in curation_attrs}
+        for row in (schema_module.CellRegRun.Session & key).fetch(as_dict=True)}
     cell_rows, member_rows, pair_rows = [], [], []
     for cell_index, present in members.items():
         columns = [col for col, _ in present]
@@ -556,7 +563,19 @@ def make_cellreg_result(table, key):
             centroid_y_registered=_centroid(struct.get("registered_cells_centroids"), cell_index, 1),
             n_sessions_present=len(present), min_p_same=lo, median_p_same=mid))
         for col, mask in present:
-            member_rows.append(dict(key, cell_index=int(cell_index), column_index=int(col),
+            # Member inherits CellRegRun.Session, whose key is the CURATION
+            # (session_id, scan_id, paramset_idx, curation_id) -- column_index is a
+            # secondary attribute there and is not an attribute of Member at all. Writing
+            # column_index here raised on every insert; it was never caught because the
+            # database is read-only in this project and no test inserts.
+            curation = column_to_curation.get(int(col))
+            if curation is None:
+                # The column could not be resolved to a curation, so it lives in
+                # .UnresolvedColumn and HAS no curation key. The cell still counts this
+                # session in n_sessions_present -- the membership is real, only its
+                # database identity is unknown -- but there is no row to join through.
+                continue
+            member_rows.append(dict(key, cell_index=int(cell_index), **curation,
                                     mask=int(mask)))
         for col_a, col_b, value in pairs:
             pair_rows.append(dict(key, cell_index=int(cell_index), column_a=col_a,
@@ -598,13 +617,137 @@ def _centroid(array, index, axis):
 
 
 def make_mask_coordinates(table, key):
-    """Populate :class:`MaskCoordinates` for one resolved column."""
-    raise NotImplementedError(
-        "MaskCoordinates.make is declared but not implemented in this pass: it needs the "
-        "per-session centroid_locations_corrected indexed by the run's own mask order, "
-        "which has not been verified against Segmentation.Mask ordering. Declaring it "
-        "without that check would invite exactly the mask/trace misalignment recorded as "
-        "known issue L8.")
+    """Populate :class:`MaskCoordinates` for one resolved column.
+
+    The ordering question that blocked this (known issue L8) is settled by the file
+    itself: ``centroid_locations_corrected`` is a per-session cell array whose entry for
+    session 1 of the ROS-1881 run has shape ``(1131, 2)`` -- exactly that scan's mask
+    count -- so row ``k`` is mask ``k`` in the session's own order, the same order the
+    converted input file was written in. Verified for three columns of that run
+    (1131, 1111 and 1252 rows against 1131, 1111 and 1252 masks in the database).
+
+    Centroids are in **pixels**: ``compute_centroid_locations.m`` returns
+    ``max_ind + gaussfit_offset`` with no micron scaling, unlike the translations, which
+    are scaled on the way out. They are MATLAB 1-based and are stored 0-based here, to
+    match ``Segmentation.Mask.mask_center_x/y``.
+    """
+    from adamacs.schemas import cell_registration as schema_module
+
+    run_key = {"cellreg_run_id": key["cellreg_run_id"]}
+    run_row = (schema_module.CellRegRun & run_key).fetch1()
+    column_index = int((schema_module.CellRegRun.Session & key).fetch1("column_index"))
+
+    struct = load_cellreg_struct(run_row["result_file"],
+                                 fields=("centroid_locations_corrected",))
+    per_session = struct.get("centroid_locations_corrected")
+    if per_session is None:
+        raise ValueError(
+            f"{run_row['result_file']} has no centroid_locations_corrected; "
+            "MaskCoordinates cannot be populated for this run")
+    centroids = np.asarray(per_session[column_index], dtype=float)
+    centroids = np.squeeze(centroids)
+    if centroids.ndim == 2 and centroids.shape[0] == 2 and centroids.shape[1] != 2:
+        centroids = centroids.T              # (2, n) -> (n, 2); square n == 2 is absurd
+
+    native = (_imaging_module().Segmentation.Mask & key).fetch(
+        "mask", "mask_center_x", "mask_center_y", order_by="mask", as_dict=True)
+    if len(native) != centroids.shape[0]:
+        raise ValueError(
+            f"column {column_index} has {centroids.shape[0]} centroids but the curation "
+            f"has {len(native)} masks -- the input file is not this curation")
+
+    table.insert([
+        dict(key, mask=int(row["mask"]),
+             centroid_x_native=float(row["mask_center_x"]),
+             centroid_y_native=float(row["mask_center_y"]),
+             centroid_x_registered=float(centroids[k, 0]) - 1.0,
+             centroid_y_registered=float(centroids[k, 1]) - 1.0)
+        for k, row in enumerate(native)])
+
+
+def _imaging_module():
+    """The upstream imaging module, via the schema module's linking module."""
+    from adamacs.schemas import cell_registration as schema_module
+    return schema_module._imaging()
+
+
+def aligned_footprints_for_column(session_table, *, masks=None, dense=False) -> dict:
+    """Implementation of :meth:`CellRegRun.Session.aligned_footprints`.
+
+    See :mod:`adamacs.ingest.cellreg_footprints` for the five conventions this has to
+    respect and for the one approximation it makes (the pre-alignment centroid, which
+    CellReg does not save, is recovered from the stored aligned centroid).
+    """
+    from adamacs.ingest import cellreg_footprints as fpmod
+    from adamacs.schemas import cell_registration as schema_module
+
+    key = session_table.fetch1("KEY")
+    row = session_table.fetch1()
+    run_key = {"cellreg_run_id": key["cellreg_run_id"]}
+    run_row = (schema_module.CellRegRun & run_key).fetch1()
+
+    quality = (schema_module.CellRegRun.Quality & run_key)
+    mpp = quality.fetch1("microns_per_pixel") if quality else None
+    if mpp is None:
+        raise dj.DataJointError(
+            "microns_per_pixel is unknown for this run, and the aligned footprint cannot "
+            "be built without it: the stored translations are in microns and the radius "
+            "crop is in microns. Populate CellRegRun.Quality from the run's logFile.")
+
+    mask_query = _imaging_module().Segmentation.Mask & key
+    if masks is not None:
+        mask_query = mask_query & [{"mask": int(m)} for m in np.atleast_1d(masks)]
+    mask_rows = mask_query.fetch("mask", "mask_xpix", "mask_ypix", "mask_weights",
+                                 order_by="mask", as_dict=True)
+
+    # Frame geometry: the log's padded size if it was parsed, else the motion-corrected
+    # summary image plus the driver's own +1 (cellreg_run.m:130-131).
+    height = width = None
+    if quality:
+        height = quality.fetch1("image_height_px")
+        width = quality.fetch1("image_width_px")
+    if not height or not width:
+        summary = (_imaging_module().MotionCorrection.Summary & key).fetch1("average_image")
+        height, width = np.asarray(summary).shape[0] + 1, np.asarray(summary).shape[1] + 1
+
+    pad_h = int(height) + int(row["zero_padding_y"] or 0)
+    pad_w = int(width) + int(row["zero_padding_x"] or 0)
+    is_reference = (run_row["reference_session_index"] is not None
+                    and int(row["column_index"]) + 1 == int(run_row["reference_session_index"]))
+
+    out = {}
+    for m in mask_rows:
+        mask_id = int(m["mask"])
+        img = fpmod.aligned_footprint(
+            m["mask_xpix"], m["mask_ypix"], m["mask_weights"],
+            height=int(height), width=int(width),
+            dx_um=row["alignment_x_translation"] or 0.0,
+            dy_um=row["alignment_y_translation"] or 0.0,
+            rotation_deg=row["alignment_rotation"],
+            microns_per_pixel=float(mpp), is_reference=is_reference,
+            pad_height=pad_h, pad_width=pad_w)
+        out[mask_id] = img if dense else fpmod.to_sparse(img)
+    return out
+
+
+def aligned_footprints_for_cell(cell_table) -> dict:
+    """Implementation of :meth:`CellRegResult.Cell.aligned_footprints`."""
+    from adamacs.schemas import cell_registration as schema_module
+
+    key = cell_table.fetch1("KEY")
+    members = (schema_module.CellRegResult.Member & key).fetch(as_dict=True)
+    curation_attrs = ("session_id", "scan_id", "paramset_idx", "curation_id")
+    out = {}
+    for member in members:
+        ckey = {"cellreg_run_id": key["cellreg_run_id"],
+                **{a: member[a] for a in curation_attrs}}
+        session_row = schema_module.CellRegRun.Session & ckey
+        column_index = int(session_row.fetch1("column_index"))
+        footprints = aligned_footprints_for_column(session_row,
+                                                   masks=[int(member["mask"])])
+        out[column_index] = {"key": ckey, "mask": int(member["mask"]),
+                             "footprint": footprints[int(member["mask"])]}
+    return dict(sorted(out.items()))
 
 
 def ingest_host() -> str:

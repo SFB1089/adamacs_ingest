@@ -75,6 +75,13 @@ PARSER_VERSION = "1.0.0"
 UNKNOWN_PARAMSET = "unknown"
 
 
+#: Set by :func:`activate`. ``schema.activate(add_objects=...)`` puts names into the
+#: *declaration* context only (datajoint 0.14.3 schemas.py:152-153) -- it does NOT bind
+#: them in this module's namespace -- so a bare ``imaging.Curation`` inside a method body
+#: is a NameError. Method bodies go through :func:`_imaging` instead.
+_linking_module = None
+
+
 def activate(schema_name: str, *, create_schema: bool = True, create_tables: bool = True,
              linking_module: str = "adamacs.pipeline"):
     """Activate the cell-registration schema.
@@ -83,10 +90,26 @@ def activate(schema_name: str, *, create_schema: bool = True, create_tables: boo
     the nullable ``Curation`` dependency) the same way the ``element_*`` schemas receive
     their dependencies from ``adamacs.pipeline``.
     """
+    global _linking_module
     module = importlib.import_module(linking_module)
+    _linking_module = module
     schema.activate(schema_name, create_schema=create_schema, create_tables=create_tables,
                     add_objects={"imaging": module.imaging, **globals()})
     return schema
+
+
+def _imaging():
+    """The upstream imaging module, for use inside method bodies.
+
+    See the note on :data:`_linking_module`: ``add_objects`` does not make ``imaging`` a
+    module-level name, so every runtime reference resolves through here and fails with a
+    sentence that says what to do rather than with a bare NameError.
+    """
+    if _linking_module is None:
+        raise dj.DataJointError(
+            "cell_registration.activate() has not been called, so the upstream imaging "
+            "module is unknown. Call activate(schema_name, linking_module=...) first.")
+    return _linking_module.imaging
 
 
 def canonical_json(params: dict) -> str:
@@ -221,6 +244,16 @@ class CellRegRun(dj.Manual):
         maximal_distance_um=null     : float
         n_bins=null                  : smallint
         microns_per_pixel=null       : float
+        # Frame geometry, recorded verbatim rather than derived. The log prints
+        # "Image size - 513X513 [pixels]" and "FOV size - 615.6X615.6 [microns]" for a
+        # 512-pixel scan, because the driver pads to ops.Lx+1 (cellreg_run.m:130-131) and
+        # computes the FOV from the padded size. So microns_per_pixel is 615.6/513 = 1.2,
+        # NOT 615.6/512 = 1.2024 -- and that factor scales every centroid distance through
+        # normalized_maximal_distance. Storing both ends the temptation to recompute it.
+        image_width_px=null          : smallint
+        image_height_px=null         : smallint
+        fov_width_um=null            : float
+        fov_height_um=null           : float
         quality_source               : enum('log_file','absent')
         """
 
@@ -263,6 +296,56 @@ class CellRegRun(dj.Manual):
         zero_padding_y=null         : float
         unique index (cellreg_run_id, column_index)
         """
+
+        def aligned_footprints(self, *, masks=None, dense=False):
+            """This column's spatial footprints, aligned, generated on demand.
+
+            CellReg's ``spatial_footprints_corrected`` is the one output this schema does
+            not store: 190 MB in the eleven-session ROS-1881 result file, ~2.9 GB in
+            memory as doubles, and redundant -- it is ``imaging.Segmentation.Mask`` put
+            through a transform whose every parameter lives in this very row
+            (``alignment_x_translation``, ``alignment_y_translation``,
+            ``alignment_rotation``, ``zero_padding_x``, ``zero_padding_y``). This method
+            is that transform, ported function-for-function from the pinned toolbox; the
+            conventions it has to respect -- translations stored in **microns**, a
+            **backward** map, and a 25 um radius crop that *deletes* distant pixels -- are
+            documented in :mod:`adamacs.ingest.cellreg_footprints`.
+
+            Needs only this row and the column's masks -- no result file, and no
+            ``MaskCoordinates``: the centroid the crop is measured from is the *unaligned*
+            footprint's, and that is the database mask, so it is recomputed rather than
+            read. Verified against the stored footprints of the January 2026 ROS-1881 run: all
+            3,494 footprints of three columns -- the reference, a translating and a
+            rotating one -- reproduce at correlation 1.000000 with a maximum pixel
+            difference of 2.4e-15. See ``scripts/verify_footprints.py``.
+
+            Parameters
+            ----------
+            masks
+                Restrict to these ``mask`` ids; ``None`` (default) does the whole column.
+                Pass a list when you want three cells, not thirteen hundred.
+            dense
+                ``False`` (default) returns ``(ypix, xpix, weights)`` per mask -- an
+                aligned footprint is ~0.1 % non-zero, and returning dense 513x513 frames
+                by default is how the 2.9 GB array gets rebuilt one cell at a time.
+                ``True`` returns the full frame, for plotting.
+
+            Returns
+            -------
+            dict
+                ``{mask: (ypix, xpix, weights)}`` or ``{mask: ndarray}``.
+
+            Raises
+            ------
+            DataJointError
+                If ``CellRegRun.Quality.microns_per_pixel`` is unknown. The stored
+                translations are in microns and the crop radius is in microns, so without
+                that factor there is no transform -- and a plausible default is exactly the
+                wrong thing to supply (1.2 against 1.2024 shifts every centroid distance).
+            """
+            return importlib.import_module(
+                "adamacs.ingest.cellreg").aligned_footprints_for_column(
+                    self, masks=masks, dense=dense)
 
     class UnresolvedColumn(dj.Part):
         definition = """
@@ -319,6 +402,23 @@ class CellRegResult(dj.Imported):
         min_p_same=null             : float    # weakest present pair -- the selector column
         median_p_same=null          : float
         """
+
+        def aligned_footprints(self):
+            """One registered cell's aligned footprint in every session it appears in.
+
+            The query a longitudinal figure actually wants: give it one
+            ``CellRegResult.Cell`` key and it returns that cell's footprint, in the common
+            aligned frame, for each session where CellReg found it -- so the panels of a
+            tracked cell are directly comparable without any further registration step.
+
+            Returns
+            -------
+            dict
+                ``{column_index: {"key": <curation key>, "mask": int,
+                "footprint": (ypix, xpix, weights)}}``, ordered by column.
+            """
+            return importlib.import_module(
+                "adamacs.ingest.cellreg").aligned_footprints_for_cell(self)
 
     class Member(dj.Part):
         definition = """
@@ -487,6 +587,7 @@ class CellRegTask(dj.Manual):
         seen = [tuple(sorted(c.items())) for c in curations]
         if len(set(seen)) != len(seen):
             raise ValueError("the same curation appears twice in the declared column order")
+        imaging = _imaging()
         missing = [c for c in curations if not (imaging.Curation & c)]
         if missing:
             raise ValueError(f"these curations do not exist: {missing}")
@@ -572,10 +673,11 @@ class CellRegExport(dj.Imported):
             files, note = [], ""
             for col in columns:
                 ckey = {k: col[k] for k in common}
-                masks = (imaging.Segmentation.Mask & ckey).fetch(
+                masks = (_imaging().Segmentation.Mask & ckey).fetch(
                     "mask", "mask_xpix", "mask_ypix", "mask_weights",
                     order_by="mask", as_dict=True)
-                summary = (imaging.MotionCorrection.Summary & ckey).fetch1("average_image")
+                summary = (_imaging().MotionCorrection.Summary & ckey).fetch1(
+                    "average_image")
                 height, width = _np.asarray(summary).shape[:2]
                 dest = out / cx.fall_name(int(col["column_index"]), col["scan_id"])
                 written = cx.write_fall_mat(dest, masks, height, width, mean_img=summary)
@@ -702,3 +804,108 @@ class RoiGroupSnapshot(dj.Manual):
         ---
         roi_group           : smallint
         """
+
+# --------------------------------------------------------------------- deletion
+def runs_touching(curation_key) -> "dj.expression.QueryExpression":
+    """Every :class:`CellRegRun` that used this curation as one of its columns.
+
+    A plain semijoin: ``cellreg_run_id`` is the only attribute the two share, so the
+    restriction matches on it alone. Projecting first would drag the curation attributes
+    into the restriction, which ``CellRegRun`` does not have.
+    """
+    return CellRegRun & (CellRegRun.Session & curation_key)
+
+
+def delete_runs_for(curation_key, *, dry_run: bool = True,
+                    allow_curated: bool = False) -> dict:
+    """Delete whole registration runs that used ``curation_key``, never part of one.
+
+    WHY THE UNIT IS THE RUN
+    ----------------------
+    A registration over eleven sessions minus one session is not a valid registration: its
+    ``n_sessions`` is wrong, every cell's ``n_sessions_present`` overcounts, and
+    ``CellRegResult.PairQuality`` -- keyed on two plain smallints rather than two foreign
+    keys, deliberately, to keep ten key columns off a ten-million-row table -- is left
+    pointing at a column that no longer exists. So a curation can only be removed together
+    with the runs that used it.
+
+    WHAT DATAJOINT ALREADY DOES
+    ---------------------------
+    Nothing in this schema depends on production except through ``imaging.Curation``, and
+    every table that does is a **part** table (``CellRegRun.Session``,
+    ``CellRegTask.Session``, ``CellRegExport.File``, ``RoiGroupProjection.Scan``). Deleting
+    a session or a curation therefore makes DataJoint's cascade reach a part without its
+    master, and ``Table.delete`` refuses with "Attempt to delete part table X before
+    deleting from its master Y first" (datajoint 0.14.3 table.py:147-156). **An upstream
+    delete is blocked by default, and that is correct.** Two flags change it:
+
+    * ``force_masters=True`` pulls the master into the cascade (table.py:92-109) -- the
+      whole run goes, which is what this function does explicitly and visibly instead.
+    * ``force_parts=True`` performs the half-delete described above. **Do not use it on
+      this schema.**
+
+    This function deletes from :class:`CellRegRun` itself, so the cascade runs downward
+    from a master and no flag is needed at all.
+
+    WHAT CANNOT BE RECOVERED
+    ------------------------
+    A run is identified by the sha256 of its result file and that file is immutable, so
+    almost everything here can be rebuilt by re-ingesting it. Two things cannot, because
+    they are not in the file:
+
+    * :class:`RegistrationCuration` and its ``.CellDecision`` rows -- human decisions;
+    * :class:`StableCellMap` -- the cross-run stable identities.
+
+    So a run carrying curation decisions is refused unless ``allow_curated=True``.
+    :class:`RoiGroupSnapshot` is untouched by design: it has no foreign key precisely so
+    that it outlives the production rows it describes, and it is the only record of what
+    ``roi_group`` held.
+
+    Parameters
+    ----------
+    curation_key
+        Any restriction on ``imaging.Curation`` -- a full curation key, a scan, a session.
+    dry_run
+        ``True`` (default) reports and deletes nothing. Deletion is never the default.
+    allow_curated
+        Permit deleting runs that carry :class:`RegistrationCuration` rows.
+
+    Returns
+    -------
+    dict
+        ``run_ids``, per-table row counts, ``curated_runs``, and ``deleted``.
+    """
+    runs = runs_touching(curation_key)
+    run_ids = sorted(runs.fetch("cellreg_run_id"))
+    restriction = [{"cellreg_run_id": r} for r in run_ids] or [{"cellreg_run_id": ""}]
+
+    curated = sorted((RegistrationCuration & restriction).fetch("cellreg_run_id")) \
+        if run_ids else []
+    report = {
+        "run_ids": run_ids,
+        "curated_runs": sorted(set(curated)),
+        "counts": {
+            "CellRegRun": len(run_ids),
+            "CellRegRun.Session": len(CellRegRun.Session & restriction) if run_ids else 0,
+            "CellRegResult.Cell": len(CellRegResult.Cell & restriction) if run_ids else 0,
+            "CellRegResult.Member": len(CellRegResult.Member & restriction) if run_ids else 0,
+            "CellRegResult.PairQuality": (len(CellRegResult.PairQuality & restriction)
+                                          if run_ids else 0),
+            "MaskCoordinates": len(MaskCoordinates & restriction) if run_ids else 0,
+            "RegistrationCuration": len(curated),
+            "StableCellMap": (len(StableCellMap & restriction) if run_ids else 0),
+        },
+        "deleted": False,
+    }
+    if not run_ids:
+        return report
+    if report["curated_runs"] and not allow_curated:
+        raise dj.DataJointError(
+            f"runs {report['curated_runs']} carry RegistrationCuration rows. Those "
+            "decisions are not in the result file and re-ingesting cannot restore them. "
+            "Pass allow_curated=True only if you intend to lose them.")
+    if dry_run:
+        return report
+    (CellRegRun & restriction).delete()
+    report["deleted"] = True
+    return report

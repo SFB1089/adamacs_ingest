@@ -1,0 +1,6 @@
+728-
+729-
+730-# ------------------------------------------------------------------ deliberate omission
+731:def test_mask_coordinates_make_refuses_rather_than_guessing():
+732-    with pytest.raises(NotImplementedError, match="centroid"):
+733:        cellreg.make_mask_coordinates(None, None)

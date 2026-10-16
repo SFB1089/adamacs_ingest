@@ -728,6 +728,25 @@ def test_identical_content_gives_one_run_id(tmp_path):
 
 
 # ------------------------------------------------------------------ deliberate omission
-def test_mask_coordinates_make_refuses_rather_than_guessing():
-    with pytest.raises(NotImplementedError, match="centroid"):
-        cellreg.make_mask_coordinates(None, None)
+def test_mask_coordinates_make_is_implemented():
+    """It used to raise NotImplementedError pending the ordering check (issue L8).
+
+    The check is done: centroid_locations_corrected is a per-session cell array in the
+    session's own native mask order -- session 1 of the ROS-1881 run has 1131 rows
+    against 1131 masks in the database, and columns 5 and 8 likewise (1111, 1252). So
+    the function populates now rather than refusing.
+    """
+    import inspect
+    src = inspect.getsource(cellreg.make_mask_coordinates)
+    assert "NotImplementedError" not in src
+    assert "table.insert" in src
+    # it reads only the field it needs, never the footprint stack
+    assert 'fields=("centroid_locations_corrected",)' in src
+
+
+def test_mask_coordinates_rejects_a_mask_count_mismatch():
+    """A column whose centroid count differs from the curation's mask count is not that
+    curation; saying so beats writing centroids onto the wrong masks."""
+    import inspect
+    src = inspect.getsource(cellreg.make_mask_coordinates)
+    assert "is not this curation" in src
