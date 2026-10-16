@@ -175,19 +175,26 @@ def build_workflow():
     w.attr("edge", fontname="Helvetica", fontsize="8.5", arrowsize="0.65", color="#5a5a5a")
 
     stages = [
-        ("cluster_0", "  1 &#183; on a worker (Loki or ibehaveGPU &#8212; never tatchu3)", [
-            ("s2p", "<<b>suite2p</b><br/><font point-size='8'>per-session segmentation</font>>",
-             off, "box"),
-            ("conv", "<converted_*.mat<br/><font point-size='8'>footprints per session</font>>",
-             fil, "note"),
+        ("cluster_a", "  1 &#183; plan the run, then BUILD its input from the curation", [
+            ("task", "<<b>CellRegTask</b><br/><font point-size='8'>declares the ordered<br/>"
+             "curation per column</font>>", tbl, "box"),
+            ("exp", "<<b>CellRegExport</b><br/><font point-size='8'>task_mode "
+             "'trigger'</font>>", imp, "box"),
+            ("mask", "<<b>imaging.Segmentation.Mask</b><br/><font point-size='8'>mask_xpix, "
+             "mask_ypix,<br/>mask_weights = lam</font>>", fil, "box"),
+            ("fall", "<<b>Fall_&lt;NN&gt;_&lt;scan&gt;.mat</b><br/><font point-size='8'>built per "
+             "declared curation<br/>+ settings.mat from the paramset</font>>", fil, "note"),
+        ], [("task", "exp", ""), ("mask", "exp", " read "), ("exp", "fall", " write ")]),
+        ("cluster_0", "  2 &#183; run it (Loki or ibehaveGPU &#8212; never tatchu3)", [
             ("cr", "<<b>CellReg</b> (MATLAB)<br/>"
-             "<font point-size='8'>Sheintuch et al. 2017</font>>", off, "box"),
+             "<font point-size='8'>Sheintuch et al. 2017<br/>launched by hand</font>>",
+             off, "box"),
             ("res", "<<b>cellRegistered_*.mat</b><br/><font point-size='8'>cell_to_index_map, "
              "scores,<br/>p_same, centroids</font>>", fil, "note"),
-            ("log", "<<b>logFile_*.txt</b><br/><font point-size='8'>the ONLY source of<br/>"
-             "parameters and run accuracy</font>>", fil, "note"),
-        ], [("s2p", "conv", ""), ("conv", "cr", ""), ("cr", "res", ""), ("cr", "log", "")]),
-        ("cluster_1", "  2 &#183; register the run (manual insert)", [
+            ("log", "<<b>logFile_*.txt</b><br/><font point-size='8'>run accuracy, and<br/>"
+             "DERIVED n_bins / initial_threshold</font>>", fil, "note"),
+        ], [("cr", "res", ""), ("cr", "log", "")]),
+        ("cluster_1", "  3 &#183; register the run (manual insert)", [
             ("ps", "<<b>CellRegParamSet</b><br/><font point-size='8'>parsed from the log,<br/>"
              "hashed</font>>", tbl, "box"),
             ("run", "<<b>CellRegRun</b><br/><font point-size='8'>keyed by sha256 of the .mat,"
@@ -195,7 +202,7 @@ def build_workflow():
             ("sessn", "<<b>CellRegRun.Session</b><br/><font point-size='8'>column &#8596; "
              "curation,<br/>resolved or refused</font>>", tbl, "box"),
         ], [("ps", "run", ""), ("run", "sessn", "")]),
-        ("cluster_2", "  3 &#183; populate (reads the .mat)", [
+        ("cluster_2", "  4 &#183; populate (reads the .mat)", [
             ("resu", "<<b>CellRegResult</b><br/><font point-size='8'>make() does all parsing;"
              "<br/>a bad file is recorded, not skipped</font>>", imp, "box"),
             ("cell", "<<b>.Cell</b><br/><font point-size='8'>one row per registered cell<br/>"
@@ -205,7 +212,7 @@ def build_workflow():
             ("pq", "<<b>.PairQuality</b><br/><font point-size='8'>p_same per session pair<br/>"
              "&#8776;10.7M rows lab-wide</font>>", imp, "box"),
         ], [("resu", "cell", ""), ("cell", "memb", ""), ("cell", "pq", "")]),
-        ("cluster_3", "  4 &#183; use it", [
+        ("cluster_3", "  5 &#183; use it", [
             ("query", "<<b>query</b><br/><font point-size='8'>Member &#8904; Segmentation.Mask"
              "<br/>&#8904; Activity.Trace</font>>", off, "box"),
             ("cur", "<<b>RegistrationCuration</b><br/><font point-size='8'>manual accept/reject,"
@@ -232,8 +239,11 @@ def build_workflow():
            shape="box", style="filled,dashed", fillcolor="#fdf2d8", color="#c89f3c",
            penwidth="1.4")
 
+    w.edge("fall", "cr", label=" the driver reads this folder ")
+    w.edge("task", "ps", style="dashed", color="#8a8a8a",
+           label=" the manifest becomes\\l CellRegRun.Session\\l ")
     w.edge("res", "run", label=" keyed by sha256 ")
-    w.edge("log", "ps", label=" parameters ")
+    w.edge("log", "run", label=" run accuracy ")
     w.edge("sessn", "resu")
     w.edge("memb", "query")
     w.edge("cell", "cur", style="dashed", color="#8a8a8a")
