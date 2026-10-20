@@ -230,8 +230,9 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 - **The 537 attached by `mask_set_identical` carry a chosen `curation_id`**, not a proven
   one. The masks are proven — every candidate was byte-identical — but if you need the
   exact curation an old run was launched from, that is still not recoverable.
-- **The 69 ties are not resolved**, and resolving them needs a convention Tobias declares,
-  not an analysis.
+- **The 69 `roi_group` ties no longer exist as a separate case.** They were a subset of the
+  537: byte-identical in masks *and* `roi_group` implies byte-identical in masks, so the
+  mask-identity rule absorbed them. Verified — no unresolved column cites a `roi_group` tie.
 - **The worker has still never processed a real task.** Run 2 — a task-driven run through
   `CellRegTask` → export → MATLAB → ingest — has not happened.
 - **Deletion semantics are still read from the FK graph**, not from a live delete.
@@ -241,16 +242,24 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 
 ## 8. Unresolved decisions
 
-1. **A tie-break convention for the 69 tied columns**, or leaving them unresolved forever.
-2. **Whether `log_file` resolution should exist at all** now that 8 of 256 proved wrong —
+1. **Whether `mask_set_identical` should stand.** It attached 537 columns on the ground
+   that the candidates are provably the same mask set, so the choice cannot change the data
+   — but it is still a convention, and the two obvious variants disagree on 284 of 558
+   columns. Reverting it is one `delete`/`insert` away (`scripts/attach_mask_set_identical.py`
+   records the exact operation); living with it means `resolution_method` is the only thing
+   distinguishing a chosen `curation_id` from a proven one.
+2. **The 25 columns whose candidates differ in mask content.** No convention is defensible
+   there — it would be choosing between different segmentations. They need either the
+   original export directory, or writing them off.
+3. **Whether `log_file` resolution should exist at all** now that 8 of 256 proved wrong —
    the alternative is to treat a single candidate as unresolved unless the centroid count
    confirms it, which is what the new guard effectively does.
-3. **The `ImagesAndGratings` run** (`cellRegistered_20260811_130701.mat`) is the newest file
+4. **The `ImagesAndGratings` run** (`cellRegistered_20260811_130701.mat`) is the newest file
    of all, the only one of its type, not superseded, all 14 columns populated — and matches
    nothing. Its identities were never written to `roi_group`.
-4. **`frac_uncertain_pairs` differs between vintages** (0.19 vs 0.08 for the same site)
+5. **`frac_uncertain_pairs` differs between vintages** (0.19 vs 0.08 for the same site)
    before `CellRegRun.Quality` can be compared across runs.
-5. Items 1–7 of #16 §9 that remain open: ADR-004 departure, `min_p_same` as a stored summary,
+6. Items 1–7 of #16 §9 that remain open: ADR-004 departure, `min_p_same` as a stored summary,
    transaction size, `same_site_id` upstream, who may insert a `RegistrationCuration`,
    licence hygiene, pinning a CellReg release matching Leon's.
 
