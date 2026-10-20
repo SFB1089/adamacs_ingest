@@ -275,6 +275,14 @@ class CellRegRun(dj.Manual):
         # holding more than one curation, 696 (94%) have BYTE-IDENTICAL mask sets, so
         # mask-set overlap scores 1.0 against every candidate and cannot discriminate.
         # Jaccard therefore resolves WHICH SCAN, never WHICH CURATION.
+        # 'mask_set_identical' is the narrow tie-break Tobias authorised on
+        # 2026-10-20: several curations matched the file's per-column centroid
+        # count AND were byte-identical in mask set, so the choice cannot change
+        # which masks, centroids or traces the column resolves to -- only which
+        # curation_id is recorded. The pick is the latest such curation predating
+        # the run, since one created afterwards cannot have been its input. Where
+        # the candidates genuinely DIFFER the column stays unresolved: that would
+        # be choosing between different answers. 537 columns; 25 left unresolved.
         # 'roi_group_match' identifies the curation BY CONTENT: the roi_group a column
         # implies matched one candidate curation's stored roi_group on every mask, and
         # no other candidate. That is evidence, not similarity -- but it only works
@@ -289,7 +297,7 @@ class CellRegRun(dj.Manual):
         ---
         column_index                : smallint   # 0-based column of cell_to_index_map
         source_file=''              : varchar(512)  # the converted_*.mat named in the log
-        resolution_method           : enum('manifest','log_file','mask_jaccard','roi_group_match','manual')
+        resolution_method           : enum('manifest','log_file','mask_jaccard','roi_group_match','mask_set_identical','manual')
                                                # manifest = declared by the exporter
         mask_set_jaccard=null       : float      # stored ALWAYS: also a staleness measure
         n_masks_cellreg             : int
