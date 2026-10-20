@@ -26,21 +26,21 @@ unreadable (`OSError: could not read bytes`), leaving **101 runs** spanning 2023
 | Table | Rows |
 |---|---:|
 | `CellRegRun` | 101 |
-| `CellRegRun.Session` (resolved columns) | 565 |
-| `CellRegRun.UnresolvedColumn` | 701 |
+| `CellRegRun.Session` (resolved columns) | 1,102 |
+| `CellRegRun.UnresolvedColumn` | 164 |
 | `CellRegRun.Quality` | 101 |
 | `CellRegRun.Copy` | 12 |
 | `CellRegParamSet` | 68 |
 | `CellRegResult` | 101 |
 | `CellRegResult.Cell` | 597,212 |
-| `CellRegResult.Member` | 717,053 |
+| `CellRegResult.Member` | 1,457,704 |
 | `CellRegResult.PairQuality` | 4,641,778 |
-| `MaskCoordinates` | 717,053 |
+| `MaskCoordinates` | 1,457,704 |
 | `RoiGroupProjection`, `RoiGroupSnapshot` | **0, 0** |
 
 Reconciliations, all checked against the database rather than asserted:
 
-- 565 + 701 = 1,266 = `SUM(n_sessions)` over the 101 runs
+- 1,102 + 164 = 1,266 = `SUM(n_sessions)` over the 101 runs
 - every run has a `CellRegResult`; every resolved column has `MaskCoordinates`
 - 4,807,688 expected pairs − 165,910 non-finite = **4,641,778 stored**, matching the count
   predicted from the index maps *before* any ingest
@@ -60,12 +60,17 @@ match identifies the curation by content. New `resolution_method` value `roi_gro
 | Columns | Outcome |
 |---:|---|
 | 317 | `roi_group_match` — unique exact content match |
+| 537 | `mask_set_identical` — candidates matched *and* were byte-identical (§2b) |
 | 248 | `log_file` — the scan has exactly one curation, so forced |
-| 535 | **no curation matches at all** |
-| 69 | tie — two byte-identical curations both match exactly |
+| **1,102** | **resolved** |
 | 65 | empty column |
+| 50 | no curation's mask count matches the file's centroid count |
+| 25 | candidates match the count but hold **different** mask sets — left alone |
 | 24 | no scan id recoverable from the log |
-| 8 | centroid count contradicts the curation (demoted, §4) |
+| **164** | **unresolved** |
+
+(Before the §2b tie-break the split was 565 / 701; 535 of those 701 matched no
+curation's `roi_group`, which turned out to be the wrong question — see §2b.)
 
 **The 535 are the result of this PR, not a defect in it** — but they are narrower than
 "lost". `roi_group` is a `smallint` outside the primary key that each run overwrote in
@@ -92,6 +97,43 @@ among different ones would be inventing provenance — see §8.1.
 The 69 ties are the honest limit of the method: when two curations are byte-identical in
 masks **and** `roi_group`, no analysis separates them. They stay unresolved with their
 candidates attached as evidence rather than being attached to an arbitrary one.
+
+## 2b. The tie-break: a rule that cannot change the data
+
+`roi_group` not matching tells you only that a *later* run overwrote it — never that the
+file is unusable. The question that decides usability is different: does the file's
+per-column centroid count match a candidate curation's mask count? Measured over the 701
+unresolved columns:
+
+| Columns | |
+|---:|---|
+| 562 | **several** candidate curations match the mask count |
+| 50 | **no** candidate matches — the segmentation this run used is not in the database |
+| 65 | empty column |
+| 24 | no scan id |
+
+So the shortfall was overwhelmingly *nameability*, not incompatibility. Two sensible
+conventions — earliest matching, versus latest predating the run — **disagree on 284 of 558
+columns**, so a convention does real work and cannot be waved through. But of the 562,
+**537 have candidates that are byte-identical in mask set** (same masks, same centroids):
+there the disagreement is about which `curation_id` is written, not about which masks are
+obtained. Only **25** have candidates that genuinely differ.
+
+The applied rule is therefore narrow: attach **only** where every matching candidate is
+byte-identical, pick the latest one predating the run (533 columns; 4 fall back to earliest
+because none predates), and leave the 25 differing cases unresolved. Recorded as
+`resolution_method='mask_set_identical'`; `scripts/attach_mask_set_identical.py` is the
+exact operation, re-runnable with `DRY=1`.
+
+Effect:
+
+| | before | after |
+|---|---:|---:|
+| resolved columns | 565 | **1,102** |
+| memberships with a curation key | 717,053 (46.6 %) | **1,457,704 (94.6 %)** |
+| cells with every session attached | 254,150 (42.6 %) | **553,710 (92.7 %)** |
+
+Authorised by Tobias on 2026-10-20. `roi_group` unchanged: same digest either side.
 
 ## 3. `log_file` resolution is not evidence
 
@@ -182,11 +224,12 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 - **No projection onto `roi_group` has been performed.** `RoiGroupProjection` and
   `RoiGroupSnapshot` are empty by design, and writing them remains a separate, separately
   authorised step.
-- **The 535 unmatched columns cannot be tied to a curation by content**, because
-  `roi_group` no longer holds their output. Their clusters and `p_same` ARE in the
-  schema; what is missing is the mask-level join. 562 of the 701 unresolved columns
-  are mask-count-compatible with several curations, so a declared tie-break would
-  recover most of them; 50 are incompatible with any and are genuinely beyond reach.
+- **164 columns remain unattached**: 65 empty, 50 whose centroid count matches no
+  curation at all, 25 whose candidates differ in mask content, 24 with no scan id. The 50
+  and the 25 are the ones that matter, and neither is reachable without new evidence.
+- **The 537 attached by `mask_set_identical` carry a chosen `curation_id`**, not a proven
+  one. The masks are proven — every candidate was byte-identical — but if you need the
+  exact curation an old run was launched from, that is still not recoverable.
 - **The 69 ties are not resolved**, and resolving them needs a convention Tobias declares,
   not an analysis.
 - **The worker has still never processed a real task.** Run 2 — a task-driven run through
