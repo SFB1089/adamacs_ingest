@@ -2,7 +2,7 @@ from . import db_prefix
 
 __all__ = ['subject', 'surgery', 'session', 'behavior', 'equipment', 'scan', 'imaging',
            'train', 'model', 'trial', 'event', 'analysis', 'mocap', 'virtual_markers_optitrack', 
-           'pupil_tracking', 'denoising', 'disk', 'wfield',
+           'pupil_tracking', 'denoising', 'disk', 'wfield', 'cell_registration',
            'Equipment', 'Location', 'Subject', 'Project', 'Lab', 'User', 
            'Session',
            'get_session_dir', 'get_bpod_root_data_dir', 'get_dlc_root_data_dir',
@@ -88,3 +88,13 @@ from adamacs.schemas import disk
 # Widefield schema - Activate AFTER scan and session are ready
 from adamacs.schemas import wfield
 # from adamacs.schemas import behavior
+
+# Activate "cell_registration" schema -----------------------------------
+# Same entry point and call style as session/scan/imaging/train/model/trial above, and as
+# adamacs.schemas.disk: the module exposes activate(schema_name, linking_module=...) and is
+# activated here, so importing adamacs.pipeline declares it like every other schema.
+# It depends on imaging.Curation, so it must come after imaging.activate.
+# Design rationale: adamacs/schemas/CELL_REGISTRATION_SCHEMA_DESIGN_REVIEW.md
+from adamacs.schemas import cell_registration
+
+cell_registration.activate(db_prefix + 'cell_registration', linking_module=__name__)
