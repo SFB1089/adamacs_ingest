@@ -8,9 +8,13 @@ pixel sets and lam values throughout).
 """
 from __future__ import annotations
 
-import numpy as np
 import pytest
-import scipy.io
+
+# CI installs pytest only, so this module is skipped there rather than failing
+# collection and taking the whole run down with it.
+np = pytest.importorskip("numpy", reason="needs numpy; CI installs pytest only")
+scipy_io = pytest.importorskip("scipy.io", reason="needs scipy; CI installs pytest only")
+import scipy.io  # noqa: E402  -- guarded above
 
 from adamacs.ingest import cellreg_export as cx
 

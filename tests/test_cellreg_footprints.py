@@ -4,8 +4,11 @@ These pin the conventions that were expensive to establish, so a later refactor 
 quietly flip a sign. The ground-truth agreement against a real run is measured separately
 by scripts/verify_footprints.py, which needs the server.
 """
-import numpy as np
 import pytest
+
+# CI installs pytest only, so this module is skipped there rather than failing
+# collection and taking the whole run down with it.
+np = pytest.importorskip("numpy", reason="needs numpy; CI installs pytest only")
 
 from adamacs.ingest import cellreg_footprints as fp
 
