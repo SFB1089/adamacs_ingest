@@ -67,11 +67,27 @@ match identifies the curation by content. New `resolution_method` value `roi_gro
 | 24 | no scan id recoverable from the log |
 | 8 | centroid count contradicts the curation (demoted, §4) |
 
-**The 535 are the result of this PR, not a defect in it.** `roi_group` is a `smallint`
-outside the primary key that each run overwrote in place, so for any curation only the
-*last* run to target it survives. Every earlier run's cross-session identities are gone.
-This is the first time that loss has been counted, and it is the quantitative case for the
-schema that #16 added.
+**The 535 are the result of this PR, not a defect in it** — but they are narrower than
+"lost". `roi_group` is a `smallint` outside the primary key that each run overwrote in
+place, so for any curation only the *last* run to target it survives, and a column of any
+earlier run matches nothing there. What that costs, measured:
+
+- **The clusters themselves survive for every run.** 597,212 registered cells with their
+  scores and 4,641,778 `p_same` rows are in the schema, parsed from the files; the result
+  files were never the thing at risk.
+- **What is thin is the join down to masks.** 717,053 of the 1,540,370 memberships implied
+  by the index maps (46.6 %) have a curation key and so reach `Segmentation.Mask`,
+  `Fluorescence` and `Activity`. 254,150 cells (42.6 %) have every session attached.
+- **Most of the shortfall is label ambiguity, not incompatibility.** Of the 701 unresolved
+  columns, **562 (80 %) match the mask count of *several* candidate curations** — the file's
+  segmentation is consistent with the scan, only the curation cannot be named, and since 696
+  of 743 multi-curation groups are byte-identical the masks are the same whichever is named.
+  **50 columns (7 %) match no curation's mask count at all** — those are genuine
+  incompatibility, the segmentation changed. 65 are empty and 24 have no scan id.
+
+So a tie-break convention would recover most of the 53 %. It is deliberately not applied
+here, because choosing among provably equivalent candidates is a convention and choosing
+among different ones would be inventing provenance — see §8.1.
 
 The 69 ties are the honest limit of the method: when two curations are byte-identical in
 masks **and** `roi_group`, no analysis separates them. They stay unresolved with their
@@ -166,7 +182,11 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 - **No projection onto `roi_group` has been performed.** `RoiGroupProjection` and
   `RoiGroupSnapshot` are empty by design, and writing them remains a separate, separately
   authorised step.
-- **The 535 unmatched columns are not recoverable** by this or any later work.
+- **The 535 unmatched columns cannot be tied to a curation by content**, because
+  `roi_group` no longer holds their output. Their clusters and `p_same` ARE in the
+  schema; what is missing is the mask-level join. 562 of the 701 unresolved columns
+  are mask-count-compatible with several curations, so a declared tie-break would
+  recover most of them; 50 are incompatible with any and are genuinely beyond reach.
 - **The 69 ties are not resolved**, and resolving them needs a convention Tobias declares,
   not an analysis.
 - **The worker has still never processed a real task.** Run 2 — a task-driven run through
