@@ -80,23 +80,23 @@ earlier run matches nothing there. What that costs, measured:
 - **The clusters themselves survive for every run.** 597,212 registered cells with their
   scores and 4,641,778 `p_same` rows are in the schema, parsed from the files; the result
   files were never the thing at risk.
-- **What is thin is the join down to masks.** 717,053 of the 1,540,370 memberships implied
-  by the index maps (46.6 %) have a curation key and so reach `Segmentation.Mask`,
-  `Fluorescence` and `Activity`. 254,150 cells (42.6 %) have every session attached.
-- **Most of the shortfall is label ambiguity, not incompatibility.** Of the 701 unresolved
-  columns, **562 (80 %) match the mask count of *several* candidate curations** — the file's
-  segmentation is consistent with the scan, only the curation cannot be named, and since 696
-  of 743 multi-curation groups are byte-identical the masks are the same whichever is named.
-  **50 columns (7 %) match no curation's mask count at all** — those are genuine
-  incompatibility, the segmentation changed. 65 are empty and 24 have no scan id.
+- **What was thin was the join down to masks.** As first registered, only 717,053 of the
+  1,540,370 memberships implied by the index maps (46.6 %) had a curation key and so
+  reached `Segmentation.Mask`, `Fluorescence` and `Activity`; 254,150 cells (42.6 %) had
+  every session attached. **§2b raises that to 1,457,704 (94.6 %) and 553,710 (92.7 %)** by
+  a tie-break restricted to provably equivalent candidates.
+- **Most of the shortfall was label ambiguity, not incompatibility.** Of the 701 columns
+  unresolved at registration, **562 (80 %) matched the mask count of *several* candidate
+  curations** — the file's segmentation is consistent with the scan, only the curation
+  cannot be named, and since 696 of 743 multi-curation groups are byte-identical the masks
+  are the same whichever is named. **50 (7 %) matched no curation's mask count at all** —
+  genuine incompatibility, the segmentation changed. 65 were empty and 24 had no scan id.
 
-So a tie-break convention would recover most of the 53 %. It is deliberately not applied
-here, because choosing among provably equivalent candidates is a convention and choosing
-among different ones would be inventing provenance — see §8.1.
-
-The 69 ties are the honest limit of the method: when two curations are byte-identical in
-masks **and** `roi_group`, no analysis separates them. They stay unresolved with their
-candidates attached as evidence rather than being attached to an arbitrary one.
+Where `roi_group` content identifies a unique curation (317 columns) the attachment is
+evidence. Where several candidates are byte-identical, no analysis separates them, and the
+tie-break in §2b is explicitly a **convention** applied only because the candidates are
+provably the same mask set. Where the candidates genuinely differ (25 columns) nothing is
+attached — see §8.
 
 ## 2b. The tie-break: a rule that cannot change the data
 
