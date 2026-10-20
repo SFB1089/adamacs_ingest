@@ -111,6 +111,48 @@ def implied_roi_group(index_map, column: int):
     return vec
 
 
+def centroid_counts(path):
+    """Per-column centroid counts from ``centroid_locations_corrected``.
+
+    ``centroid_locations_corrected`` is a per-session cell array whose entry for a column
+    has one row per mask in that session's own order. Its length must equal the
+    curation's mask count; ``make_mask_coordinates`` refuses the column otherwise.
+    Checking it here as well means a contradicted attachment is never written at all.
+
+    Returns a list with one count per column, or None for a column whose entry cannot be
+    interpreted -- callers skip the check for those rather than reject the column on the
+    strength of a read failure. An earlier version wrapped the whole function in
+    ``except Exception: return None``, which silently disabled the check for every
+    column of every run: the entries are per-session and one unreadable entry must not
+    void the other ten.
+
+    This check catches 8 of the 573 columns registered in run 1, every one attached by
+    'log_file' -- the FORCED case where the scan has exactly one curation, so no content
+    evidence was required. Two shapes of fault: off-by-one (1034 vs 1035, 1280 vs 1279,
+    1115 vs 1116), where the curation gained or lost an ROI after the run; and wholesale
+    disagreement (316 vs 910, 370 vs 1088, 336 vs 1064), where the input file is a
+    different segmentation entirely. One candidate is not evidence that it is the right
+    one.
+    """
+    struct = CR.load_cellreg_struct(path, fields=("centroid_locations_corrected",))
+    per_session = struct.get("centroid_locations_corrected")
+    if per_session is None:
+        return None
+    counts = []
+    for entry in per_session:
+        if entry is None:
+            counts.append(None)
+            continue
+        arr = np.squeeze(np.asarray(entry, dtype=float))
+        if arr.ndim != 2:
+            counts.append(None)
+            continue
+        if arr.shape[0] == 2 and arr.shape[1] != 2:
+            arr = arr.T          # (2, n) -> (n, 2); a square n == 2 is absurd
+        counts.append(int(arr.shape[0]))
+    return counts
+
+
 def resolve_column_curation(conn, implied, candidates, *, imaging_schema="roselab_imaging"):
     """Compare ``implied`` against every candidate curation's stored roi_group.
 
@@ -223,11 +265,12 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
     scans = [CR.scan_id_from_source_file(os.path.basename(p))
              for p in parsed.get("session_files", [])]
 
+    centroids = centroid_counts(path)
     sessions, unresolved = [], []
     for col in range(n_cols):
         scan = scans[col] if col < len(scans) else None
         implied = implied_roi_group(index_map, col)
-        n_masks = int((index_map[:, col] > 0).sum())
+        n_masks_col = int((index_map[:, col] > 0).sum())
         if implied is None:
             unresolved.append({"column_index": col, "n_masks_cellreg": 0,
                                "best_jaccard": None, "ambiguous": False, "candidates": None,
@@ -235,12 +278,12 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
             continue
         candidates = census.get(scan, []) if scan else []
         if not scan:
-            unresolved.append({"column_index": col, "n_masks_cellreg": n_masks,
+            unresolved.append({"column_index": col, "n_masks_cellreg": n_masks_col,
                                "best_jaccard": None, "ambiguous": False, "candidates": None,
                                "reason": "no scan id recoverable from the log file"})
             continue
         if not candidates:
-            unresolved.append({"column_index": col, "n_masks_cellreg": n_masks,
+            unresolved.append({"column_index": col, "n_masks_cellreg": n_masks_col,
                                "best_jaccard": None, "ambiguous": False,
                                "candidates": [scan],
                                "reason": f"scan {scan} has no curation in the database"})
@@ -253,7 +296,7 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
         if key is None:
             best = evidence[0] if evidence else {}
             unresolved.append({
-                "column_index": col, "n_masks_cellreg": n_masks,
+                "column_index": col, "n_masks_cellreg": n_masks_col,
                 "best_jaccard": best.get("agree"),
                 "ambiguous": method == "ambiguous_roi_group_match",
                 "candidates": evidence[:6],
@@ -263,6 +306,24 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
                            f"no curation of {scan} matches roi_group "
                            f"(best {best.get('agree')})")})
             continue
+        if (centroids is not None and col < len(centroids) and centroids[col] is not None):
+            n_cent = centroids[col]
+            n_masks = conn.query(
+                f"SELECT COUNT(*) FROM `{imaging_schema}`.`__segmentation__mask` "
+                f"WHERE session_id=%s AND scan_id=%s AND paramset_idx=%s "
+                f"AND curation_id=%s", key[:4]).fetchone()[0]
+            if n_cent != int(n_masks):
+                unresolved.append({
+                    "column_index": col, "n_masks_cellreg": n_masks_col,
+                    "best_jaccard": None, "ambiguous": False,
+                    "candidates": [{"scan_id": key[1],
+                                    "curation_id": key[3],
+                                    "n_centroids_file": n_cent,
+                                    "n_masks_db": int(n_masks)}],
+                    "reason": (f"file has {n_cent} centroids for this column but "
+                               f"curation {key[3]} of {key[1]} has {int(n_masks)} "
+                               f"masks -- the input file is not this curation")[:255]})
+                continue
         n_db = conn.query(
             f"SELECT COUNT(*) FROM `{imaging_schema}`.`__segmentation__mask` WHERE "
             f"session_id=%s AND scan_id=%s AND paramset_idx=%s AND curation_id=%s",
@@ -275,7 +336,7 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
                                          if col < len(parsed.get("session_files", []))
                                          else ""),
                          "resolution_method": method, "mask_set_jaccard": agree,
-                         "n_masks_cellreg": n_masks, "n_masks_db": int(n_db)})
+                         "n_masks_cellreg": n_masks_col, "n_masks_db": int(n_db)})
 
     slug, method_name, params = paramset_for(parsed)
     run_key = {"cellreg_run_id": record["run_id"]}
