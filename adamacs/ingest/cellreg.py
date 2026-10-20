@@ -449,6 +449,26 @@ def pair_quality_rows(p_same_matrix, present_columns) -> list[tuple[int, int, fl
     return rows
 
 
+def p_same_is_consistent(p_same_all, n_sessions) -> bool:
+    """Is ``p_same_registered_pairs`` shaped ``n_sessions x n_sessions`` per cell?
+
+    Each entry arrives with a LEADING SINGLETON AXIS: a real file yields
+    ``(1, n_sessions, n_sessions)`` per cell, not ``(n_sessions, n_sessions)``.
+    ``pair_quality_rows`` has always stripped that; the inline check in
+    ``make_cellreg_result`` did not, so every probabilistic run was declared
+    inconsistent and the ``if consistent`` guard then suppressed EVERY PairQuality row
+    and left min/median p_same NULL on every cell. Extracted here so the quirk is
+    asserted by a test rather than rediscovered by populating 101 runs.
+    """
+    if p_same_all is None or not len(p_same_all):
+        return True
+    first = np.asarray(p_same_all[0])
+    while first.ndim > 2 and first.shape[0] == 1:
+        first = first[0]
+    return bool(first.ndim == 2 and first.shape[0] == first.shape[1]
+                and first.shape[0] == n_sessions)
+
+
 def summarise_p_same(pair_rows) -> tuple[float | None, float | None]:
     """``(min, median)`` over a cell's present pairs -- the queryable selector columns."""
     if not pair_rows:
@@ -524,11 +544,7 @@ def make_cellreg_result(table, key):
     n_cells, n_sessions = index_map.shape
 
     p_same_all = struct.get("p_same_registered_pairs")
-    consistent = True
-    if p_same_all is not None and len(p_same_all):
-        first = np.asarray(p_same_all[0])
-        consistent = (first.ndim == 2 and first.shape[0] == first.shape[1]
-                      and first.shape[0] == n_sessions)
+    consistent = p_same_is_consistent(p_same_all, n_sessions)
 
     # From metadata, not from the loaded struct: the footprint stack is never read.
     storage, fp_path = probe_footprints_storage(path)
@@ -538,6 +554,11 @@ def make_cellreg_result(table, key):
                        p_same_consistent=int(consistent), footprints_storage=storage,
                        footprints_path=fp_path[:512], compute_seconds=time.time() - started))
 
+    # Pair-quality completeness, counted BEFORE the per-cell loop so the stored row count
+    # can be compared against what the index map implies (see CellRegResult.n_pairs_*).
+    present_counts = (index_map > 0).sum(axis=1)
+    n_pairs_expected = int((present_counts * (present_counts - 1) // 2).sum())
+
     members = members_from_index_map(index_map)
     # column_index -> the curation key that column was resolved to. Unresolved columns are
     # simply absent, which is what makes the Member loop below able to skip them.
@@ -546,11 +567,13 @@ def make_cellreg_result(table, key):
         int(row["column_index"]): {a: row[a] for a in curation_attrs}
         for row in (schema_module.CellRegRun.Session & key).fetch(as_dict=True)}
     cell_rows, member_rows, pair_rows = [], [], []
+    n_pairs_emitted = 0
     for cell_index, present in members.items():
         columns = [col for col, _ in present]
         pairs = []
         if consistent and p_same_all is not None and cell_index < len(p_same_all):
             pairs = pair_quality_rows(p_same_all[cell_index], columns)
+        n_pairs_emitted += len(pairs)
         lo, mid = summarise_p_same(pairs)
         cell_rows.append(dict(
             key, cell_index=int(cell_index),
@@ -580,6 +603,12 @@ def make_cellreg_result(table, key):
         for col_a, col_b, value in pairs:
             pair_rows.append(dict(key, cell_index=int(cell_index), column_a=col_a,
                                   column_b=col_b, p_same=value))
+
+    # Completeness recorded on the master now that the loop has counted. update1 is
+    # the dj 0.14 API for amending a secondary attribute; _update does not exist on a
+    # restricted table and raised AttributeError inside make().
+    table.update1({**key, "n_pairs_expected": n_pairs_expected,
+                  "n_pairs_nonfinite": max(0, n_pairs_expected - n_pairs_emitted)})
 
     table.Cell.insert(cell_rows)
     table.Member.insert(member_rows)

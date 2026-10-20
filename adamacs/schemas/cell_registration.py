@@ -275,6 +275,11 @@ class CellRegRun(dj.Manual):
         # holding more than one curation, 696 (94%) have BYTE-IDENTICAL mask sets, so
         # mask-set overlap scores 1.0 against every candidate and cannot discriminate.
         # Jaccard therefore resolves WHICH SCAN, never WHICH CURATION.
+        # 'roi_group_match' identifies the curation BY CONTENT: the roi_group a column
+        # implies matched one candidate curation's stored roi_group on every mask, and
+        # no other candidate. That is evidence, not similarity -- but it only works
+        # while the run's output is still the one in the column, so it recovers 307 of
+        # the 1,266 historical columns and nothing for runs already overwritten.
         # 'manifest' is the only method that makes the curation a recorded fact: the
         # export step writes (column_index, session_id, scan_id, paramset_idx,
         # curation_id) beside the converted footprints. Absent a manifest the operator
@@ -284,7 +289,7 @@ class CellRegRun(dj.Manual):
         ---
         column_index                : smallint   # 0-based column of cell_to_index_map
         source_file=''              : varchar(512)  # the converted_*.mat named in the log
-        resolution_method           : enum('manifest','log_file','mask_jaccard','manual')
+        resolution_method           : enum('manifest','log_file','mask_jaccard','roi_group_match','manual')
                                                # manifest = declared by the exporter
         mask_set_jaccard=null       : float      # stored ALWAYS: also a staleness measure
         n_masks_cellreg             : int
@@ -379,6 +384,13 @@ class CellRegResult(dj.Imported):
     has_score_fields        : bool
     missing_fields=''       : varchar(255)
     p_same_consistent       : bool         # p_same matrix side == n_sessions
+    # Pair-quality completeness, recorded rather than left to be recomputed. CellReg
+    # emits NaN for some cell-pairs the index map calls the same cell, so PairQuality is
+    # legitimately shorter than the index map implies and the difference must not look
+    # like a parser bug: on the 11-session ROS-1881 run, 38,921 implied pairs = 38,767
+    # stored + 154 non-finite.
+    n_pairs_expected=null   : int          # sum over cells of C(sessions present, 2)
+    n_pairs_nonfinite=null  : int          # of those, p_same was NaN and was NOT stored
     footprints_storage      : enum('in_file','external_path','absent')
     footprints_path=''      : varchar(512)
     parsed_at               : datetime
