@@ -449,6 +449,75 @@ def pair_quality_rows(p_same_matrix, present_columns) -> list[tuple[int, int, fl
     return rows
 
 
+def _fields_except_p_same(path):
+    # NEEDED_FIELDS minus p_same_registered_pairs, which is read separately.
+    #
+    # Derived from NEEDED_FIELDS, NOT from the file: enumerating the file pulls in
+    # spatial_footprints_corrected and centroid_locations_corrected, which is exactly
+    # what the NEEDED_FIELDS default exists to prevent (~2.9 GB for 11 sessions).
+    if detect_mat_format(path) != "v7.3_hdf5":
+        return NEEDED_FIELDS
+    return tuple(f for f in NEEDED_FIELDS if f != "p_same_registered_pairs")
+
+def read_p_same_fast(path):
+    """``p_same_registered_pairs`` by raw HDF5 dereference, or None for a non-v7.3 file.
+
+    mat73 takes 94.9 s to hand back this one field for a 4,107-cell run; dereferencing the
+    same 4,107 object references with h5py takes 0.68 s -- 140x -- and yields identical
+    values (verified element-wise on sampled cells). The field is a cell array with one
+    n_sessions x n_sessions matrix PER REGISTERED CELL, so the cost is per-cell overhead in
+    mat73's generic machinery, not in HDF5: at 597,212 cells lab-wide the difference is the
+    whole ingest.
+
+    Entries are returned squeezed to 2-D. ``pair_quality_rows`` and
+    ``p_same_is_consistent`` both tolerate a leading singleton axis anyway, so callers do
+    not need to care which loader produced the list.
+    """
+    if detect_mat_format(path) != "v7.3_hdf5":
+        return None
+    import h5py   # optional dependency: imported locally, as elsewhere
+    with h5py.File(path, "r") as handle:
+        names = []
+        handle.visititems(
+            lambda n, o: names.append(n) if isinstance(o, h5py.Dataset) else None)
+        hits = [n for n in names if n.rsplit("/", 1)[-1] == "p_same_registered_pairs"]
+        if not hits:
+            return None
+        refs = _np_ravel(handle[hits[0]])
+        out = []
+        for ref in refs:
+            arr = np.asarray(handle[ref], dtype=float)
+            while arr.ndim > 2 and arr.shape[0] == 1:
+                arr = arr[0]
+            out.append(arr)
+    return out
+
+
+def _np_ravel(dataset):
+    """Flatten an HDF5 reference dataset to a 1-D sequence of references."""
+    return np.array(dataset).ravel()
+
+
+def p_same_is_consistent(p_same_all, n_sessions) -> bool:
+    """Is ``p_same_registered_pairs`` shaped ``n_sessions x n_sessions`` per cell?
+
+    Each entry arrives with a LEADING SINGLETON AXIS: a real file yields
+    ``(1, n_sessions, n_sessions)`` per cell, not ``(n_sessions, n_sessions)``.
+    ``pair_quality_rows`` has always stripped that; the inline check in
+    ``make_cellreg_result`` did not, so every probabilistic run was declared
+    inconsistent and the ``if consistent`` guard then suppressed EVERY PairQuality row
+    and left min/median p_same NULL on every cell. Extracted here so the quirk is
+    asserted by a test rather than rediscovered by populating 101 runs.
+    """
+    if p_same_all is None or not len(p_same_all):
+        return True
+    first = np.asarray(p_same_all[0])
+    while first.ndim > 2 and first.shape[0] == 1:
+        first = first[0]
+    return bool(first.ndim == 2 and first.shape[0] == first.shape[1]
+                and first.shape[0] == n_sessions)
+
+
 def summarise_p_same(pair_rows) -> tuple[float | None, float | None]:
     """``(min, median)`` over a cell's present pairs -- the queryable selector columns."""
     if not pair_rows:
@@ -508,7 +577,13 @@ def make_cellreg_result(table, key):
             raise ValueError(
                 f"result file changed since registration: sha256 {sha[:12]} != "
                 f"{run_row['result_file_sha256'][:12]}")
-        struct = load_cellreg_struct(path)
+        struct = load_cellreg_struct(path, fields=_fields_except_p_same(path))
+        fast = read_p_same_fast(path)
+        if fast is not None:
+            struct["p_same_registered_pairs"] = fast
+        elif "p_same_registered_pairs" not in struct:
+            struct.update(load_cellreg_struct(
+                path, fields=("p_same_registered_pairs",)))
     except Exception as exc:  # noqa: BLE001 -- the failure IS the record
         table.insert1(dict(base, parse_ok=0, parse_error=f"{type(exc).__name__}: {exc}"[:512],
                            source_sha256=run_row["result_file_sha256"], n_cells=0,
@@ -524,11 +599,7 @@ def make_cellreg_result(table, key):
     n_cells, n_sessions = index_map.shape
 
     p_same_all = struct.get("p_same_registered_pairs")
-    consistent = True
-    if p_same_all is not None and len(p_same_all):
-        first = np.asarray(p_same_all[0])
-        consistent = (first.ndim == 2 and first.shape[0] == first.shape[1]
-                      and first.shape[0] == n_sessions)
+    consistent = p_same_is_consistent(p_same_all, n_sessions)
 
     # From metadata, not from the loaded struct: the footprint stack is never read.
     storage, fp_path = probe_footprints_storage(path)
@@ -538,6 +609,11 @@ def make_cellreg_result(table, key):
                        p_same_consistent=int(consistent), footprints_storage=storage,
                        footprints_path=fp_path[:512], compute_seconds=time.time() - started))
 
+    # Pair-quality completeness, counted BEFORE the per-cell loop so the stored row count
+    # can be compared against what the index map implies (see CellRegResult.n_pairs_*).
+    present_counts = (index_map > 0).sum(axis=1)
+    n_pairs_expected = int((present_counts * (present_counts - 1) // 2).sum())
+
     members = members_from_index_map(index_map)
     # column_index -> the curation key that column was resolved to. Unresolved columns are
     # simply absent, which is what makes the Member loop below able to skip them.
@@ -546,11 +622,13 @@ def make_cellreg_result(table, key):
         int(row["column_index"]): {a: row[a] for a in curation_attrs}
         for row in (schema_module.CellRegRun.Session & key).fetch(as_dict=True)}
     cell_rows, member_rows, pair_rows = [], [], []
+    n_pairs_emitted = 0
     for cell_index, present in members.items():
         columns = [col for col, _ in present]
         pairs = []
         if consistent and p_same_all is not None and cell_index < len(p_same_all):
             pairs = pair_quality_rows(p_same_all[cell_index], columns)
+        n_pairs_emitted += len(pairs)
         lo, mid = summarise_p_same(pairs)
         cell_rows.append(dict(
             key, cell_index=int(cell_index),
@@ -580,6 +658,19 @@ def make_cellreg_result(table, key):
         for col_a, col_b, value in pairs:
             pair_rows.append(dict(key, cell_index=int(cell_index), column_a=col_a,
                                   column_b=col_b, p_same=value))
+
+    # Completeness recorded on the master now that the loop has counted. update1 is
+    # the dj 0.14 API for amending a secondary attribute; _update does not exist on a
+    # restricted table and raised AttributeError inside make().
+    # n_pairs_nonfinite means ONE thing: a p_same value was read and found non-finite.
+    # When the field is absent (simple-threshold runs) or inconsistent, no value was
+    # ever read, so the difference is unavailability -- recording it as non-finite
+    # mislabelled 5,970 pairs of one run and inflated the lab-wide total. NULL there,
+    # with p_same_consistent carrying the explanation.
+    n_pairs_nonfinite = (max(0, n_pairs_expected - n_pairs_emitted)
+                         if (consistent and p_same_all is not None) else None)
+    table.update1({**key, "n_pairs_expected": n_pairs_expected,
+                  "n_pairs_nonfinite": n_pairs_nonfinite})
 
     table.Cell.insert(cell_rows)
     table.Member.insert(member_rows)
