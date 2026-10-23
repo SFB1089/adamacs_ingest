@@ -188,7 +188,9 @@ def register_results(creg, *, dry_run: bool = True) -> int:
     from adamacs.ingest import cellreg_register as REG
 
     known = set(creg.CellRegRun.fetch("result_file_sha256"))
-    census = REG.curation_census(creg.connection)
+    conn = creg.CellRegRun.connection   # the module is not a table; the connection
+    # hangs off any table class in the activated schema
+    census = REG.curation_census(conn)
     n = 0
     for row in creg.CellRegExport.fetch("export_dir", as_dict=True):
         d = pathlib.Path(row["export_dir"]) / "Results"
@@ -209,7 +211,7 @@ def register_results(creg, *, dry_run: bool = True) -> int:
                    "mat_format": CR.detect_mat_format(str(path)),
                    "log_file": CR.find_log_file(str(path)), "copies": [],
                    "folder": pathlib.Path(row["export_dir"]).name}
-            plan = REG.register_run(creg, rec, creg.connection, dry_run=False, census=census)
+            plan = REG.register_run(creg, rec, conn, dry_run=False, census=census)
             log.info("registered %s: %s resolved, %s unresolved", path.name,
                      plan.get("n_resolved"), plan.get("n_unresolved"))
             known.add(sha)
