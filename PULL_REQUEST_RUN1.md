@@ -240,26 +240,38 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
   a stated 10 sessions). The orientation falls back to the shape heuristic with the
   discrepancy recorded in `run_note`; why the logs disagree is unexplained.
 
-## 8. Unresolved decisions
+## 8. Decisions taken, and what is still open
 
-1. **Whether `mask_set_identical` should stand.** It attached 537 columns on the ground
-   that the candidates are provably the same mask set, so the choice cannot change the data
-   — but it is still a convention, and the two obvious variants disagree on 284 of 558
-   columns. Reverting it is one `delete`/`insert` away (`scripts/attach_mask_set_identical.py`
-   records the exact operation); living with it means `resolution_method` is the only thing
-   distinguishing a chosen `curation_id` from a proven one.
-2. **The 25 columns whose candidates differ in mask content.** No convention is defensible
-   there — it would be choosing between different segmentations. They need either the
-   original export directory, or writing them off.
-3. **Whether `log_file` resolution should exist at all** now that 8 of 256 proved wrong —
-   the alternative is to treat a single candidate as unresolved unless the centroid count
-   confirms it, which is what the new guard effectively does.
-4. **The `ImagesAndGratings` run** (`cellRegistered_20260811_130701.mat`) is the newest file
+### Taken (Tobias, 2026-10-23)
+
+1. **`mask_set_identical` stands as applied** — all 537 columns, *not* narrowed to the 533
+   whose chosen curation provably predated the run. The 4 picked by the earliest-matching
+   fallback are kept. The standing caveat is unchanged and is what `resolution_method` is
+   for: those 537 carry a **chosen** `curation_id`, not a proven one. A reader selecting
+   cohorts on provenance strength should filter
+   `resolution_method='roi_group_match'`, which is the subset backed by content evidence.
+2. **The 25 columns whose candidates differ in mask content stay unresolved** — not written
+   off, not investigated further for now. No convention is defensible there: it would be
+   choosing between different segmentations rather than identical ones.
+3. **`log_file` resolution is kept.** The concern that prompted the question is now
+   addressed in practice rather than by argument: every resolved column has
+   `MaskCoordinates`, and `MaskCoordinates.make()` refuses a column whose centroid count
+   disagrees with its curation — so all 248 surviving `log_file` columns are
+   centroid-confirmed, and the 8 that were not were caught and demoted. The method remains
+   weak as a *justification* (one candidate existing is not evidence it is the right one),
+   which is why it is recorded distinctly.
+
+### Still open
+
+4. **Run 2** — a task-driven registration through `CellRegTask` → export → MATLAB → ingest.
+   Deferred at Tobias's request; it is the only path that produces provenance rather than
+   reconstruction, and the `manifest` resolution method is unexercised until it runs.
+5. **The `ImagesAndGratings` run** (`cellRegistered_20260811_130701.mat`) is the newest file
    of all, the only one of its type, not superseded, all 14 columns populated — and matches
    nothing. Its identities were never written to `roi_group`.
-5. **`frac_uncertain_pairs` differs between vintages** (0.19 vs 0.08 for the same site)
+6. **`frac_uncertain_pairs` differs between vintages** (0.19 vs 0.08 for the same site)
    before `CellRegRun.Quality` can be compared across runs.
-6. Items 1–7 of #16 §9 that remain open: ADR-004 departure, `min_p_same` as a stored summary,
+7. Items 1–7 of #16 §9 that remain open: ADR-004 departure, `min_p_same` as a stored summary,
    transaction size, `same_site_id` upstream, who may insert a `RegistrationCuration`,
    licence hygiene, pinning a CellReg release matching Leon's.
 
