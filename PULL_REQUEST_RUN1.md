@@ -42,8 +42,11 @@ Reconciliations, all checked against the database rather than asserted:
 
 - 1,102 + 164 = 1,266 = `SUM(n_sessions)` over the 101 runs
 - every run has a `CellRegResult`; every resolved column has `MaskCoordinates`
-- 4,807,688 expected pairs − 165,910 non-finite = **4,641,778 stored**, matching the count
-  predicted from the index maps *before* any ingest
+- 4,807,688 expected pairs vs **4,641,778 stored**, matching the count predicted from the
+  index maps *before* any ingest. Of the 165,910 difference, **159,940 are confirmed
+  non-finite `p_same`** and 5,970 belong to the one run whose `p_same` array could not be
+  read at all (`p_same_consistent = 0`), where `n_pairs_nonfinite` is now NULL rather than
+  a count — see 4.4
 
 ## 2. How a column found its curation — and the 535 that could not
 
@@ -187,6 +190,14 @@ index map calls the same cell, so `PairQuality` is legitimately shorter than `C(
 `CellRegResult.n_pairs_expected` and `n_pairs_nonfinite` record the difference, so it can
 never be read as a parser fault: on ROS-1881, 38,921 implied = 38,767 stored + 154 `NaN`.
 
+`n_pairs_nonfinite` counts **only values that were read and found non-finite**. Where
+`p_same` is absent or its shape disagrees with the index map (`p_same_consistent = 0`), no
+value was ever read, and the field is NULL — not equal to `n_pairs_expected`. Flagged by
+the automated reviewer and true of exactly one run (`9ff49e03739c`), which used to report
+5,970 of 5,970 "non-finite" when in fact nothing had been measured. A NULL is a different
+question from a zero, and conflating them made a parse failure look like a property of the
+data.
+
 ## 5. Acceptance
 
 Eleven checks on the ROS-1881 run, all exact:
@@ -212,10 +223,11 @@ Suite: **160 passed, 43 skipped**. CI's lint selection
 
 ## 6. Schema changes (additive, applied to both schemas)
 
-- `CellRegRun.Session.resolution_method` gains `roi_group_match`
+- `CellRegRun.Session.resolution_method` gains `roi_group_match`, then `mask_set_identical`
 - `CellRegResult` gains `n_pairs_expected`, `n_pairs_nonfinite` (both nullable)
+- `MatchingMethod` gains the row `cellreg_unknown` (a lookup insert, not an ALTER)
 
-Both applied by `ALTER TABLE` while the tables were empty. No table was dropped, no column
+The two enum changes were applied by `ALTER TABLE` while the tables were empty. No table was dropped, no column
 removed, no key changed; nothing outside `roselab_cell_registration` and
 `tobiasr_cellreg_test` was altered.
 
@@ -265,7 +277,10 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 
 4. **Run 2** — a task-driven registration through `CellRegTask` → export → MATLAB → ingest.
    Deferred at Tobias's request; it is the only path that produces provenance rather than
-   reconstruction, and the `manifest` resolution method is unexercised until it runs.
+   reconstruction. The `manifest` resolution method it depends on is **now implemented**
+   (`task_for_result`, `manifest_columns`, and a branch in `register_run`) and proven on a
+   fixture task in `tobiasr_cellreg_test`: 11 declared columns, 11 resolved as `manifest`,
+   matching the declaration exactly. It remains unexercised **on a real run** until run 2.
 5. **The `ImagesAndGratings` run** (`cellRegistered_20260811_130701.mat`) is the newest file
    of all, the only one of its type, not superseded, all 14 columns populated — and matches
    nothing. Its identities were never written to `roi_group`.
@@ -288,3 +303,39 @@ removed, no key changed; nothing outside `roselab_cell_registration` and
 - **Wiki** — `trose-neuro/roselab-wiki`, branch `docs/cell-registration-schema`, head
   `8589b98`, pushed. (#16 §10 said it was unpushed; that was true when written and is not
   true now.)
+
+## 10. Automated review of `9bb6bb5`, and what each finding changed
+
+Five inline findings. **All five were correct**, and three were worse than reported.
+
+| | Finding | Verdict | Change |
+|---|---|---|---|
+| 1 | Notebook 18's curation query filters by subject alone, ignoring site and stimulus | upheld | restricted via `session.SessionSameSite`; scans named explicitly; three assertions |
+| 2 | Notebook 18 §6 populates without registering, and its manifest claim is false | upheld, worse | `manifest` resolution **did not exist**; now implemented and fixture-tested |
+| 3 | The documented worker command uses a `--dry-run` flag the worker does not define | upheld | corrected to `--once` (dry by default) and `--execute --once` |
+| 4 | `n_pairs_nonfinite` conflates "absent or unreadable" with "read and non-finite" | upheld, active | NULL when `p_same` was never read; one run corrected; lab-wide 165,910 → **159,940** |
+| 5 | An unknown registration approach is routed to `cellreg_simple_threshold` | upheld | new `cellreg_unknown`; paramset `unk_unk_bf9f89d4` and its 2 runs re-pointed |
+
+Finding 2 is the one worth dwelling on. `manifest` was declared in the `resolution_method`
+enum, described in the design note and referenced in the notebook — and the string
+`manifest` appeared **zero times** in `cellreg_register.py`. No code set it and no row used
+it. It had been asserted here as "implemented but unexercised"; it was in fact a schema
+value with nothing behind it. The registrar now finds the `CellRegTask` whose
+`cellreg_output_dir` contains the result file, takes the declared curation per column from
+`CellRegTask.Session`, and records `resolution_method = 'manifest'`. A centroid count that
+disagrees with a declared curation raises there rather than demoting to a weaker method:
+the exporter built that column from that curation's masks, so a mismatch means the task and
+the directory describe different exports, and guessing would defeat the point of declaring.
+
+Finding 5 came with one bot error — it supposed an "unknown parameter-set sentinel" already
+existed. It did not: `MatchingMethod` had exactly two rows, which is why `unknown` fell
+through to the wrong one. Two runs are affected (`526a00bb0338`, `92a0605e3cee`), both
+without log files, so their approach is not recoverable from anything on disk. They now say
+so instead of claiming a simple threshold was used.
+
+Nothing here changed a cluster, a membership or a `p_same` row: after all five fixes,
+`CellRegRun.Session` is still 1,102, `UnresolvedColumn` still 164, `PairQuality` still
+4,641,778.
+
+Fixes 2, 4 and 5 are commit `8995efb`; 1 and 3 are notebook-only and follow in the
+documentation commit.
