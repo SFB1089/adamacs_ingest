@@ -174,11 +174,54 @@ def pending_job_dirs(creg) -> list:
     return out
 
 
+def register_results(creg, *, dry_run: bool = True) -> int:
+    """Register result files that CellReg produced but nothing has registered yet.
+
+    This stage is NOT optional. ``CellRegResult`` is keyed on ``CellRegRun``, so
+    ``CellRegResult.populate()`` has nothing to do until a run row exists -- and
+    ``register_run`` is also what reads the task manifest: it finds the ``CellRegTask``
+    whose ``cellreg_output_dir`` contains the file, takes the declared curation for each
+    column from ``CellRegTask.Session``, and records ``resolution_method='manifest'``.
+    Without it the worker runs MATLAB and then ingests nothing, silently.
+    """
+    from adamacs.ingest import cellreg as CR
+    from adamacs.ingest import cellreg_register as REG
+
+    known = set(creg.CellRegRun.fetch("result_file_sha256"))
+    census = REG.curation_census(creg.connection)
+    n = 0
+    for row in creg.CellRegExport.fetch("export_dir", as_dict=True):
+        d = pathlib.Path(row["export_dir"]) / "Results"
+        if not d.is_dir():
+            continue
+        for path in sorted(d.glob("cellRegistered_*.mat")):
+            sha = CR.file_sha256(str(path))
+            if sha in known:
+                continue
+            if dry_run:
+                log.info("DRY RUN: would register %s", path)
+                n += 1
+                continue
+            st = os.stat(path)
+            rec = {"canonical": str(path), "run_id": sha[:40], "sha256": sha,
+                   "bytes": st.st_size,
+                   "mtime": _dt.datetime.fromtimestamp(st.st_mtime).isoformat(),
+                   "mat_format": CR.detect_mat_format(str(path)),
+                   "log_file": CR.find_log_file(str(path)), "copies": [],
+                   "folder": pathlib.Path(row["export_dir"]).name}
+            plan = REG.register_run(creg, rec, creg.connection, dry_run=False, census=census)
+            log.info("registered %s: %s resolved, %s unresolved", path.name,
+                     plan.get("n_resolved"), plan.get("n_unresolved"))
+            known.add(sha)
+            n += 1
+    return n
+
+
 def one_pass(creg, *, matlab="matlab", cellreg_root=None, dry_run=True,
              timeout=DEFAULT_MATLAB_TIMEOUT, populate_kwargs=None) -> dict:
     """One sweep of the three stages. Returns what each stage did."""
     pk = {"reserve_jobs": True, "suppress_errors": True, **(populate_kwargs or {})}
-    report = {"exported": 0, "matlab": [], "ingested": 0}
+    report = {"exported": 0, "matlab": [], "registered": 0, "ingested": 0}
 
     if dry_run:
         log.info("DRY RUN: would call CellRegExport.populate(%s)", pk)
@@ -190,10 +233,16 @@ def one_pass(creg, *, matlab="matlab", cellreg_root=None, dry_run=True,
         report["matlab"].append(run_matlab_job(d, matlab=matlab, cellreg_root=cellreg_root,
                                                timeout=timeout, dry_run=dry_run))
 
+    # Stage 2b -- register what CellReg produced, BEFORE ingesting it. See
+    # register_results: CellRegResult is keyed on CellRegRun, so skipping this makes
+    # stage 3 a silent no-op.
+    report["registered"] = register_results(creg, dry_run=dry_run)
+
     if dry_run:
         log.info("DRY RUN: would call CellRegResult.populate(%s)", pk)
     else:
         creg.CellRegResult.populate(**pk)
+        creg.MaskCoordinates.populate(**pk)
         report["ingested"] = len(creg.CellRegResult())
     return report
 
