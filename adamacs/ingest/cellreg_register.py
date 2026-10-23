@@ -153,6 +153,42 @@ def centroid_counts(path):
     return counts
 
 
+def task_for_result(mod, path):
+    """The :class:`CellRegTask` whose output directory contains this result file.
+
+    The link is the directory: a task names ``cellreg_output_dir``, the MATLAB driver
+    writes ``Results/cellRegistered_*.mat`` inside it, so a result file under that tree
+    belongs to that task. Returns None when no task claims it -- every historical run.
+    """
+    try:
+        real = os.path.realpath(path)
+    except OSError:
+        return None
+    for row in mod.CellRegTask.fetch(as_dict=True):
+        out = row.get("cellreg_output_dir") or ""
+        if not out:
+            continue
+        base = os.path.realpath(out)
+        if real == base or real.startswith(base.rstrip(os.sep) + os.sep):
+            return row
+    return None
+
+
+def manifest_columns(mod, task_row):
+    """``{column_index: curation key}`` as DECLARED in ``CellRegTask.Session``.
+
+    This is the whole point of the task table: the operator states which curation each
+    column is built from BEFORE the run, so the curation is a recorded fact rather than
+    something reconstructed from the output afterwards. Historical runs have no task and
+    therefore no manifest, which is why they need roi_group_match and log_file at all.
+    """
+    if task_row is None:
+        return {}
+    key = {k: task_row[k] for k in ("subject", "same_site_id", "cellreg_task_id")}
+    return {int(r["column_index"]):
+            {a: r[a] for a in ("session_id", "scan_id", "paramset_idx", "curation_id")}
+            for r in (mod.CellRegTask.Session & key).fetch(as_dict=True)}
+
 def resolve_column_curation(conn, implied, candidates, *, imaging_schema="roselab_imaging"):
     """Compare ``implied`` against every candidate curation's stored roi_group.
 
@@ -196,8 +232,12 @@ def paramset_for(parsed: dict) -> tuple[str, str, dict]:
     """
     approach = CR.normalise_registration_approach(parsed.get("registration_approach"))
     alignment = CR.normalise_alignment_mode(parsed.get("alignment_type"))
-    method = ("cellreg_probabilistic" if approach == "probabilistic"
-              else "cellreg_simple_threshold")
+    # 'unknown' means the log is missing and the approach was never recorded. It is
+    # NOT evidence of a simple threshold, and routing it there gives method-based
+    # cohort queries false provenance (2 of the 101 historical runs have no log).
+    method = {"probabilistic": "cellreg_probabilistic",
+              "simple_threshold": "cellreg_simple_threshold"}.get(
+                  approach, "cellreg_unknown")
     params = {
         "registration_approach": approach,
         "alignment_mode": alignment,
@@ -266,6 +306,12 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
              for p in parsed.get("session_files", [])]
 
     centroids = centroid_counts(path)
+    task_row = task_for_result(mod, path)
+    manifest = manifest_columns(mod, task_row)
+    if manifest:
+        note = ((note + " | ") if note else "") + (
+            f"columns declared by CellRegTask {task_row['cellreg_task_id']} of "
+            f"{task_row['subject']}/{task_row['same_site_id']}")[:400]
     sessions, unresolved = [], []
     for col in range(n_cols):
         scan = scans[col] if col < len(scans) else None
@@ -275,6 +321,33 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
             unresolved.append({"column_index": col, "n_masks_cellreg": 0,
                                "best_jaccard": None, "ambiguous": False, "candidates": None,
                                "reason": "column contains no cells"})
+            continue
+        if col in manifest:
+            # DECLARED by the task. No inference: the manifest names the curation, and the
+            # exporter built this column FROM that curation's masks, so a centroid-count
+            # disagreement means the directory and the task are out of step -- a hard error
+            # rather than a demotion, because there is no second candidate to fall back to.
+            key4 = manifest[col]
+            n_db = conn.query(
+                f"SELECT COUNT(*) FROM `{imaging_schema}`.`__segmentation__mask` WHERE "
+                f"session_id=%s AND scan_id=%s AND paramset_idx=%s AND curation_id=%s",
+                (key4["session_id"], key4["scan_id"], key4["paramset_idx"],
+                 key4["curation_id"])).fetchone()[0]
+            n_cent = centroids[col] if (centroids and col < len(centroids)) else None
+            if n_cent is not None and n_cent != int(n_db):
+                raise ValueError(
+                    f"task declares curation {key4['curation_id']} of {key4['scan_id']} "
+                    f"for column {col}, but the file has {n_cent} centroids against "
+                    f"{int(n_db)} masks in that curation -- the output directory and the "
+                    f"task do not describe the same export")
+            sessions.append({"session_id": key4["session_id"], "scan_id": key4["scan_id"],
+                             "paramset_idx": key4["paramset_idx"],
+                             "curation_id": key4["curation_id"], "column_index": col,
+                             "source_file": (os.path.basename(
+                                 parsed["session_files"][col])
+                                 if col < len(parsed.get("session_files", [])) else ""),
+                             "resolution_method": "manifest", "mask_set_jaccard": None,
+                             "n_masks_cellreg": n_masks_col, "n_masks_db": int(n_db)})
             continue
         candidates = census.get(scan, []) if scan else []
         if not scan:

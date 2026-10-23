@@ -171,6 +171,12 @@ class MatchingMethod(dj.Lookup):
          "https://doi.org/10.1016/j.celrep.2017.10.013",
          "CellReg simple threshold: a fixed correlation or distance cut, no probability "
          "model. Produces no cell scores and no p_same."),
+        ("cellreg_unknown", "CellReg",
+         "https://doi.org/10.1016/j.celrep.2017.10.013",
+         "CellReg, method not recoverable: the run has no logFile_*.txt, so the "
+         "registration approach was never recorded. NOT a claim that a simple "
+         "threshold was used -- routing unknown runs to the simple-threshold row "
+         "would give method-based cohort queries false provenance."),
     ]
 
 

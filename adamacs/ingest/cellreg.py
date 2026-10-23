@@ -662,8 +662,15 @@ def make_cellreg_result(table, key):
     # Completeness recorded on the master now that the loop has counted. update1 is
     # the dj 0.14 API for amending a secondary attribute; _update does not exist on a
     # restricted table and raised AttributeError inside make().
+    # n_pairs_nonfinite means ONE thing: a p_same value was read and found non-finite.
+    # When the field is absent (simple-threshold runs) or inconsistent, no value was
+    # ever read, so the difference is unavailability -- recording it as non-finite
+    # mislabelled 5,970 pairs of one run and inflated the lab-wide total. NULL there,
+    # with p_same_consistent carrying the explanation.
+    n_pairs_nonfinite = (max(0, n_pairs_expected - n_pairs_emitted)
+                         if (consistent and p_same_all is not None) else None)
     table.update1({**key, "n_pairs_expected": n_pairs_expected,
-                  "n_pairs_nonfinite": max(0, n_pairs_expected - n_pairs_emitted)})
+                  "n_pairs_nonfinite": n_pairs_nonfinite})
 
     table.Cell.insert(cell_rows)
     table.Member.insert(member_rows)
