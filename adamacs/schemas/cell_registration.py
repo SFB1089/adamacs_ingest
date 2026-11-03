@@ -56,6 +56,7 @@ import pathlib as _pathlib
 import hashlib
 import importlib
 import json
+import warnings as _warnings
 
 import datajoint as dj
 import numpy as _np
@@ -136,6 +137,26 @@ def site_of_sessions(session_ids):
     rows = (session.SessionSameSite & [{"session_id": s} for s in set(session_ids)]).fetch(
         "session_id", "same_site_id")
     return dict(zip(*rows)) if len(rows[0]) else {}
+
+
+
+def site_agreement_of(site, curations, mapping):
+    """Do the declared sessions belong to ``site`` upstream? -> ("all_match"|"mismatch", detail).
+
+    Pure, so it is testable without a database. ``mapping`` is {session_id: same_site_id}
+    from :func:`site_of_sessions`; a session absent from it has no ``SessionSameSite`` row
+    and is reported as None rather than quietly treated as agreeing.
+
+    This is evidence, not a gate. The ingest GUI assigns every session its own site by
+    default, so "mismatch" most often means "not grouped yet", which is a perfectly normal
+    thing to register across.
+    """
+    wrong = {c["session_id"]: mapping.get(c["session_id"])
+             for c in curations if mapping.get(c["session_id"]) != site}
+    if not wrong:
+        return "all_match", ""
+    detail = ", ".join(f"{k}->{v}" for k, v in sorted(wrong.items()))
+    return "mismatch", detail[:512]
 
 
 def canonical_json(params: dict) -> str:
@@ -672,6 +693,8 @@ class CellRegTask(dj.Manual):
     task_created            : datetime
     task_created_by=''      : varchar(64)
     task_note=''            : varchar(512)
+    site_agreement='all_match' : enum('all_match','mismatch')
+    site_mismatch_detail=''    : varchar(512)
     """
 
     class Session(dj.Part):
@@ -711,21 +734,24 @@ class CellRegTask(dj.Manual):
         if missing:
             raise ValueError(f"these curations do not exist: {missing}")
 
-        # THE CHECK WITH TEETH. The foreign key onto session.SessionSite only proves the
-        # site string is a known row -- every session is inserted there as its own site, so
-        # a plausible-but-wrong id passes. What makes a task's columns provably ONE field of
-        # view is that each declared session belongs to this site upstream.
+        # Does every declared session belong to this site upstream? This is RECORDED, never
+        # enforced: the operator is allowed to declare whatever task they mean (Tobias,
+        # 2026-11-03). Blocking would be wrong in the ordinary case -- the ingest GUI makes
+        # every session its own site by default, so the great majority of sites are
+        # singletons and a perfectly good set of sessions is routinely "not grouped yet".
+        # The FK onto session.SessionSite cannot tell you any of this either: every session
+        # is in that table, so it catches a typo and nothing more.
         site = site_key["same_site_id"]
         mapping = site_of_sessions([c["session_id"] for c in curations])
-        wrong = {c["session_id"]: mapping.get(c["session_id"])
-                 for c in curations if mapping.get(c["session_id"]) != site}
-        if wrong:
-            raise ValueError(
-                f"these sessions do not belong to site {site} according to "
-                f"session_same_site: {wrong}. A registration spanning two sites is not a "
-                f"registration; regroup the sessions upstream (the ingest GUI) first, or "
-                f"declare the task against the site they actually belong to. "
-                f"(None means the session has no SessionSameSite row at all.)")
+        agreement, detail = site_agreement_of(site, curations, mapping)
+        if agreement == "mismatch":
+            _warnings.warn(
+                f"declaring this task anyway, but these sessions do not map to site {site} "
+                f"in session_same_site: {detail}. If that is deliberate (sessions not "
+                f"grouped yet, or a site you are about to regroup), nothing to do -- the "
+                f"task records it as site_agreement='mismatch'. If it is not, the columns "
+                f"may span two fields of view. None means no SessionSameSite row at all.",
+                stacklevel=2)
 
         existing = (cls & site_key).fetch("cellreg_task_id")
         task_id = (max(existing) + 1) if len(existing) else 0
@@ -742,7 +768,8 @@ class CellRegTask(dj.Manual):
                      "cellreg_paramset_id": paramset, "task_mode": task_mode,
                      "cellreg_output_dir": str(out), "task_label": label,
                      "task_created": _dt.datetime.now(), "task_created_by": created_by,
-                     "task_note": note})
+                     "task_note": note, "site_agreement": agreement,
+                     "site_mismatch_detail": detail})
         cls.Session.insert({**site_key, "cellreg_task_id": task_id, "column_index": i, **c}
                            for i, c in enumerate(curations))
         return {**site_key, "cellreg_task_id": task_id}
