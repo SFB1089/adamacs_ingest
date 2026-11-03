@@ -201,8 +201,20 @@ def export_dir_for(site_key: dict, *, label: str = "", task_id: int = 0,
 
     ``<root>/<subject>/cellreg_export/<same_site_id>[_<label>]_task<NN>``. The MATLAB driver
     consumes this folder flat and creates ``Results/`` inside it.
+
+    ``subject`` is no longer part of the site key (ADR-R8) but IS part of this path, which
+    must not change -- run 2's export directory is on disk and recorded. Callers therefore
+    pass it explicitly; ``CellRegTask.auto_generate_entries`` resolves it from
+    ``session.Session``.
     """
-    subject = site_key["subject"]
+    try:
+        subject = site_key["subject"]
+    except KeyError:
+        raise KeyError(
+            "export_dir_for needs 'subject' in site_key to build "
+            "<root>/<subject>/cellreg_export/..., but the site key no longer carries it "
+            "(ADR-R8). Resolve it from session.Session for one of the task's sessions and "
+            "pass {**site_key, 'subject': subject}.") from None
     site = site_key["same_site_id"]
     stem = f"{site}_{label}" if label else site
     stem = stem.replace(" ", "_").replace("/", "_")

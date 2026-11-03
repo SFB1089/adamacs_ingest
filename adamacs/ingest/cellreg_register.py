@@ -184,10 +184,22 @@ def manifest_columns(mod, task_row):
     """
     if task_row is None:
         return {}
-    key = {k: task_row[k] for k in ("subject", "same_site_id", "cellreg_task_id")}
+    key = {k: task_row[k] for k in ("same_site_id", "cellreg_task_id")}
     return {int(r["column_index"]):
             {a: r[a] for a in ("session_id", "scan_id", "paramset_idx", "curation_id")}
             for r in (mod.CellRegTask.Session & key).fetch(as_dict=True)}
+
+
+def manifest_note(task_row: dict) -> str:
+    """The provenance sentence recorded on a run whose columns came from a task.
+
+    A function rather than an inline f-string because it is the one place the task's
+    identity is rendered, and because a stale key here (it used to index ``subject``, which
+    left the key in ADR-R8) raises only on the declared path -- the path that matters most
+    and is exercised least. Now it is unit-testable without a database.
+    """
+    return (f"columns declared by CellRegTask {task_row['cellreg_task_id']} of "
+            f"site {task_row['same_site_id']}")[:400]
 
 def resolve_column_curation(conn, implied, candidates, *, imaging_schema="roselab_imaging"):
     """Compare ``implied`` against every candidate curation's stored roi_group.
@@ -309,9 +321,7 @@ def register_run(mod, record: dict, conn, *, dry_run=True, imaging_schema="rosel
     task_row = task_for_result(mod, path)
     manifest = manifest_columns(mod, task_row)
     if manifest:
-        note = ((note + " | ") if note else "") + (
-            f"columns declared by CellRegTask {task_row['cellreg_task_id']} of "
-            f"{task_row['subject']}/{task_row['same_site_id']}")[:400]
+        note = ((note + " | ") if note else "") + manifest_note(task_row)
     sessions, unresolved = [], []
     for col in range(n_cols):
         scan = scans[col] if col < len(scans) else None

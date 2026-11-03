@@ -186,7 +186,10 @@ def plan_site_task(conn, *, subject, site, paramset_idx=10, curation="max",
         c["column_index"] = i
 
     mpp = (keep[0] / keep[1]) if keep[0] and keep[1] else None
-    return {"subject": subject, "same_site_id": site, "paramset_idx": paramset_idx,
+    # site_key is what CellRegTask takes; subject is reported for the human reading the
+    # plan and for the export path, but is no longer part of the site's identity (ADR-R8).
+    return {"site_key": {"same_site_id": site},
+            "subject": subject, "same_site_id": site, "paramset_idx": paramset_idx,
             "curation_rule": curation, "stimulus": None if scans is not None else stimulus,
             "columns": columns, "excluded": excluded,
             "microns_per_pixel": round(mpp, 4) if mpp else None,
