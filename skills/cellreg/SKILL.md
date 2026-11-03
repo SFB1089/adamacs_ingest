@@ -139,12 +139,17 @@ cr.CellRegExport.populate(task, suppress_errors=False)
 
 `cellreg_paramset_id` is `varchar(40)` — keep slugs short. `assert_safe_target` refuses any
 
-**`auto_generate_entries` will refuse the task** if any declared session does not belong to
-`same_site_id` according to `session_same_site` — a registration spanning two sites is not a
-registration. Do not work around it by picking a different site id: regroup the sessions
-upstream in the ingest GUI, which is the only place that judgement belongs. Note the
-foreign key onto `session.SessionSite` does *not* give you this: every session is inserted
-there as its own site, so the FK catches a typo and nothing more.
+**Declaring a task is always allowed** (Tobias, 2026-11-03). `auto_generate_entries` checks
+whether every declared session maps to `same_site_id` in `session_same_site` and **records**
+the answer on the task — `site_agreement` is `all_match` or `mismatch`, with the offending
+sessions in `site_mismatch_detail` — then warns and proceeds. It never blocks.
+
+Do not treat a `mismatch` warning as an error: the ingest GUI assigns each session its own
+site by default, so most sites are singletons and "these sessions are not grouped yet" is the
+ordinary case, not a mistake. Read it as a prompt to check you meant it, and regroup upstream
+in the GUI if the grouping is genuinely wrong — that judgement belongs there, not here. The
+foreign key onto `session.SessionSite` tells you nothing about this either: every session is
+in that table, so it catches a typo and nothing more.
 
 To find which site a historical run covered, read `CellRegRun.Site` (derived from the run's
 resolved columns; no row means its columns did not agree on one site, or some column has no
