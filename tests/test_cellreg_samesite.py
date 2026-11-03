@@ -50,6 +50,15 @@ def test_manifest_note_fits_the_column():
     assert len(note) <= 400
 
 
+# tests/conftest.py installs a datajoint STUB when the real package is missing, and the
+# stub has no Schema, so importing the schema module raises AttributeError during
+# collection -- which importorskip does not catch. Same guard as
+# tests/test_cell_registration.py. (Caught in review on PR #24.)
+_dj = pytest.importorskip("datajoint", reason="needs datajoint")
+if not hasattr(_dj, "Schema"):
+    pytest.skip("datajoint is stubbed by conftest; this module needs the real package",
+                allow_module_level=True)
+
 cell_registration = pytest.importorskip("adamacs.schemas.cell_registration")
 
 
