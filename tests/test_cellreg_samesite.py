@@ -30,3 +30,21 @@ def test_export_dir_is_never_inside_a_suite2p_tree():
     out = cellreg_export.export_dir_for(
         {"same_site_id": "sess9FUCURTR", "subject": "ROS-2101"}, task_id=3)
     assert "suite2p" not in str(out) and str(out).endswith("_task03")
+
+
+cellreg_register = pytest.importorskip("adamacs.ingest.cellreg_register")
+
+
+def test_manifest_note_does_not_need_subject():
+    """ADR-R8 regression: the note used to index task_row['subject'], which raised KeyError
+    on every task-backed registration -- the declared path. Caught in review, not by a test,
+    which is why this test exists."""
+    note = cellreg_register.manifest_note(
+        {"cellreg_task_id": 0, "same_site_id": "sess9FUCURTR"})
+    assert note == "columns declared by CellRegTask 0 of site sess9FUCURTR"
+
+
+def test_manifest_note_fits_the_column():
+    note = cellreg_register.manifest_note(
+        {"cellreg_task_id": 99, "same_site_id": "s" * 12})
+    assert len(note) <= 400

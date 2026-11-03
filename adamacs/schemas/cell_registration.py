@@ -280,6 +280,13 @@ class CellRegRun(dj.Manual):
         session = _session()
         done = set(cls.Site.fetch("cellreg_run_id"))
         rows, skipped = [], {}
+        # The join onto SessionSameSite is INNER, so a resolved column whose session has no
+        # SessionSameSite row simply vanishes from it. Counting the resolved columns
+        # separately is what stops a run with one mapped and one unmapped column from being
+        # assigned a site on partial evidence -- absence of a mapping is not agreement.
+        n_resolved = {}
+        for r in (cls.Session & restriction).fetch("cellreg_run_id"):
+            n_resolved[r] = n_resolved.get(r, 0) + 1
         joined = (cls.Session & restriction).proj("session_id") * session.SessionSameSite
         per_run = {}
         for r in joined.fetch(as_dict=True):
@@ -291,6 +298,10 @@ class CellRegRun(dj.Manual):
             distinct = set(sites)
             if not distinct:
                 skipped[run_id] = "no resolved columns with a SessionSameSite row"
+            elif len(sites) != n_resolved.get(run_id, 0):
+                skipped[run_id] = (
+                    f"only {len(sites)} of {n_resolved.get(run_id, 0)} resolved columns have "
+                    f"a SessionSameSite row; refusing to infer a site from part of a run")
             elif len(distinct) > 1:
                 skipped[run_id] = f"columns span {len(distinct)} sites: {sorted(distinct)}"
             else:
