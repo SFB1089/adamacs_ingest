@@ -184,7 +184,7 @@ def manifest_columns(mod, task_row):
     """
     if task_row is None:
         return {}
-    key = {k: task_row[k] for k in ("subject", "same_site_id", "cellreg_task_id")}
+    key = {k: task_row[k] for k in ("same_site_id", "cellreg_task_id")}
     return {int(r["column_index"]):
             {a: r[a] for a in ("session_id", "scan_id", "paramset_idx", "curation_id")}
             for r in (mod.CellRegTask.Session & key).fetch(as_dict=True)}

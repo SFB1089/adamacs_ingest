@@ -94,7 +94,8 @@ def activate(schema_name: str, *, create_schema: bool = True, create_tables: boo
     module = importlib.import_module(linking_module)
     _linking_module = module
     schema.activate(schema_name, create_schema=create_schema, create_tables=create_tables,
-                    add_objects={"imaging": module.imaging, **globals()})
+                    add_objects={"imaging": module.imaging, "session": module.session,
+                                 **globals()})
     return schema
 
 
@@ -110,6 +111,31 @@ def _imaging():
             "cell_registration.activate() has not been called, so the upstream imaging "
             "module is unknown. Call activate(schema_name, linking_module=...) first.")
     return _linking_module.imaging
+
+
+def _session():
+    """The upstream session module, for use inside method bodies.
+
+    Same contract as :func:`_imaging`. ``session.SessionSameSite`` is the authority on which
+    sessions form one chronically imaged site; this schema reads it and never writes it.
+    """
+    if _linking_module is None:
+        raise dj.DataJointError(
+            "cell_registration.activate() has not been called, so the upstream session "
+            "module is unknown. Call activate(schema_name, linking_module=...) first.")
+    return _linking_module.session
+
+
+def site_of_sessions(session_ids):
+    """Map session ids to their ``same_site_id``, as ``{session_id: same_site_id}``.
+
+    Sessions with no ``SessionSameSite`` row are simply absent from the result -- the caller
+    decides whether that is fatal. Never invents a site for a session.
+    """
+    session = _session()
+    rows = (session.SessionSameSite & [{"session_id": s} for s in set(session_ids)]).fetch(
+        "session_id", "same_site_id")
+    return dict(zip(*rows)) if len(rows[0]) else {}
 
 
 def canonical_json(params: dict) -> str:
@@ -221,6 +247,60 @@ class CellRegRun(dj.Manual):
     adamacs_sha=''          : varchar(40)
     run_note=''             : varchar(512)
     """
+
+    class Site(dj.Part):
+        definition = """
+        # Which chronically imaged site this run covers, DERIVED from its resolved columns.
+        #
+        # The 102 historical runs were parsed from result files that name no site, so this
+        # is reconstructed: every resolved column's session is mapped through
+        # session_same_site, and a row is written only when they agree on exactly one site.
+        # A run whose columns span two sites gets NO ROW -- absence means "not coherent",
+        # never "unknown", the same convention as UnresolvedColumn.
+        #
+        # same_site_id is a plain attribute, not a foreign key: it is guaranteed to be a
+        # real site by construction (it comes out of session_same_site, which is itself an
+        # FK onto session_site), and keeping it plain stops a reconstruction from being
+        # mistaken for a declaration. The DECLARED path is CellRegTask -> RegistrationSite.
+        -> master
+        ---
+        same_site_id        : varchar(12)
+        n_columns           : smallint    # resolved columns that agreed on this site
+        derived_on          : datetime
+        """
+
+    @classmethod
+    def derive_sites(cls, restriction=True, *, dry_run=False):
+        """Fill :class:`CellRegRun.Site` from each run's resolved columns.
+
+        Returns ``(inserted, skipped)`` where ``skipped`` maps a run id to why it got no
+        row -- either it has no resolved columns, or its columns span several sites.
+        Idempotent: runs that already have a row are left alone.
+        """
+        session = _session()
+        done = set(cls.Site.fetch("cellreg_run_id"))
+        rows, skipped = [], {}
+        joined = (cls.Session & restriction).proj("session_id") * session.SessionSameSite
+        per_run = {}
+        for r in joined.fetch(as_dict=True):
+            per_run.setdefault(r["cellreg_run_id"], []).append(r["same_site_id"])
+        for run_id in (cls & restriction).fetch("cellreg_run_id"):
+            if run_id in done:
+                continue
+            sites = per_run.get(run_id, [])
+            distinct = set(sites)
+            if not distinct:
+                skipped[run_id] = "no resolved columns with a SessionSameSite row"
+            elif len(distinct) > 1:
+                skipped[run_id] = f"columns span {len(distinct)} sites: {sorted(distinct)}"
+            else:
+                rows.append({"cellreg_run_id": run_id,
+                             "same_site_id": distinct.pop(),
+                             "n_columns": len(sites),
+                             "derived_on": _dt.datetime.now()})
+        if rows and not dry_run:
+            cls.Site.insert(rows)
+        return rows, skipped
 
     class Copy(dj.Part):
         definition = """
@@ -501,22 +581,24 @@ class MaskCoordinates(dj.Imported):
 @schema
 class RegistrationSite(dj.Manual):
     definition = """
-    # A field of view followed over days. same_site_id is the site's FIRST session id
-    # ('sess9FOTVMAL'), matching the cellreg folder convention, upstream
-    # roselab_session.session_same_site, and roselab_leondrift.RunSet.Site.
+    # A field of view followed over days: EXACTLY the lab's own site identifier, taken by
+    # foreign key from roselab_session.session_site rather than restated here.
     #
-    # varchar(12) deliberately mirrors roselab_session.session_same_site.same_site_id
-    # exactly, so that if the upstream grouping is ever repaired this table can take a
-    # real foreign key to it without a type migration. (leondrift chose varchar(16); the
-    # live values are 12 characters.)
+    # The FK replaces the local varchar this table used to carry (ADR-R8, 2026-11-03).
+    # subject is NOT in the key: session_site's primary key is same_site_id alone, so the
+    # subject is derivable via session_same_site * session.Session and carrying it here
+    # would permit one site under two animals.
     #
-    # Why a local table rather than an FK today: upstream is populated for all 3,460
-    # sessions but DEFAULTS TO SELF-REFERENCE -- 2,561 of them have
-    # same_site_id = session_id -- so "never assigned to a site" and "a site of exactly
-    # one session" are indistinguishable there. 41 sites do carry genuine multi-session
-    # groupings (up to 66 sessions). site_id_source records which case a row came from.
-    subject                 : varchar(16)
-    same_site_id            : varchar(12)
+    # WHAT THE FK DOES AND DOES NOT GUARANTEE. adamacs/ingest/session.py inserts every
+    # session into SessionSite with same_site_id = session_id, so most rows in the FK
+    # target are single-session defaults rather than chronic sites; "never assigned to a
+    # site" and "a site of exactly one session" remain indistinguishable upstream. The FK
+    # therefore proves only that the string is a known site row -- it stops a typo, not a
+    # plausible-but-wrong session id. The check with teeth lives in
+    # CellRegTask.auto_generate_entries: every declared session must map, through
+    # session_same_site, to this site. Counts are deliberately not quoted here; they move,
+    # and notebook 19 reads them live.
+    -> session.SessionSite
     ---
     site_description=''     : varchar(255)
     site_id_source          : enum('cellreg_folder','manual','same_site_id')
@@ -591,7 +673,7 @@ class CellRegTask(dj.Manual):
         column_index            : smallint   # 0-based; becomes CellRegRun.Session.column_index
         ---
         -> imaging.Curation
-        unique index (subject, same_site_id, cellreg_task_id, session_id, scan_id, paramset_idx, curation_id)
+        unique index (same_site_id, cellreg_task_id, session_id, scan_id, paramset_idx, curation_id)
         """
 
     @classmethod
@@ -618,9 +700,33 @@ class CellRegTask(dj.Manual):
         if missing:
             raise ValueError(f"these curations do not exist: {missing}")
 
+        # THE CHECK WITH TEETH. The foreign key onto session.SessionSite only proves the
+        # site string is a known row -- every session is inserted there as its own site, so
+        # a plausible-but-wrong id passes. What makes a task's columns provably ONE field of
+        # view is that each declared session belongs to this site upstream.
+        site = site_key["same_site_id"]
+        mapping = site_of_sessions([c["session_id"] for c in curations])
+        wrong = {c["session_id"]: mapping.get(c["session_id"])
+                 for c in curations if mapping.get(c["session_id"]) != site}
+        if wrong:
+            raise ValueError(
+                f"these sessions do not belong to site {site} according to "
+                f"session_same_site: {wrong}. A registration spanning two sites is not a "
+                f"registration; regroup the sessions upstream (the ingest GUI) first, or "
+                f"declare the task against the site they actually belong to. "
+                f"(None means the session has no SessionSameSite row at all.)")
+
         existing = (cls & site_key).fetch("cellreg_task_id")
         task_id = (max(existing) + 1) if len(existing) else 0
-        out = output_dir or export_dir_for(site_key, label=label, task_id=task_id)
+        if output_dir is None:
+            # The export path keeps its <root>/<subject>/... layout, so the subject is
+            # resolved here rather than carried in the key it no longer belongs to.
+            subject = (_session().Session
+                       & {"session_id": curations[0]["session_id"]}).fetch1("subject")
+            out = export_dir_for({**site_key, "subject": subject},
+                                 label=label, task_id=task_id)
+        else:
+            out = output_dir
         cls.insert1({**site_key, "cellreg_task_id": task_id,
                      "cellreg_paramset_id": paramset, "task_mode": task_mode,
                      "cellreg_output_dir": str(out), "task_label": label,

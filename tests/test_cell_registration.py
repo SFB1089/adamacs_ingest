@@ -188,7 +188,10 @@ def test_import_declares_nothing():
 
 
 def test_every_table_has_a_definition():
-    """13 master tables and 12 part tables = 25 definitions.
+    """13 master tables and 13 part tables = 26 definitions.
+
+    CellRegRun.Site (ADR-R8) is the 13th part: the site a historical run covers, derived
+    from its resolved columns.
 
     The counts are a deliberate tripwire, not a second source of truth: the *validator*
     discovers the table set from the module, so it can never fall behind. This test exists
@@ -210,7 +213,7 @@ def test_every_table_has_a_definition():
                     f"{name}.{part_name} has an empty definition"
                 parts += 1
     assert masters == 13, f"expected 13 master tables, found {masters}"
-    assert parts == 12, f"expected 12 part tables, found {parts}"
+    assert parts == 13, f"expected 13 part tables, found {parts}"
 
 
 def test_cell_is_session_free():
