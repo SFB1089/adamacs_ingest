@@ -35,143 +35,93 @@ def _require_imageio_ffmpeg():
             "Install with: pip install imageio-ffmpeg"
         ) from exc
 
-def calculate_dFF(Fall, Fneu_all, framerate, event_module, scan_key, 
-                  neuropil_factor=0.3, smoothing_window_seconds=120, percentile=15, 
+def calculate_dFF(Fall, Fneu_all, framerate, event_module, scan_key,
+                  neuropil_factor=0.3, smoothing_window_seconds=120, percentile=15,
                   darkframe_correction=True, shuttertime=0.09):
+    """dF/F0 with dark-frame, neuropil and running-percentile baseline (wrapper, deprecated).
+
+    Thin wrapper around ``element_calcium_imaging.dff.compute_dff0`` -- the single
+    implementation that ``imaging.Dff0`` and CASCADE use -- with the recipe this function
+    always computed:
+
+    1. dark signal: mean of the all-cell average trace in the shutter-closed window (shutter
+       events, ``shuttertime`` margin, nearest 2P frame), falling back to frames 12-24;
+       skipped if ``darkframe_correction`` is False;
+    2. dF = (F - a*Fneu) + a*median(Fneu), a = ``neuropil_factor``;
+    3. F0 = running percentile (``percentile``) over ``smoothing_window_seconds``;
+    4. dF/F0 = (dF - F0) / F0, no floor.
+
+    The defaults are this function's historical signature (0.3 / 120 s / p15). The lab's
+    CASCADE recipe is 0.7 / 60 s / p8 (``imaging.DffParamSet`` row 2). For stored, reproducible
+    dF/F0 use ``imaging.Dff0`` instead of calling this.
+
+    Returns
+    -------
+    dFF, dF, F0 : (n_cells, n_frames) arrays
+    mean_darksignal : float, or None if ``darkframe_correction`` is False
     """
-    Calculate ΔF/F0 for calcium imaging traces with darkframe correction, neuropil correction, and baseline estimation.
-    
-    This function performs the standard calcium imaging preprocessing pipeline:
-    1. Darkframe correction: Subtract mean dark signal from both F and F_neuropil
-    2. Neuropil correction: dF = (F - neuropil_factor * F_neuropil) + median correction
-    3. Baseline (F0) estimation using percentile filtering
-    4. ΔF/F0 calculation: (dF - F0) / F0
-    
-    Parameters:
-    -----------
-    Fall : np.ndarray
-        Fluorescence traces, shape (n_cells, n_frames)
-    Fneu_all : np.ndarray
-        Neuropil fluorescence traces, shape (n_cells, n_frames)
-    framerate : float
-        Imaging frame rate in Hz (frames per second)
-    event_module : module
-        DataJoint event module for accessing Event table (e.g., from adamacs.pipeline import event)
-    scan_key : dict
-        DataJoint scan key containing session_id and scan_id
-    neuropil_factor : float, default=0.7
-        Factor for neuropil correction. Typical values: 0.7 (default in Suite2p)
-    smoothing_window_seconds : float, default=60
-        Window size in seconds for baseline (F0) estimation using percentile filtering
-    percentile : int, default=15
-        Percentile value for baseline estimation. Lower values give lower baselines.
-        Typical values: 8-15
-    darkframe_correction : bool, default=True
-        Whether to perform darkframe correction before other processing
-    shuttertime : float, default=0.09
-        Shutter time offset in seconds for darkframe calculation
-    
-    Returns:
-    --------
-    dFF : np.ndarray
-        Normalized fluorescence change (ΔF/F0), shape (n_cells, n_frames)
-    dF : np.ndarray
-        Neuropil-corrected fluorescence, shape (n_cells, n_frames)
-    F0 : np.ndarray
-        Estimated baseline fluorescence, shape (n_cells, n_frames)
-    mean_darksignal : float or None
-        Mean dark signal value (if darkframe_correction=True), None otherwise
-        
-    Example:
-    --------
-    >>> from adamacs.pipeline import event
-    >>> 
-    >>> # Fetch fluorescence data
-    >>> traces = (imaging.Fluorescence.Trace & key).fetch(as_dict=True, order_by="mask")
-    >>> Fall = np.vstack([trace['fluorescence'] for trace in traces])
-    >>> Fneu_all = np.vstack([trace['neuropil_fluorescence'] for trace in traces])
-    >>> framerate = (scan.ScanInfo & key).fetch1('fps')
-    >>> 
-    >>> # Calculate dFF with darkframe correction
-    >>> dFF, dF, F0, mean_darksignal = calculate_dFF(
-    ...     Fall, Fneu_all, framerate, event, key,
-    ...     neuropil_factor=0.7, 
-    ...     smoothing_window_seconds=60, 
-    ...     percentile=15,
-    ...     darkframe_correction=True
-    ... )
-    """
-    from scipy.ndimage import percentile_filter
-    from joblib import Parallel, delayed
-    
-    # Darkframe correction
-    mean_darksignal = None
+    import warnings
+
+    from element_calcium_imaging import dff as _dff
+
+    warnings.warn("calculate_dFF is deprecated: use imaging.Dff0 (stored) or "
+                  "element_calcium_imaging.dff.compute_dff0", DeprecationWarning, stacklevel=2)
+    rec = dict(neuropil_factor=neuropil_factor, neuropil_offset="median", detrend_method="none",
+               baseline_method="running_percentile", baseline_percentile=percentile,
+               baseline_window_s=smoothing_window_seconds, f0_floor_method="none")
+    frame_times = starts = ends = None
     if darkframe_correction:
-        mean_darksignal = calculate_mean_darksignal(event_module, Fall, scan_key, shuttertime=shuttertime)
-        Fall = Fall - mean_darksignal
-        Fneu_all = Fneu_all - mean_darksignal
-    
-    # Calculate smoothing window size in frames
-    smoothing_window = int(framerate * smoothing_window_seconds)
-    
-    # Neuropil correction with median offset to avoid negative values
-    dF = (Fall - neuropil_factor * Fneu_all) + (np.nanmedian(Fneu_all, axis=1, keepdims=True) * neuropil_factor)
-    
-    # Define baseline (F0) computation function
-    def compute_F0_single(trace_dF, smoothing_window, percentile):
-        """Compute baseline for a single trace using percentile filtering"""
-        return percentile_filter(trace_dF, percentile, size=smoothing_window)
-    
-    # Parallelize F0 computation across all traces
-    F0 = np.array(Parallel(n_jobs=-1)(
-        delayed(compute_F0_single)(dF[i, :], smoothing_window, percentile) 
-        for i in range(dF.shape[0])
-    ))
-    
-    # Calculate ΔF/F0 (normalized fluorescence change)
-    dFF = (dF - F0) / F0
-    
-    return dFF, dF, F0, mean_darksignal
-
-
-# Function to calculate the mean darksignal of the mean of all traces for a given scan and shuttertime
-def calculate_mean_darksignal(event_module, traces, scan_key, shuttertime=0.09):
-    """
-    Calculate the mean darksignal of the mean of all traces for a given scan and shuttertime.
-    Args:
-        traces: list or array of fluorescence traces (each trace is 1D array or dict with 'fluorescence' key)
-        scan_key: DataJoint key for the scan
-        shuttertime: float, shutter time offset (default: 0.09)
-    Returns:
-        mean_darksignal: float, mean darksignal value
-    """
-    # Get darkframe times
-    try:
-        darkframe_shutter_start = (event.Event() & "event_type='shutter'" & scan_key).fetch('event_start_time')
-        darkframe_shutter_end = (event.Event() & "event_type='shutter'" & scan_key).fetch('event_end_time')
-        darkframetimes = [float(darkframe_shutter_end[0]) + shuttertime, float(darkframe_shutter_start[1]) - shuttertime]
-        twoptimestamps = (event.Event() & 'event_type LIKE "%2p_frames%"' & scan_key).fetch('event_start_time')
-        darkframes = get_closest_timestamps(darkframetimes, twoptimestamps.astype('float'))
-    except Exception:
-        darkframes = [12, 24]  # Hardcoding! Problem: importing event already in imaging is problematic
-        print("event.Event() not available, using hardcoded darkframes")
-        print("darkframes: ", darkframes)
-
-    # Stack traces if needed
-    if isinstance(traces[0], dict) and 'fluorescence' in traces[0]:
-        traces_stack = np.vstack([tr['fluorescence'] for tr in traces])
+        rec.update(dark_method="shutter", dark_margin_s=shuttertime, dark_frame_start=12, dark_frame_stop=24)
+        try:
+            frame_times, starts, ends = _shutter_inputs(event_module, scan_key)
+        except Exception:
+            pass                                     # resolve_dark falls back to frames 12-24
     else:
-        traces_stack = np.vstack(traces)
-    average_trace = np.mean(traces_stack, axis=0)
-    mean_darksignal = np.mean(average_trace[darkframes[0]:darkframes[-1]])
-    
-    print("Mean darksignal: ", mean_darksignal)
-    print("Darkframes used: ", darkframes)
-    print('Event darkframe times: ', darkframetimes)
-    
-    return mean_darksignal
-# Example usage:
-# mean_darksignal = calculate_mean_darksignal(traces, scan_key)
+        rec.update(dark_method="none")
+    out = _dff.compute_dff0(Fall, Fneu_all, framerate, rec, frame_times, starts, ends,
+                            n_jobs=-1, return_intermediates=True)
+    dark = out["dark_signal"] if darkframe_correction else None
+    if out["dark_source"] == "fallback_frames":
+        print("shutter events not available, using fallback dark frames 12-24")
+    # compute_dff0 stores dF/F0 as float32; this helper historically returned the native
+    # result of (dF - F0) / F0, so rebuild it from the intermediates in their own dtype
+    dF, F0 = out["dF"], out["F0"]
+    dFF = (dF - F0) / F0
+    return dFF, dF, F0, dark
+
+
+def _shutter_inputs(event_module, scan_key):
+    """(2P frame times, shutter starts, shutter ends) of a scan from ``event_module.Event``."""
+    frame_times = (event_module.Event & scan_key & 'event_type LIKE "%%2p_frames%%"').fetch(
+        "event_start_time", order_by="event_start_time").astype(float)
+    starts, ends = (event_module.Event & scan_key & "event_type='shutter'").fetch(
+        "event_start_time", "event_end_time", order_by="event_start_time")
+    starts = np.asarray(starts, dtype=float)
+    ends = np.asarray([np.nan if e is None else float(e) for e in ends])
+    return frame_times, starts, ends
+
+
+def calculate_mean_darksignal(event_module, traces, scan_key, shuttertime=0.09):
+    """Mean dark signal of a scan (wrapper, deprecated): ``element_calcium_imaging.dff.resolve_dark``.
+
+    Shutter-closed window with ``shuttertime`` margin, falling back to frames 12-24.
+    """
+    from element_calcium_imaging import dff as _dff
+    if isinstance(traces[0], dict) and 'fluorescence' in traces[0]:
+        F = np.vstack([tr['fluorescence'] for tr in traces])
+    else:
+        F = np.vstack(traces)
+    rec = _dff.normalise_recipe(dict(dark_method="shutter", dark_margin_s=shuttertime, dark_frame_start=12,
+                                     dark_frame_stop=24, neuropil_factor=0.7, neuropil_offset="median",
+                                     baseline_method="running_percentile", baseline_percentile=8,
+                                     baseline_window_s=60.0, f0_floor_method="none"))
+    try:
+        frame_times, starts, ends = _shutter_inputs(event_module, scan_key)
+    except Exception:
+        frame_times = starts = ends = None
+    value, first, stop, source = _dff.resolve_dark(rec, F, frame_times, starts, ends)
+    print(f"Mean darksignal: {value} (frames {first}-{stop}, {source})")
+    return value
 
 
 # Function to find the closest timestamp in a series
