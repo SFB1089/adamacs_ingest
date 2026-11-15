@@ -46,7 +46,15 @@ def read_tables(src: str):
     return out
 
 
-def read_definition(src: str, cls: str, is_part: bool) -> str:
+def read_definition(src: str, cls: str, is_part: bool, master: str | None = None) -> str:
+    """The definition string of one table. Parts are looked up inside their master's class
+    body when ``master`` is given: part names repeat across masters (two ``Session`` parts in
+    cell_registration), so a search over the whole file returns the first one for both."""
+    if is_part and master:
+        start = re.search(rf"^@schema\s*\n\s*class\s+{master}\(", src, re.M)
+        if start:
+            nxt = re.search(r"^@schema\s*$", src[start.end():], re.M)
+            src = src[start.start(): start.end() + (nxt.start() if nxt else len(src))]
     pat = (rf"class\s+{cls}\(dj\.Part\):\s*\n\s*definition\s*=\s*\"\"\"(.*?)\"\"\""
            if is_part else
            rf"^@schema\s*\n\s*class\s+{cls}\(dj\.\w+[^)]*\):\s*\n(?:.*?\n)*?"
@@ -265,7 +273,7 @@ def build_workflow():
 def main(outdir: str = "notebooks/figures") -> int:
     src = open(SCHEMA).read()
     tables = read_tables(src)
-    parsed = {full: parse_definition(read_definition(src, full.split(".")[-1], bool(master)))
+    parsed = {full: parse_definition(read_definition(src, full.split(".")[-1], bool(master), master))
               for full, _, master in tables}
 
     missing = [f for f, p in parsed.items() if not (p["pk_attr"] or p["pk_fk"])]

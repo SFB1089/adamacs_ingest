@@ -15,6 +15,7 @@ Writes, into ``outdir`` (default: ``notebooks/schema_diagrams`` of this checkout
 * ``cell_registration_erd.svg`` / ``cell_registration_workflow.svg``  parsed from
   ``adamacs/schemas/cell_registration.py`` (scripts/draw_cell_registration_diagrams.py)
 * ``responsiveness_erd.svg``    parsed from ``adamacs/schemas/responsiveness.py`` (not deployed yet)
+* ``responsiveness_v4_proposal.svg``  parsed from the ```python blocks of ``docs/RESPONSIVENESS_SCHEMA_PROPOSAL.md``
 """
 from __future__ import annotations
 
@@ -103,7 +104,7 @@ def overview(outdir):
 def parsed_erd(schema_file, title, outdir, stem):
     src = open(os.path.join(REPO, "adamacs", "schemas", schema_file)).read()
     tables = cr.read_tables(src)
-    parsed = {full: cr.parse_definition(cr.read_definition(src, full.split(".")[-1], master is not None))
+    parsed = {full: cr.parse_definition(cr.read_definition(src, full.split(".")[-1], master is not None, master))
               for full, tier, master in tables}
     g = graphviz.Digraph(stem, format="svg")
     g.attr(rankdir="TB", fontname="Helvetica", ranksep="0.4", nodesep="0.26", label=title,
@@ -130,6 +131,52 @@ def parsed_erd(schema_file, title, outdir, stem):
     return path + ".svg"
 
 
+def proposal_diagram(doc_path, title, outdir, stem):
+    """Diagram of the tables defined in the ```python blocks of a design document.
+
+    Each class is read with its own definition in source order (part names repeat across
+    masters, e.g. four ``Mask`` parts), and ``master.X`` references are resolved.
+    """
+    import re
+    code = "\n".join(re.findall(r"```python\n(.*?)```", open(doc_path).read(), re.S))
+    tables, parsed, master = [], {}, None
+    for m in re.finditer(r'^( *)class (\w+)\((dj\.\w+)\):[^\n]*\n\s*definition = """(.*?)"""', code, re.M | re.S):
+        indent, name, tier, defn = m.groups()
+        if indent == "":
+            master, full, mst = name, name, None
+        else:
+            full, mst, tier = f"{master}.{name}", master, "dj.Part"
+        tables.append((full, tier, mst))
+        parsed[full] = cr.parse_definition(defn)
+
+    def resolve(dep, mst):
+        if dep == "master":
+            return mst
+        return mst + "." + dep.split(".", 1)[1] if dep.startswith("master.") else dep
+
+    g = graphviz.Digraph(stem, format="svg")
+    g.attr(rankdir="TB", fontname="Helvetica", ranksep="0.45", nodesep="0.25", fontsize="10",
+           labelloc="b", label=title)
+    g.attr("node", shape="box", style="filled,rounded", fontname="Helvetica", fontsize="10")
+    own = {f for f, _, _ in tables}
+    ext = {resolve(d, mst) for f, _, mst in tables for d, _ in parsed[f]["pk_fk"] + parsed[f]["sec_fk"]} - own - {None}
+    for d in sorted(ext):
+        g.node(cr.node_id(d), d, fillcolor="#fdf2d8", color="#c89f3c", style="filled,rounded,dashed")
+    for f, t, mst in tables:
+        g.node(cr.node_id(f), cr.node_label(f, parsed[f], mst), fillcolor=cr.FILL[t], color=cr.LINE[t])
+        if mst:
+            g.edge(cr.node_id(mst), cr.node_id(f), arrowhead="none", color="#b0b0b0", penwidth="2")
+        for dep, _ in parsed[f]["pk_fk"]:
+            if dep != "master":
+                g.edge(cr.node_id(resolve(dep, mst)), cr.node_id(f))
+        for dep, nullable in parsed[f]["sec_fk"]:
+            g.edge(cr.node_id(resolve(dep, mst)), cr.node_id(f), style="dashed", color="#8a8a8a",
+                   **({"label": " nullable"} if nullable else {}))
+    path = os.path.join(outdir, stem)
+    g.render(path, cleanup=True)
+    return path + ".svg"
+
+
 def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     os.makedirs(outdir, exist_ok=True)
     dj.conn().query("SET SESSION transaction_read_only = 1")
@@ -144,7 +191,7 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     # cell_registration: the schema's own ERD + workflow, rendered as SVG
     src = open(cr.SCHEMA).read()
     tables = cr.read_tables(src)
-    parsed = {full: cr.parse_definition(cr.read_definition(src, full.split(".")[-1], master is not None))
+    parsed = {full: cr.parse_definition(cr.read_definition(src, full.split(".")[-1], master is not None, master))
               for full, tier, master in tables}
     erd = cr.build_erd(tables, parsed)
     erd.format = "svg"
@@ -156,6 +203,10 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     p = parsed_erd("responsiveness.py",
                    "responsiveness (adamacs/schemas/responsiveness.py, not deployed): legacy CASCADE provenance; "
                    "amber dashed = imaging tables it references", outdir, "responsiveness_erd")
+    print("wrote", os.path.relpath(p, REPO))
+    p = proposal_diagram(os.path.join(REPO, "docs", "RESPONSIVENESS_SCHEMA_PROPOSAL.md"),
+                         "responsiveness v4 (proposal, not declared): solid = FK in primary key, dashed = secondary FK, "
+                         "thick grey = master-part, amber = existing production tables", outdir, "responsiveness_v4_proposal")
     print("wrote", os.path.relpath(p, REPO))
     return 0
 

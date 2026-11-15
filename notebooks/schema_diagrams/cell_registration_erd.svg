@@ -70,13 +70,13 @@
 <text text-anchor="start" x="1085.75" y="-226.03" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="9.00">Session</text>
 <text text-anchor="start" x="1071.88" y="-218.93" font-family="Helvetica,sans-Serif" font-style="italic" font-size="7.00" fill="#555555">part of</text>
 <text text-anchor="start" x="1092.12" y="-218.93" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#555555"> CellRegTask</text>
-<text text-anchor="start" x="1085.38" y="-211.93" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#555555">→ Curation</text>
+<text text-anchor="start" x="1081.62" y="-211.93" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#555555">column_index</text>
 </g>
 <!-- imaging__Curation&#45;&gt;CellRegTask__Session -->
 <g id="edge24" class="edge">
 <title>imaging__Curation&#45;&gt;CellRegTask__Session</title>
-<path fill="none" stroke="#5a5a5a" stroke-width="1.1" d="M1025.52,-268.7C1038.84,-260.86 1054.65,-251.55 1068.51,-243.39"/>
-<polygon fill="#5a5a5a" stroke="#5a5a5a" stroke-width="1.1" points="1069.21,-244.82 1073.31,-239.97 1067.08,-241.2 1069.21,-244.82"/>
+<path fill="none" stroke="#8a8a8a" stroke-dasharray="5,2" d="M1025.52,-268.7C1039.07,-260.72 1055.22,-251.21 1069.25,-242.95"/>
+<polygon fill="#8a8a8a" stroke="#8a8a8a" points="1074.31,-239.97 1070.51,-245.34 1071.73,-241.49 1069.14,-243.01 1069.14,-243.01 1069.14,-243.01 1071.73,-241.49 1067.77,-240.69 1074.31,-239.97 1074.31,-239.97"/>
 </g>
 <!-- CellRegExport__File -->
 <g id="node22" class="node">
