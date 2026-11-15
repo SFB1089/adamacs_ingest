@@ -14,6 +14,8 @@ Three stages, because CASCADE must run with the worker's own Cascade checkout on
 import argparse
 import datetime as dt
 import glob
+import hashlib
+import json
 import os
 import sys
 
@@ -36,7 +38,16 @@ def _activate(schema, store, store_dir):
 
 
 def _name(k):
-    return f"{k['scan_id']}_c{k['curation_id']}_{k['extraction_method']}"
+    """File stem carrying the full activity identity (scan, paramset, curation, method)."""
+    return f"{k['scan_id']}_p{k['paramset_idx']}_c{k['curation_id']}_{k['extraction_method']}"
+
+
+def _fingerprint(masks, channels, dff):
+    """sha1 over the exported inputs, copied into the prediction so stale predictions are detected."""
+    h = hashlib.sha1()
+    for arr in (np.asarray(masks, np.int64), np.asarray(channels, np.int64), np.ascontiguousarray(dff, np.float32)):
+        h.update(arr.tobytes())
+    return h.hexdigest()
 
 
 def export(a, vm):
@@ -57,9 +68,14 @@ def export(a, vm):
                                                               order_by="mask, fluo_channel")
         assert list(zip(m1, c1)) == list(zip(m2, c2)), (act, m1, c1, m2, c2)
         model = (im.ActivityCascadeTask & act).fetch1("model_name")
-        np.savez(os.path.join(a.out, _name(act) + ".npz"), masks=np.asarray(m1), channels=np.asarray(c1), dff=np.vstack(dff),
+        dff = np.vstack(dff)
+        stem = os.path.join(a.out, _name(act))
+        if os.path.exists(stem + ".pred.npz"):      # a rewritten export invalidates its old prediction
+            os.remove(stem + ".pred.npz")
+        np.savez(stem + ".npz", masks=np.asarray(m1), channels=np.asarray(c1), dff=dff,
                  stored=np.vstack(spk), model_name=model, dff_paramset_idx=ci["dff_paramset_idx"],
-                 key=str({**act}))
+                 key=json.dumps({k: (int(v) if isinstance(v, (int, np.integer)) else str(v)) for k, v in act.items()}),
+                 fingerprint=_fingerprint(m1, c1, dff))
         print("exported", _name(act), "recipe", ci["dff_paramset_idx"], model, len(m1), "masks")
 
 
@@ -73,12 +89,18 @@ def compare(a, vm):
             print("no prediction for", f)
             continue
         z, q = np.load(f, allow_pickle=True), np.load(p, allow_pickle=True)
+        if "fingerprint" not in q.files or str(q["fingerprint"]) != str(z["fingerprint"]):
+            print("stale or unverifiable prediction, skipped:", os.path.basename(p))
+            continue
         S, P = z["stored"].astype(float), q["pred"].astype(float)
+        if S.shape != P.shape:
+            print("shape mismatch, skipped:", os.path.basename(p), S.shape, P.shape)
+            continue
         ok = np.isfinite(S) & np.isfinite(P)
         d = np.abs(S - P)[ok]
         corr = [np.corrcoef(s[o], r[o])[0, 1] for s, r, o in zip(S, P, ok) if o.sum() > 10 and np.std(s[o]) > 0]
         nan_agree = bool(np.array_equal(np.isnan(S), np.isnan(P)))
-        key = eval(str(z["key"]))  # noqa: S307 (written by export above)
+        key = json.loads(str(z["key"]))
         row = {**key, "dff_paramset_idx": int(z["dff_paramset_idx"]), "model_name": str(z["model_name"]),
                "cascade_commit": a.cascade_commit, "run_host": a.host, "n_masks_checked": int(S.shape[0]),
                "max_abs_diff": float(d.max()), "median_abs_diff": float(np.median(d)),

@@ -5,7 +5,7 @@ production worker are not touched:
 
     CUDA_VISIBLE_DEVICES= ~/miniconda3/envs/Cascade/bin/python cascade_predict_npz.py <dir>
 
-For every <name>.npz without a <name>.pred.npz, calls cascade.predict(model_name, dff,
+For every <name>.npz without a <name>.pred.npz (export deletes a stale one), calls cascade.predict(model_name, dff,
 verbosity=0) exactly as imaging.Activity.make does (default threshold and padding).
 """
 import glob
@@ -26,5 +26,7 @@ for f in sorted(glob.glob(os.path.join(d, "*.npz"))):
         continue
     z = np.load(f, allow_pickle=True)
     pred = cascade.predict(str(z["model_name"]), z["dff"], verbosity=0)
-    np.savez(f[:-4] + ".pred.npz", pred=pred)
+    # carry the input fingerprint so compare can reject a prediction made for a different export
+    np.savez(f[:-4] + ".pred.npz", pred=pred,
+             fingerprint=str(z["fingerprint"]) if "fingerprint" in z.files else "")
     print("predicted", os.path.basename(f), pred.shape, flush=True)
