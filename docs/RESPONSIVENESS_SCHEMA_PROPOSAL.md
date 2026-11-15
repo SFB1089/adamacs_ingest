@@ -32,17 +32,29 @@ something no other table holds. §6 lists what v3 had and why it is gone.
 
 ---
 
-## 2. The tables (12 + parts)
+## 2. The tables (17 + parts)
 
 ```
- TRACE & EVENT DEFINITIONS (Lookup)         WHAT TO COMPUTE (Manual)       RESULTS (Computed)
- TraceSource ──┐                                                           ┌─► TraceQuality(.Mask)          ACTIVE
- EventSelector ┼──────────────► ResponseTask ◄── imaging.Fluorescence      ├─► EventSet(.Event) ─┐
- ResponseParamSet ┘                     │                                  │                     │
-                                        └──────────────────────────────────┼─► Zeta(.Mask, .Condition)    RESPONSIVE / SPECIFIC
-                                                                           ├─► WindowResponse(.Mask)       RESPONSIVE / SELECTIVE / RELIABLE
-                                                                           │      └─► CircularTuning(.Mask) TUNED (circular axes only)
- CellRule(.Criterion) ─────────────────────────────────────────────────────┴─► CellCategory(.Mask)         DECISION
+ DEFINITIONS (Lookup)            WHAT TO COMPUTE (Manual)                     RESULTS (Computed)
+
+ QC, no task needed (computed for curations some task uses):
+   scan.Scan ────────────► PhotonTransfer ─┐
+   imaging.Fluorescence ─┬──────────────────┴─► PhotonBudget(.Mask)              photons/s per cell        FIDELITY
+                         ├─► NeuropilSweep                                       neuropil factor            FIDELITY
+                         └─► TraceQuality(.Mask)                                 kurtosis, neuropil r       FIDELITY
+   imaging.Segmentation ───► MaskShape(.Mask)                                    compactness, overlap       FIDELITY
+   imaging.Dff0 ───────────► DffQuality(.Mask)                                   noise nu, SNR, skew        ACTIVE
+
+ Responses:
+   TraceSource ──┐
+   EventSelector ┼──► ResponseTask ◄── imaging.Fluorescence
+   ResponseParamSet ┘      │
+                           ├─► EventSet(.Event)
+                           ├─► Zeta(.Mask, .Condition)                           RESPONSIVE / SPECIFIC / SELECTIVE
+                           └─► WindowResponse(.Mask) ─┬─► CircularTuning(.Mask)   TUNED (circular axes)
+                                                      └─► ResponseReliability(.Mask)  RELIABLE (oracle, SNR, FEV, CC_max)
+ Decisions:
+   CellRule(.Criterion) ──► CellCategory(.Mask)                                  DECISION
 ```
 
 ![responsiveness v4](../notebooks/schema_diagrams/responsiveness_v4_proposal.svg)
@@ -147,11 +159,107 @@ class EventSet(dj.Computed):
 The parsed `condition` is the only stored derivative here, because parsing is the fragile step and must be fixed per
 set. Onset times and order come from `event.Event`.
 
+#### Quality control: QC block (event-independent; ACTIVE level and data fidelity)
+
+Sources:
+* the Labrigger fidelity article (2026) and its "catechism";
+* Tomaska's kurtosis-gain-checker;
+* the Lees et al. photon-transfer protocol;
+* Suite2p 2026;
+* CASCADE (Rupprecht et al. 2021);
+* Harris et al. 2016 on neuropil contamination.
+
+References are in §8. Six tables, each keyed at the level its measurement belongs to, so nothing is computed twice:
+
+| Table | Key | Measures | Why at this level |
+|---|---|---|---|
+| `PhotonTransfer` | scan | the microscope's photon sensitivity and dark level | a property of detector + acquisition, not of a curation |
+| `NeuropilSweep` | curation | the neuropil factor that decorrelates the population | depends on the masks, not on a dF/F0 recipe |
+| `MaskShape` | curation | ROI morphology | from `Segmentation.Mask` pixels |
+| `TraceQuality` | curation | raw-F statistics (kurtosis, neuron–neuropil correlation, drift) | independent of any dF/F0 recipe |
+| `DffQuality` | curation × dF/F0 recipe | dF/F0 statistics (noise ν, SNR, skewness, event rate) | depends on the recipe |
+| `PhotonBudget` | curation × scan PTC | photons/s per cell | needs the PTC gain |
+
+```python
+@schema
+class PhotonTransfer(dj.Computed):
+    definition = """
+    # Photon transfer curve of one scan (Lees et al.; kurtosis-gain-checker): grey levels per detected photon
+    -> scan.Scan
+    ---
+    n_frames             : int            # raw frames used (contiguous, before motion correction; default 500)
+    photon_sensitivity   : double         # q [grey levels / photon]: Huber fit of V = q*(I - I0), weighted by pixel counts
+    dark_level           : double         # I0 [grey levels]: x-intercept of the fit
+    enf                  : float          # excess noise factor assumed for the detector (GaAsP PMT 1.2); gain = q / enf^2
+    fit_r2               : float          # linearity of the fitted range
+    cov_median           : float          # median coefficient-of-variation map value (1 = pure Poisson; >1 activity; <1 clipping)
+    """
+```
+* **Procedure (Lees et al.):** take adjacent raw frames X and X′, crop a 4-pixel edge margin, and compute per pixel
+  M = round((X + X′)/2) and D = (X − X′)²/2. Bin by intensity: Vᵢ = mean D at M = Iᵢ. Fit V ≈ q·(I − I₀) robustly
+  (Huber), weighted by pixel counts, over the 0–50th intensity percentile.
+* **Photons:** photons per pixel per frame ≈ enf²·(X − I₀)/q. With enf = 1 this is the Lees value; the enf² correction
+  is the kurtosis-gain-checker's.
+* **Input:** raw ScanImage frames, read from `scan.ScanPath`.
+
+```python
+@schema
+class NeuropilSweep(dj.Computed):
+    definition = """
+    # Neuropil factor that minimises mean pairwise correlation between cells (Labrigger catechism; Harris et al. 2016)
+    -> imaging.Fluorescence
+    ---
+    alpha_opt            : float          # alpha in F - alpha*Fneu where the mean off-diagonal r is closest to 0
+    mean_r_at_alpha07    : float          # mean pairwise r at the default 0.7 (contamination at the lab default)
+    curve                : longblob       # (alpha, mean r, SEM) for alpha = 0..2 in steps of 0.05
+    n_cells              : int            # soma masks used (classifier soma, >= 4 px from the FOV edge, raw kurtosis > 5)
+    """
+```
+
+```python
+@schema
+class MaskShape(dj.Computed):
+    definition = """
+    # ROI morphology per mask (Suite2p 2026 definitions); npix is already Segmentation.Mask.mask_npix
+    -> imaging.Segmentation
+    """
+    class Mask(dj.Part):
+        definition = """
+        -> master
+        -> imaging.Segmentation.Mask
+        ---
+        compactness          : float      # mean pixel distance from the median pixel / that of a disk of equal area (1 = disk)
+        aspect_ratio         : float      # 2*major / (major + minor) radius of a Gaussian fit (1..2)
+        radius_px            : float      # 2 x major-axis radius of the Gaussian fit
+        overlap_frac         : float      # fraction of pixels shared with other masks
+        edge_dist_px         : float      # distance to the nearest FOV edge
+        """
+```
+
 ```python
 @schema
 class TraceQuality(dj.Computed):
     definition = """
-    # Event-independent activity and quality of every dF/F0 trace (ACTIVE level)
+    # Raw-fluorescence statistics per mask, independent of any dF/F0 recipe
+    -> imaging.Fluorescence
+    """
+    class Mask(dj.Part):
+        definition = """
+        -> master
+        -> imaging.Fluorescence.Trace
+        ---
+        kurtosis_raw         : float      # Pearson kurtosis of raw F (normal = 3); Labrigger "garbage control", checker default cut 5
+        neuron_neuropil_r    : float      # Pearson r(F, Fneu); high = neuropil-dominated soma (catechism Q2)
+        neuropil_ratio       : float      # median Fneu / median F (Labrigger: ~50/50 usable, 90/10 lost in shot noise)
+        f_drift              : float      # [%/min] linear slope of raw F over the session (bleaching, z-drift)
+        """
+```
+
+```python
+@schema
+class DffQuality(dj.Computed):
+    definition = """
+    # dF/F0 statistics per mask for one recipe (ACTIVE level)
     -> imaging.Dff0
     """
     class Mask(dj.Part):
@@ -159,14 +267,35 @@ class TraceQuality(dj.Computed):
         -> master
         -> imaging.Dff0.Trace
         ---
-        noise_nu             : float      # [%/sqrt(Hz)] CASCADE noise level of dF/F0
-        snr_peak             : float      # 99th percentile of dF/F0 / robust noise SD
-        skewness             : float
-        event_rate           : float      # [1/min] transients > 3 x robust noise SD
-        neuropil_ratio       : float      # median Fneu / median F
+        noise_nu             : float      # [%/sqrt(Hz)] CASCADE noise level: 100 * median|diff(dF/F0)| * sqrt(fps)
+        snr_s2p              : float      # Suite2p: 1 - var(diff(x)) / (2 var(x)); 0 = white noise, -> 1 = slow signal
+        skewness             : float      # of dF/F0 (Suite2p classifier feature)
+        snr_peak             : float      # 99th percentile of dF/F0 / robust noise SD (1.4826 * MAD of diff / sqrt 2)
+        event_rate           : float      # [1/min] transients > 3 x robust noise SD lasting >= 2 frames
         """
-    # key_source = imaging.Dff0 & (ResponseTask * TraceSource): only recipes some task uses
+    # key_source = imaging.Dff0 & (ResponseTask * TraceSource): recipes some task uses
 ```
+
+```python
+@schema
+class PhotonBudget(dj.Computed):
+    definition = """
+    # Detected photons per second per cell (Labrigger: "the key question"; typical 1e3-1e4)
+    -> imaging.Fluorescence
+    -> PhotonTransfer
+    """
+    class Mask(dj.Part):
+        definition = """
+        -> master
+        -> imaging.Fluorescence.Trace
+        ---
+        photons_per_s        : float      # enf^2 * (F0 - I0) * npix / q * fps, F0 = 30th percentile of raw F (no neuropil subtraction)
+        """
+```
+* **Single-AP detectability is derivable, not stored.** d′ ≈ (ΔF/F per AP) · √(photons_per_s · τ_decay / 2) (Wilt et
+  al. 2013, Eq. 9), using indicator constants (Chen et al. 2013; Zhang et al. 2023 for GCaMP8). Helper:
+  `dprime_1ap(photons_per_s, indicator)`.
+* **Registration quality is derivable** from `imaging.MotionCorrection` (rigid/non-rigid offsets), so no table.
 
 ```python
 @schema
@@ -219,12 +348,11 @@ class WindowResponse(dj.Computed):
         effect_d             : float      # paired Cohen's d (sign = excited/suppressed)
         resp_p               : float      # Wilcoxon resp vs base over all onsets
         cond_p=null          : float      # Kruskal-Wallis across conditions (NULL if one condition)
-        splithalf_r=null     : float      # Spearman-Brown split-half reliability of the condition curve
         """
 ```
 * Per-condition means, SEMs and the mean amplitude are derivable from `resp`, `base` and `EventSet.Event`, so they are
   not stored.
-* The four statistics are stored because rules filter on them.
+* The three statistics are stored because rules filter on them. Reliability measures need repeats: they are in `ResponseReliability`.
 
 ```python
 @schema
@@ -250,6 +378,34 @@ class CircularTuning(dj.Computed):
 ```
 A separate table, so `WindowResponse` carries no columns that are NULL for every non-grating selector.
 
+```python
+@schema
+class ResponseReliability(dj.Computed):
+    definition = """
+    # Trial-to-trial reliability of the condition curve (selectors with >= 2 repeats per condition): oracle, SNR, FEV, CC_max
+    -> WindowResponse
+    """
+    class Mask(dj.Part):
+        definition = """
+        -> master
+        -> WindowResponse.Mask
+        ---
+        signal_var           : float      # s2: variance of condition means minus mean noise variance / n_repeats (unbiased)
+        noise_var            : float      # sigma2: mean within-condition variance of single-repeat responses
+        oracle_r             : float      # mean over repeats of r(single-repeat curve, mean curve of the other repeats)
+        splithalf_sb         : float      # Spearman-Brown of random half-splits (mean of k splits)
+        r2er                 : float      # noise-corrected r2 between half-split curves (Pospisil & Bair 2021)
+        """
+    # key_source = WindowResponse & EventSet with >= 2 onsets in every condition
+```
+**SNR, FEV and CC_max are not stored: they are exact functions of `signal_var`, `noise_var` and the repeat count n.**
+They can be used in restrictions as SQL expressions, e.g. `ResponseReliability.Mask & "signal_var / noise_var > 0.5"`:
+* single-trial SNR = s²/σ² (the Stringer et al. 2019 SNR is the two-repeat case);
+* FEV = s²/(s² + σ²) (Cadena et al. 2019);
+* CC_max = √(s²/(s² + σ²/n)) (Schoppe et al. 2016).
+
+`oracle_r`, `splithalf_sb` and `r2er` are different estimators, not functions of each other, so they are stored.
+
 ### 2.4 Decisions
 
 ```python
@@ -268,9 +424,10 @@ class CellRule(dj.Lookup):
         criterion            : varchar(32)
         ---
         level                : enum('active','responsive','selective','specific')
-        source               : varchar(48)    # 'TraceQuality.Mask', 'Zeta.Mask', 'Zeta.Condition', 'WindowResponse.Mask',
+        source               : varchar(48)    # 'TraceQuality.Mask', 'DffQuality.Mask', 'PhotonBudget.Mask', 'MaskShape.Mask',
+                                              # 'Zeta.Mask', 'Zeta.Condition', 'WindowResponse.Mask', 'ResponseReliability.Mask',
                                               # 'CircularTuning.Mask', 'imaging.MaskClassification.MaskType', 'imaging.Dff0.Trace'
-        attribute            : varchar(32)
+        attribute            : varchar(64)    # a column, or a SQL expression of columns (e.g. 'signal_var/noise_var')
         op                   : enum('<','<=','>','>=','==')
         threshold            : varchar(32)
         holm=0               : bool           # Holm across conditions within the cell (Condition sources)
@@ -316,9 +473,13 @@ written before `Activity.CascadeInput` existed. It uses the external-store times
 |---|---|---|---|
 | `imaging.Dff0` | `Dff0Task` (inserted by `plan_tasks` when a task uses `dff0`) or a pending CASCADE task | CPU, minutes per curation | CASCADE worker (pending CASCADE tasks), else the responsiveness worker |
 | `EventSet` | `ResponseTask` for the scan | seconds | responsiveness worker |
-| `TraceQuality` | `Dff0` used by a task | seconds per curation | responsiveness worker |
+| `PhotonTransfer` | raw frames of a scan some task uses | ~1 min (500 frames) | responsiveness worker |
+| `NeuropilSweep`, `TraceQuality`, `MaskShape` | curation some task uses | seconds | responsiveness worker |
+| `DffQuality` | `Dff0` of a recipe some task uses | seconds | responsiveness worker |
+| `PhotonBudget` | `PhotonTransfer` + curation | seconds | responsiveness worker |
 | `WindowResponse` | `EventSet` + trace (`Activity` or `Dff0`) | seconds | responsiveness worker |
 | `CircularTuning` | `WindowResponse` | seconds (permutations, bootstrap) | responsiveness worker |
+| `ResponseReliability` | `WindowResponse` with repeats | seconds (splits) | responsiveness worker |
 | `Zeta` | `EventSet` + trace | **dominant**: masks × (1 + conditions) × resamples | responsiveness worker, parallel over masks |
 | `CellCategory` | every source a rule names | seconds | responsiveness worker |
 
@@ -336,7 +497,7 @@ tables in the order above never computes from missing inputs. People only insert
 | Host / env | ibehaveGPU1, `datajoint_ingest` (Python 3.11, zetapy 4.1, element `roselab-0.1.0b1`, imports `adamacs_ingest`) |
 | Working dir | **`~/adamacs_ingest`**: has `dj_local_conf.json`. Starting from `~` imports `~/adamacs` as a namespace package. |
 | Start | `SOPs/Serverscripts/check_and_start_population_process_responsiveness.sh` from cron (`*/10`), same pattern as the other workers; log `~/logs/responsiveness_worker.log` |
-| Loop | `EventSet → TraceQuality → WindowResponse → CircularTuning → Zeta → CellCategory`, each `populate(reserve_jobs=True, suppress_errors=True, order='random', limit=…, max_calls=1)`, then a 30 s sleep when nothing was pending |
+| Loop | `PhotonTransfer → NeuropilSweep → MaskShape → TraceQuality → DffQuality → PhotonBudget → EventSet → WindowResponse → CircularTuning → ResponseReliability → Zeta → CellCategory`, each `populate(reserve_jobs=True, suppress_errors=True, order='random', limit=…, max_calls=1)`, then a 30 s sleep when nothing was pending |
 | Parallelism | one worker process. Inside `Zeta.make`, masks are spread over a process pool (`n_procs`, default 24, single-threaded BLAS). Other makes are single-process. |
 | CPU etiquette | `nice -n 10`; `n_procs` capped by `os.cpu_count() - 32`; BUGPU also runs the CASCADE (GPU), denoise (GPU) and DLC workers |
 | Never | no deletes, no job-table clears (proposed to Tobias), no writes outside `roselab_responsiveness` except `imaging.Dff0Task` inserts and `imaging.Dff0` populates |
@@ -359,9 +520,15 @@ conditions).
 2. **`Zeta` pooled** on `cascade25` and `s2p`: p-values equal `v1-drift-audit/artefacts/t140/zeta_all.tsv` for the
    same events and seed; random selectors give 5–6 % false positives.
 3. **`WindowResponse` + `CircularTuning`:** values equal the leondrift Kruskal and `sub_vec` tuning for the same windows.
-4. **`TraceQuality`, `CellRule 'drift2026_v1'`, `CellCategory`:** the cohort sizes reproduce nb37.
-5. **Worker:** dry run on the test schema, then time one scan.
-6. **Production `roselab_responsiveness` and the cron entry:** only with your OK.
+4. **QC block:**
+   * `PhotonTransfer` on a static fluorescent slide and on a recording gives a linear fit;
+   * `PhotonBudget` falls in the 10³–10⁴ photons/s range and agrees with the kurtosis-gain-checker on the same scan;
+   * `NeuropilSweep` `alpha_opt` matches the checker's sweep;
+   * `DffQuality.noise_nu` matches CASCADE's own noise estimate;
+   * `ResponseReliability.oracle_r` matches the audit's Q1 oracle tables.
+5. **`CellRule 'drift2026_v1'`, `CellCategory`:** the cohort sizes reproduce nb37.
+6. **Worker:** dry run on the test schema, then time one scan.
+7. **Production `roselab_responsiveness` and the cron entry:** only with your OK.
 
 ---
 
@@ -378,6 +545,10 @@ conditions).
 | tuning columns inside `WindowStats` (NULL for non-circular) | `CircularTuning` | no columns that are NULL by design |
 | `CellCategory` counts, `specific_to` | (gone) | derivable by aggregation / from `Zeta.Condition` |
 | `responsiveness.CascadeInput`, `CascadeRecompute` | `legacy_cascade_recipe()` | derivable from the external-store timestamp; not responsiveness |
+| one `TraceQuality` per dF/F0 recipe | `TraceQuality` (raw F, per curation) + `DffQuality` (per recipe) | raw-F metrics would otherwise repeat for every recipe |
+| SNR, FEV, CC_max as columns | `signal_var`, `noise_var` | the three are exact functions of s², σ² and n |
+| d′ as a column | `dprime_1ap()` helper | derivable from `photons_per_s` and indicator constants |
+| registration QC table | (none) | derivable from `imaging.MotionCorrection` |
 
 ---
 
@@ -388,3 +559,54 @@ conditions).
    < 0.05) for the selective level. Which trace source is primary?
 3. **Per-condition ZETA by default:** only for selectors with ≤ 12 conditions?
 4. **The worker's CPU share on BUGPU** (`n_procs` 24?), given the CASCADE, denoise and DLC workers.
+5. **QC defaults:**
+   * the detector ENF (1.2 for GaAsP);
+   * the raw-frame window for `PhotonTransfer` (first 500 frames?);
+   * whether `NeuropilSweep.alpha_opt` should only be reported, or later feed a new `DffParamSet` recipe.
+6. **Indicator constants for d′** (ΔF/F per AP, τ_decay for GCaMP6s / GCaMP8s / GCaMP8f): from the literature, or
+   measured in the lab?
+
+---
+
+## 8. References
+
+**Data fidelity and quality control:**
+* **S. L. Smith, Labrigger (2026).** "2p calcium imaging fidelity" (2026-07-25) and "The Labrigger 2p calcium imaging
+  catechism" (2026-06-13). Photons/s/cell as the key metric (typically 10³–10⁴); kurtosis as quick "garbage control";
+  neuropil contamination seen as population correlation; tune the neuropil factor (often > 0.7) by decorrelation.
+  labrigger.com/blog/2026/07/25/2p-calcium-imaging-fidelity/
+* **F. Tomaska, kurtosis-gain-checker.** Photon transfer from adjacent-frame pairs (40 percentile bins, 0–50 % fit range),
+  gain = slope / ENF² (ENF 1.2), photons/s/cell from raw F × npix at the 30th percentile, neuropil sweep α = 0–2
+  (mean pairwise r → 0), Pearson kurtosis (normal = 3, default cut 5). github.com/ftomaska/kurtosis-gain-checker
+* **Lees, Bianco, Campbell, Orlova, Peterka, Pichler, Smith, Yatsenko, Yu, Packer.** Standardised measurements for
+  monitoring and comparing multiphoton microscope systems. bioRxiv 2024, doi:10.1101/2024.01.23.576417. Photon transfer
+  curve: frame pairs, V ≈ q·(I − I₀) with a Huber fit, photon flux images, coefficient-of-variation map.
+* **Wilt, Fitzgerald & Schnitzer (2013).** Photon shot noise limits on optical detection of neuronal spikes and estimation
+  of spike timing. *Biophys J* 104:51–62, doi:10.1016/j.bpj.2012.07.058. d′ ≈ (ΔF/F)·√(F₀τ/2).
+* **Harris, Quian Quiroga, Freeman & Smith (2016).** Improving data quality in neuronal population recordings.
+  *Nat Neurosci* 19:1165–74, doi:10.1038/nn.4365.
+* **Stringer, Pachitariu et al. (2026).** Extracting large-scale neural activity with Suite2p. bioRxiv,
+  doi:10.64898/2026.02.04.703741. Quality-control features `snr`, `skew`, `compact`, `npix_norm`, `aspect_ratio`, overlap; registration-offset QC.
+  Suite2p documentation: `snr = 1 − var(diff(x))/(2·var(x))`.
+* **Rupprecht et al. (2021).** A database and deep learning toolbox for noise-optimized, generalized spike inference from
+  calcium imaging. *Nat Neurosci* 24:1324. Noise level ν.
+* **Chen et al. (2013).** Ultrasensitive fluorescent proteins for imaging neuronal activity. *Nature* 499:295,
+  doi:10.1038/nature12354. Indicator ΔF/F per AP and decay.
+
+**Reliability, noise ceilings and explainable variance:**
+* **Schoppe, Harper, Willmore, King & Schnupp (2016).** Measuring the performance of neural models. *Front Comput
+  Neurosci* 10:10. CC_norm and CC_max.
+* **Cadena et al. (2019).** Deep convolutional models improve predictions of macaque V1 responses to natural images.
+  *PLoS Comput Biol* 15:e1006897. Fraction of explainable variance.
+* **Pospisil & Bair (2021).** Accounting for bias in the estimation of r² between two sets of noisy neural responses.
+  *J Neurosci*. r²_ER.
+* **Stringer, Pachitariu, Steinmetz, Carandini & Harris (2019).** High-dimensional geometry of population responses in
+  visual cortex. *Nature* 571:361. Single-cell SNR from repeats; cross-validated stimulus variance.
+* **Walker et al. (2019).** Inception loops discover what excites neurons most using deep predictive models.
+  *Nat Neurosci* 22:2060. Oracle correlation as the noise ceiling.
+* **Kay et al. (2025).** Disentangling signal and noise in neural responses through generative modeling (GSN).
+  *PLoS Comput Biol*. Signal/noise distributions, noise ceilings.
+
+**Responsiveness and tuning** (unchanged from v3): Montijn et al. 2021 *eLife* (ZETA); Montijn, Heimel et al. 2023
+(time-series and two-sample ZETA); de Vries et al. 2020 *Nat Neurosci*; Mazurek, Kager & Van Hooser 2014 *Front Neural
+Circuits*; Stevenson et al. 2011 *J Neurophysiol*; Niell & Stryker 2010 *Neuron*.
