@@ -8,7 +8,7 @@ production schemas are read through virtual modules; ``adamacs.pipeline`` is nev
 
 Run from a directory with dj_local_conf.json (e.g. ~/adamacs), env ``datajoint``:
 
-    python ~/adamacs_ingest/scripts/responsiveness_dff0_test.py
+    python ~/adamacs_ingest/scripts/populate_dff0_test_schema.py
 """
 import argparse
 import os

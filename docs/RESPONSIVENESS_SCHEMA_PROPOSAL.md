@@ -477,7 +477,7 @@ class CascadeInput(dj.Computed):
 **What was built.** `DffParamSet` (10 recipes), `Dff0Task`, `Dff0` + `.Trace`, `CascadeInput` and `CascadeRecompute`
 were declared under the personal prefix. The traces went to a scratch store (`~/dj_stores/responsiveness_test`, not
 `/datajoint-db`). Code: `adamacs/schemas/responsiveness.py`, `adamacs/responsiveness/dff0.py` (16 offline tests),
-`scripts/responsiveness_dff0_test.py`, `scripts/verify_dff0_cascade.py`, `scripts/cascade_predict_npz.py`.
+`scripts/populate_dff0_test_schema.py`, `scripts/verify_dff0_cascade.py`, `scripts/cascade_predict_npz.py`.
 
 **What was checked.** 3 curations × 8 recipe rows were populated. CASCADE was re-run on the stored dF/F0 on BUGPU
 (the worker's checkout, Cascade `4c113e4`, CPU only) for 40–80 masks per activity, and compared with the stored
