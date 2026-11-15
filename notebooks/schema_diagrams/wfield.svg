@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1182pt" height="254pt" viewBox="0.00 0.00 1181.62 254.24">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 250.24)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-250.24 1177.62,-250.24 1177.62,4 -4,4"/>
+<!-- vm.FOVMask -->
+<g id="node1" class="node">
+<title>vm.FOVMask</title>
+<g id="a_node1"><a xlink:title="→ `roselab_scan`.`scan`------------------------------fov_mask             mask_method          mask_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="116,-105.12 28,-105.12 28,-70.56 116,-70.56 116,-105.12"/>
+<text text-anchor="middle" x="72" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">vm.FOVMask</text>
+</a>
+</g>
+</g>
+<!-- vm.Processing -->
+<g id="node10" class="node">
+<title>vm.Processing</title>
+<g id="a_node10"><a xlink:title="→ vm.FOVMask→ vm.ProcessingTask------------------------------processing_time      execution_duration   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="72" cy="-17.28" rx="12.96" ry="12.96"/>
+<text text-anchor="middle" x="72" y="-13.01" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Processing</text>
+</a>
+</g>
+</g>
+<!-- vm.FOVMask&#45;&gt;vm.Processing -->
+<g id="edge1" class="edge">
+<title>vm.FOVMask-&gt;vm.Processing</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M72,-70.24C72,-57.88 72,-41.29 72,-30.21"/>
+</g>
+<!-- vm.Area -->
+<g id="node2" class="node">
+<title>vm.Area</title>
+<g id="a_node2"><a xlink:title="area                 ------------------------------area_name            hemisphere           ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="333.38,-246.24 280.62,-246.24 280.62,-211.68 333.38,-211.68 333.38,-246.24"/>
+<text text-anchor="start" x="288.62" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.Area</text>
+</a>
+</g>
+</g>
+<!-- vm.RegionActivity -->
+<g id="node5" class="node">
+<title>vm.RegionActivity</title>
+<g id="a_node5"><a xlink:title="→ `roselab_scan`.`scan`→ vm.Area------------------------------corrected            blue                 violet               n_pixels             fraction_in_fov      extraction_timestamp ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="363,-175.68 251,-175.68 251,-141.12 363,-141.12 363,-175.68"/>
+<text text-anchor="middle" x="307" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">vm.RegionActivity</text>
+</a>
+</g>
+</g>
+<!-- vm.Area&#45;&gt;vm.RegionActivity -->
+<g id="edge2" class="edge">
+<title>vm.Area-&gt;vm.RegionActivity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M307,-211.71C307,-200.94 307,-186.85 307,-176.01"/>
+</g>
+<!-- vm.Registration -->
+<g id="node3" class="node">
+<title>vm.Registration</title>
+<g id="a_node3"><a xlink:title="→ `roselab_scan`.`scan`processing_id        ------------------------------shifts_file_path     n_frames_registered  shifts_x_blue        shifts_y_blue        shifts_x_violet      shifts_y_violet      reference_frame_blue reference_frame_violet registration_method=&quot;phaseCorrelate&quot; processing_time_sec  registration_timestamp registration_notes=&quot;&quot; INDEX (shifts_x_blue)INDEX (shifts_y_blue)INDEX (shifts_x_violet)INDEX (shifts_y_violet)INDEX (reference_frame_blue)INDEX (reference_frame_violet)">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="450.62,-246.24 351.38,-246.24 351.38,-211.68 450.62,-211.68 450.62,-246.24"/>
+<text text-anchor="start" x="359.38" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Registration</text>
+</a>
+</g>
+</g>
+<!-- vm.NormalizationMethod -->
+<g id="node4" class="node">
+<title>vm.NormalizationMethod</title>
+<g id="a_node4"><a xlink:title="normalization_method ------------------------------method_description   ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="593.38,-246.24 468.62,-246.24 468.62,-211.68 593.38,-211.68 593.38,-246.24"/>
+<text text-anchor="start" x="476.62" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.NormalizationMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.VesselsTransform -->
+<g id="node6" class="node">
+<title>vm.VesselsTransform</title>
+<g id="a_node6"><a xlink:title="→ `roselab_scan`.`scan`------------------------------→ vm.RetinotopicReftransform_params     landmarks_match      resolution           bregma_offset        vfs_vessels          transform_timestamp  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="733.62,-175.68 604.38,-175.68 604.38,-141.12 733.62,-141.12 733.62,-175.68"/>
+<text text-anchor="middle" x="669" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">vm.VesselsTransform</text>
+</a>
+</g>
+</g>
+<!-- vm.ProcessingTask -->
+<g id="node7" class="node">
+<title>vm.ProcessingTask</title>
+<g id="a_node7"><a xlink:title="→ `roselab_scan`.`scan`processing_id        ------------------------------→ vm.ParamSettask_mode=&quot;trigger&quot;  processing_output_dir=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="254.75,-105.12 135.25,-105.12 135.25,-70.56 254.75,-70.56 254.75,-105.12"/>
+<text text-anchor="start" x="143.25" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.ProcessingTask</text>
+</a>
+</g>
+</g>
+<!-- vm.ProcessingTask&#45;&gt;vm.Processing -->
+<g id="edge3" class="edge">
+<title>vm.ProcessingTask-&gt;vm.Processing</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M164.91,-70.07C138.31,-55.24 101,-34.44 82.81,-24.31"/>
+</g>
+<!-- vm.ProcessingRun -->
+<g id="node16" class="node">
+<title>vm.ProcessingRun</title>
+<g id="a_node16"><a xlink:title="→ vm.ProcessingTask------------------------------proc_id              run_timestamp        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="254.62,-34.56 137.38,-34.56 137.38,0 254.62,0 254.62,-34.56"/>
+<text text-anchor="middle" x="196" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.ProcessingRun</text>
+</a>
+</g>
+</g>
+<!-- vm.ProcessingTask&#45;&gt;vm.ProcessingRun -->
+<g id="edge4" class="edge">
+<title>vm.ProcessingTask-&gt;vm.ProcessingRun</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M195.24,-70.24C195.4,-59.46 195.6,-45.47 195.76,-34.72"/>
+</g>
+<!-- vm.MaskSvd -->
+<g id="node8" class="node">
+<title>vm.MaskSvd</title>
+<g id="a_node8"><a xlink:title="→ `roselab_scan`.`scan`------------------------------n_components         n_frames             frame_height         frame_width          u                    mask_svd_timestamp   INDEX (u)">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="786" cy="-228.96" rx="12.96" ry="12.96"/>
+<text text-anchor="middle" x="786" y="-224.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MaskSvd</text>
+</a>
+</g>
+</g>
+<!-- vm.RegionMask -->
+<g id="node9" class="node">
+<title>vm.RegionMask</title>
+<g id="a_node9"><a xlink:title="→ `roselab_scan`.`scan`------------------------------region_mask          mask_timestamp       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="948.12,-246.24 845.88,-246.24 845.88,-211.68 948.12,-211.68 948.12,-246.24"/>
+<text text-anchor="middle" x="897" y="-224.69" font-family="arial" font-size="12.00" fill="darkgreen">vm.RegionMask</text>
+</a>
+</g>
+</g>
+<!-- vm.Svd -->
+<g id="node11" class="node">
+<title>vm.Svd</title>
+<g id="a_node11"><a xlink:title="→ `roselab_session`.`session`→ `roselab_scan`.`scan`processing_id        ------------------------------n_components         n_frames             frame_height         frame_width          → vm.SvdMethod→ vm.HemoCorrectionMethodnormalization_method svd_output_folder    processing_timestamp ingestion_timestamp  curation_time        manual_curation      curation_note=&quot;&quot;     variance_explained   hemo_variance_explained u                    new_vc               blue_v               hemo_v               INDEX (u)INDEX (new_vc)INDEX (blue_v)INDEX (hemo_v)">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="117.88,-175.68 62.12,-175.68 62.12,-141.12 117.88,-141.12 117.88,-175.68"/>
+<text text-anchor="start" x="70.12" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Svd</text>
+</a>
+</g>
+</g>
+<!-- vm.SvdMethod -->
+<g id="node12" class="node">
+<title>vm.SvdMethod</title>
+<g id="a_node12"><a xlink:title="svd_method           ------------------------------svd_method_description ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="236,-246.24 154,-246.24 154,-211.68 236,-211.68 236,-246.24"/>
+<text text-anchor="start" x="162" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.SvdMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.SvdMethod&#45;&gt;vm.Svd -->
+<g id="edge5" class="edge">
+<title>vm.SvdMethod-&gt;vm.Svd</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M170.12,-211.71C153.62,-200.94 132.04,-186.85 115.43,-176.01"/>
+</g>
+<!-- vm.ParamSet -->
+<g id="node17" class="node">
+<title>vm.ParamSet</title>
+<g id="a_node17"><a xlink:title="paramset_idx         ------------------------------processing_engine    → vm.SvdMethodparamset_desc        params               ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="233,-175.68 157,-175.68 157,-141.12 233,-141.12 233,-175.68"/>
+<text text-anchor="start" x="165" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.ParamSet</text>
+</a>
+</g>
+</g>
+<!-- vm.SvdMethod&#45;&gt;vm.ParamSet -->
+<g id="edge6" class="edge">
+<title>vm.SvdMethod-&gt;vm.ParamSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M195,-211.71C195,-200.78 195,-186.44 195,-175.53"/>
+</g>
+<!-- vm.RetinotopicRef -->
+<g id="node13" class="node">
+<title>vm.RetinotopicRef</title>
+<g id="a_node13"><a xlink:title="→ `roselab_subject`.`subject`retinotopic_session_id ------------------------------bloodvessels_image   vfs_map              vessels_landmarks_ref retinotopic_folder   vfs_blocks           ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="726.12,-246.24 611.88,-246.24 611.88,-211.68 726.12,-211.68 726.12,-246.24"/>
+<text text-anchor="start" x="619.88" y="-225.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.RetinotopicRef</text>
+</a>
+</g>
+</g>
+<!-- vm.RetinotopicRef&#45;&gt;vm.VesselsTransform -->
+<g id="edge7" class="edge">
+<title>vm.RetinotopicRef-&gt;vm.VesselsTransform</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M669,-211.36C669,-200.58 669,-186.59 669,-175.84"/>
+</g>
+<!-- vm.CcfLandmarks -->
+<g id="node14" class="node">
+<title>vm.CcfLandmarks</title>
+<g id="a_node14"><a xlink:title="ccf_landmarks_id     ------------------------------reference_name       landmarks            description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1062.12,-246.24 965.88,-246.24 965.88,-211.68 1062.12,-211.68 1062.12,-246.24"/>
+<text text-anchor="start" x="973.88" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.CcfLandmarks</text>
+</a>
+</g>
+</g>
+<!-- vm.CcfAlignment -->
+<g id="node19" class="node">
+<title>vm.CcfAlignment</title>
+<g id="a_node19"><a xlink:title="→ `roselab_scan`.`scan`------------------------------→ vm.CcfLandmarkstransform_params     landmarks_match      landmarks_im         resolution           bregma_offset        ccf_regions_im       alignment_timestamp  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1067.38,-175.68 960.62,-175.68 960.62,-141.12 1067.38,-141.12 1067.38,-175.68"/>
+<text text-anchor="middle" x="1014" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">vm.CcfAlignment</text>
+</a>
+</g>
+</g>
+<!-- vm.CcfLandmarks&#45;&gt;vm.CcfAlignment -->
+<g id="edge8" class="edge">
+<title>vm.CcfLandmarks-&gt;vm.CcfAlignment</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1014,-211.71C1014,-200.94 1014,-186.85 1014,-176.01"/>
+</g>
+<!-- vm.CcfReference -->
+<g id="node15" class="node">
+<title>vm.CcfReference</title>
+<g id="a_node15"><a xlink:title="reference_name       ------------------------------ccf_regions_ref      description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1173.62,-246.24 1080.38,-246.24 1080.38,-211.68 1173.62,-211.68 1173.62,-246.24"/>
+<text text-anchor="start" x="1088.38" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.CcfReference</text>
+</a>
+</g>
+</g>
+<!-- vm.ParamSet&#45;&gt;vm.ProcessingTask -->
+<g id="edge9" class="edge">
+<title>vm.ParamSet-&gt;vm.ProcessingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M195,-141.15C195,-130.38 195,-116.29 195,-105.45"/>
+</g>
+<!-- vm.HemoCorrectionMethod -->
+<g id="node18" class="node">
+<title>vm.HemoCorrectionMethod</title>
+<g id="a_node18"><a xlink:title="hemo_correction_method ------------------------------method_description   ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="136,-246.24 0,-246.24 0,-211.68 136,-211.68 136,-246.24"/>
+<text text-anchor="start" x="8" y="-226.46" font-family="arial" text-decoration="underline" font-size="10.00">vm.HemoCorrectionMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.HemoCorrectionMethod&#45;&gt;vm.Svd -->
+<g id="edge10" class="edge">
+<title>vm.HemoCorrectionMethod-&gt;vm.Svd</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M73.21,-211.71C76.67,-200.94 81.19,-186.85 84.67,-176.01"/>
+</g>
+</g>
+</svg>
