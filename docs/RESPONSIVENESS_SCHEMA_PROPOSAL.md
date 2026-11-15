@@ -184,23 +184,38 @@ References are in §8. Six tables, each keyed at the level its measurement belon
 @schema
 class PhotonTransfer(dj.Computed):
     definition = """
-    # Photon transfer curve of one scan (Lees et al.; kurtosis-gain-checker): grey levels per detected photon
+    # Detector calibration of one scan: two gain estimates, (a) free-intercept PTC, (b) dark-referenced intensity distribution
     -> scan.Scan
     ---
-    n_frames             : int            # raw frames used (contiguous, before motion correction; default 500)
-    photon_sensitivity   : double         # q [grey levels / photon]: Huber fit of V = q*(I - I0), weighted by pixel counts
-    dark_level           : double         # I0 [grey levels]: x-intercept of the fit
-    enf                  : float          # excess noise factor assumed for the detector (GaAsP PMT 1.2); gain = q / enf^2
-    fit_r2               : float          # linearity of the fitted range
-    cov_median           : float          # median coefficient-of-variation map value (1 = pure Poisson; >1 activity; <1 clipping)
+    n_frames             : int            # raw frames used (contiguous, before motion correction)
+    # (a) photon transfer curve, Lees et al. 2025 (frame pairs, free intercept)
+    q_ptc                : double         # [grey levels / photon] Huber fit of V = q*(I - I0), weighted by pixel counts
+    i0_ptc               : double         # [grey levels] fitted zero-photon level (x-intercept)
+    r2_ptc               : float          # linearity of the fitted range
+    # (b) dark-referenced: offset and read noise MEASURED in the shutter-closed frames, then the intensity distribution
+    dark_source          : varchar(16)    # 'shutter' (frames between the first two shutter events) | 'none' (no usable dark frames)
+    dark_offset=null     : double         # [grey levels] mean of the dark frames (Lees: "black point")
+    dark_var=null        : double         # [grey levels^2] temporal variance in the dark frames (read/dark noise)
+    q_dark=null          : double         # [grey levels / photon] fit of (V - dark_var) = q*(I - dark_offset), intercept fixed
+    r2_dark=null         : float
+    # shared
+    enf                  : float          # detector excess noise factor assumed (GaAsP 1.2); photons = enf^2 * (I - offset) / q
+    cov_median           : float          # median CoV map value (1 = Poisson; >1 activity; <1 clipping/saturation)
     """
 ```
-* **Procedure (Lees et al.):** take adjacent raw frames X and X′, crop a 4-pixel edge margin, and compute per pixel
+* **(a) Free-intercept PTC (Lees et al. 2025).** Adjacent raw frames X, X′ with a 4-pixel edge margin give, per pixel,
   M = round((X + X′)/2) and D = (X − X′)²/2. Bin by intensity: Vᵢ = mean D at M = Iᵢ. Fit V ≈ q·(I − I₀) robustly
   (Huber), weighted by pixel counts, over the 0–50th intensity percentile.
-* **Photons:** photons per pixel per frame ≈ enf²·(X − I₀)/q. With enf = 1 this is the Lees value; the enf² correction
-  is the kurtosis-gain-checker's.
-* **Input:** raw ScanImage frames, read from `scan.ScanPath`.
+* **(b) Dark-referenced estimate.** The same binned intensity distribution of the bright frames, but with the zero
+  level and the read-noise variance measured in the shutter-closed frames at the start of the scan (the same window
+  `imaging.Dff0` uses for its dark signal): fit (V − dark_var) = q·(I − dark_offset) with the intercept fixed. Two
+  references for this:
+  * Lees et al.: the black point is the mean of the dark response, and it is subtracted before any statistic.
+  * Heintzmann et al. 2016, "Calibrating photon counts from a single image": gain = noise variance minus read-noise
+    variance, divided by the offset-corrected signal; the offset comes from dark frames or must be fitted.
+* **Fitted against measured offset.** `i0_ptc` vs `dark_offset` is a direct check of the detector baseline. A large
+  difference means the zero level drifts, or there is non-Poissonian noise.
+* **Which estimate is used.** `PhotonBudget` uses (b) where dark frames exist and (a) otherwise, and records which.
 
 ```python
 @schema
@@ -283,13 +298,15 @@ class PhotonBudget(dj.Computed):
     # Detected photons per second per cell (Labrigger: "the key question"; typical 1e3-1e4)
     -> imaging.Fluorescence
     -> PhotonTransfer
+    ---
+    gain_method          : enum('dark','ptc')   # dark-referenced (b) if available, else free-intercept PTC (a)
     """
     class Mask(dj.Part):
         definition = """
         -> master
         -> imaging.Fluorescence.Trace
         ---
-        photons_per_s        : float      # enf^2 * (F0 - I0) * npix / q * fps, F0 = 30th percentile of raw F (no neuropil subtraction)
+        photons_per_s        : float      # enf^2 * (F0 - offset) * npix / q * fps, F0 = 30th percentile of raw F (no neuropil subtraction)
         """
 ```
 * **Single-AP detectability is derivable, not stored.** d′ ≈ (ΔF/F per AP) · √(photons_per_s · τ_decay / 2) (Wilt et
@@ -578,9 +595,13 @@ conditions).
 * **F. Tomaska, kurtosis-gain-checker.** Photon transfer from adjacent-frame pairs (40 percentile bins, 0–50 % fit range),
   gain = slope / ENF² (ENF 1.2), photons/s/cell from raw F × npix at the 30th percentile, neuropil sweep α = 0–2
   (mean pairwise r → 0), Pearson kurtosis (normal = 3, default cut 5). github.com/ftomaska/kurtosis-gain-checker
-* **Lees, Bianco, Campbell, Orlova, Peterka, Pichler, Smith, Yatsenko, Yu, Packer.** Standardised measurements for
-  monitoring and comparing multiphoton microscope systems. bioRxiv 2024, doi:10.1101/2024.01.23.576417. Photon transfer
+* **Lees, Bianco, Campbell, Orlova, Peterka, Pichler, Smith, Yatsenko, Yu, Packer (2025).** Standardized measurements for
+  monitoring and comparing multiphoton microscope systems. *Nat Protoc* 20:2171–2208, doi:10.1038/s41596-024-01120-w
+  (PMID 40097833; preprint doi:10.1101/2024.01.23.576417). Black point = mean dark response, subtracted first; SNR = (μ_light − μ_dark)/σ_dark. Photon transfer
   curve: frame pairs, V ≈ q·(I − I₀) with a Huber fit, photon flux images, coefficient-of-variation map.
+* **Heintzmann, Relich, Nieuwenhuizen, Lidke & Rieger (2016).** Calibrating photon counts from a single image.
+  arXiv:1611.05654. Gain from out-of-band (high-frequency) noise variance minus read-noise variance over the offset-corrected
+  signal; offset from dark frames or a tiled mean–variance fit.
 * **Wilt, Fitzgerald & Schnitzer (2013).** Photon shot noise limits on optical detection of neuronal spikes and estimation
   of spike timing. *Biophys J* 104:51–62, doi:10.1016/j.bpj.2012.07.058. d′ ≈ (ΔF/F)·√(F₀τ/2).
 * **Harris, Quian Quiroga, Freeman & Smith (2016).** Improving data quality in neuronal population recordings.
