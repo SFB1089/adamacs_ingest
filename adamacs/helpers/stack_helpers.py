@@ -83,7 +83,11 @@ def calculate_dFF(Fall, Fneu_all, framerate, event_module, scan_key,
     dark = out["dark_signal"] if darkframe_correction else None
     if out["dark_source"] == "fallback_frames":
         print("shutter events not available, using fallback dark frames 12-24")
-    return out["dff"], out["dF"], out["F0"], dark
+    # compute_dff0 stores dF/F0 as float32; this helper historically returned the native
+    # result of (dF - F0) / F0, so rebuild it from the intermediates in their own dtype
+    dF, F0 = out["dF"], out["F0"]
+    dFF = (dF - F0) / F0
+    return dFF, dF, F0, dark
 
 
 def _shutter_inputs(event_module, scan_key):
