@@ -78,7 +78,7 @@ There is **no** dF/F, responsiveness or tuning table in production. The inputs e
 
 ### 2.3 dF/F0 today: computed inside the CASCADE populate and never stored
 
-**Where it runs.** CASCADE runs on **BUGPU** (ibehaveGPU1, 172.25.70.3).
+**Where it runs.** CASCADE runs on **BUGPU** (ibehaveGPU1).
 * Worker: `~/SOPs/Serverscripts/populate_tables_cascade.py`, in the `Cascade` env, log
   `~/logs/cascade_worker.log`.
 * What it does: populates `imaging.Activity` from `imaging.ActivityCascadeTask` rows through the SFB1089 fork of
