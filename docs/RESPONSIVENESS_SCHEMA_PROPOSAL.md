@@ -472,6 +472,9 @@ class CascadeInput(dj.Computed):
 * Recomputing CASCADE on the `Dff0` of that recipe for a sample of scans turns rows into `recomputed` or
   `recompute_mismatch`. A mismatch means an undocumented code state, and the row says so.
 
+> **Update 15.11.2026:** `DffParamSet` and `Dff0` move into `imaging` (element fork 0.1.0b1), and CASCADE reads them;
+> see `docs/DFF0_IN_ACTIVITY_MAKE_PROPOSAL.md`. `responsiveness` keeps `CascadeInput` (legacy rows) and `CascadeRecompute`.
+
 ### 4.2b Phase-1 test result (15.11.2026, test schema `tobiasr_responsiveness`)
 
 **What was built.** `DffParamSet` (10 recipes), `Dff0Task`, `Dff0` + `.Trace`, `CascadeInput` and `CascadeRecompute`
