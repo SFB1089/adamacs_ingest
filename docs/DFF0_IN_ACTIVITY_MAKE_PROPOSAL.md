@@ -152,10 +152,9 @@ class Activity(dj.Computed):
 | `cascade_inference` | 2 | = what the code has done since 2026-09-03 |
 | `cascade_inference_25ms_filter` | 2 | idem; "25ms" is the model, not the dF/F0 |
 | `cascade_inference_global_causal` | 2 | idem |
-| `cascade_inference_no_neuropil` | 11 (new: shutter dark, neuropil 0, p8) | the post-fix recipe was never registered |
 | new `cascade_dff_lab` | 1 (lab standard, F0 ≤ 0 flagged) | if you want CASCADE on the corrected standard; needs a new `ActivityExtractionMethod` row |
 
-The `_11` methods get no rows: their activities were deleted, and their name rule disappears with this change.
+The `_11` methods get no rows (their activities were deleted), and neither do the `no_neuropil` variants (not used again, Tobias 15.11.2026): the new code does not compute methods without a recipe.
 
 ---
 
@@ -252,7 +251,7 @@ The 2026-09-03 in-place edit on BUGPU is why one method holds two code versions.
 2. **Dry run with no writes:** for a sample of activities, run `_make_cascade`'s computation on BUGPU (CPU) and
    compare with the stored activity, as in PR #25. *No OK needed (read-only).*
 3. **Declare the 4 new tables in `roselab_imaging`** by activating the fork (additive, no `ALTER`). Insert
-   `DffParamSet` rows 1–11 and the `CascadeRecipe` rows. **Needs your OK.**
+   `DffParamSet` rows 1–10 and the `CascadeRecipe` rows. **Needs your OK.**
 4. **Pin the fork tag in all envs on TATCHU3 and BUGPU, and restart the CASCADE worker** with the populate order
    `Dff0` → `Activity`. **Needs your OK** (it touches the running worker).
 5. **Watch the first new tasks.** Check that `Activity.CascadeInput` is filled and that the spikes equal a recompute.
