@@ -455,8 +455,8 @@ Troubleshooting: `docs/DIAGRAM_SETUP.md`.
 
 | Host | Role |
 |---|---|
-| **TATCHU3** (172.25.64.3) | MySQL server, blob store (`/datajoint-db`), data share (`/datajoint-data`), CPU population worker, wfield worker |
-| **ibehaveGPU1 = BUGPU** (172.25.70.3) | GPU workers: CASCADE, SUPPORT denoising, DLC; CellReg (MATLAB) |
+| **TATCHU3** | MySQL server, blob store (`/datajoint-db`), data share (`/datajoint-data`), CPU population worker, wfield worker |
+| **ibehaveGPU1 = BUGPU** | GPU workers: CASCADE, SUPPORT denoising, DLC; CellReg (MATLAB) |
 
 **Which `adamacs` an environment imports** (checked 2026-11-15):
 
