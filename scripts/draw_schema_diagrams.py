@@ -201,12 +201,12 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     wf.render(os.path.join(outdir, "cell_registration_workflow"), cleanup=True)
     print("wrote cell_registration_erd.svg, cell_registration_workflow.svg")
     p = parsed_erd("responsiveness.py",
-                   "responsiveness (adamacs/schemas/responsiveness.py, not deployed): legacy CASCADE provenance; "
-                   "amber dashed = imaging tables it references", outdir, "responsiveness_erd")
+                   "responsiveness v6 (adamacs/schemas/responsiveness.py, piloted, not deployed); "
+                   "amber dashed = pipeline tables it references", outdir, "responsiveness_erd")
     print("wrote", os.path.relpath(p, REPO))
     p = proposal_diagram(os.path.join(REPO, "docs", "RESPONSIVENESS_SCHEMA_PROPOSAL.md"),
-                         "responsiveness v4 (proposal, not declared): solid = FK in primary key, dashed = secondary FK, "
-                         "thick grey = master-part, amber = existing production tables", outdir, "responsiveness_v4_proposal")
+                         "responsiveness v6 (piloted in tobiasr_responsiveness_v6): solid = FK in primary key, dashed = secondary FK, "
+                         "thick grey = master-part, amber = existing production tables", outdir, "responsiveness_v6")
     print("wrote", os.path.relpath(p, REPO))
     return 0
 

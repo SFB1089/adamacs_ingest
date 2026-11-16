@@ -998,6 +998,28 @@ def cells(rule, restriction=None):
 
 
 # ======================================================================================
+# Derivable helpers (no tables)
+# ======================================================================================
+
+def legacy_cascade_recipe(activity_key):
+    """dF/F0 recipe of a CASCADE activity written before imaging.Activity.CascadeInput existed.
+
+    Dated by the external-store timestamp of its traces: before 2026-09-03 15:22 -> recipe 3 (dark frames
+    12-24), after -> recipe 2 (shutter window). Returns (dff_paramset_idx, written_at). Replaces the
+    pre-v6 CascadeInput table: the answer is derivable, so it is not stored.
+    """
+    import datetime as _dt
+    from element_calcium_imaging import dff as _dff
+    imaging = _up("imaging")
+    ext = dj.Schema(imaging.schema.database, create_schema=False, create_tables=False).external["external-raw"]
+    q = (imaging.Activity.Trace & activity_key).proj("activity_trace") * ext.proj(activity_trace="hash", w="timestamp")
+    written = dj.U().aggr(q, first="min(w)").fetch1("first")
+    before, since = _dff.CASCADE_METHOD_RECIPES[activity_key["extraction_method"]]
+    idx = before if written < _dt.datetime.fromisoformat(_dff.CASCADE_CODE_CHANGE) else since
+    return idx, written
+
+
+# ======================================================================================
 
 def activate(schema_name: str, *, imaging, scan, event, trial, create_schema=True, create_tables=True):
     """Activate. ``imaging`` must hold DffParamSet / Dff0 (element-calcium-imaging >= 0.1.0b1)."""

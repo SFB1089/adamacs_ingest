@@ -1,633 +1,511 @@
-# Responsiveness schema: design v4 (non-redundant), population and BUGPU worker
+# Responsiveness schema v6: QC, responsiveness and stimulus-specific tuning
 
-*Tobias Rose, 15.11.2026. **Status: proposal.** Nothing below is declared. Earlier versions of this document (v1–v3,
-with the literature review and the dF/F0 analysis) are in the git history of this file.*
+Module `adamacs/schemas/responsiveness.py` · worker `adamacs/workers/responsiveness_worker.py` ·
+computation `adamacs/responsiveness/` · tour notebook `notebooks/responsiveness_v6_tour.ipynb` ·
+diagram `notebooks/schema_diagrams/responsiveness_v6.svg`.
+Status: piloted in the test schema `tobiasr_responsiveness_v6` (2026-11-15/16); **not deployed** to `roselab_`.
 
----
+![responsiveness v6](../notebooks/schema_diagrams/responsiveness_v6.svg)
 
-## 1. What changed since v3, and the rule applied
+## 1. What it answers, and the rules it follows
 
-**Three things changed:**
-* **dF/F0 is now a stored table in `imaging`** (`DffParamSet`, `Dff0`; element-calcium-imaging `roselab-0.1.0b1`).
-  CASCADE reads it, and new CASCADE rows carry their provenance in `imaging.Activity.CascadeInput`.
-* **zetapy 4.1 is installed on BUGPU** in `datajoint_ingest` (Python 3.11, imports `adamacs_ingest`). The Python 3.8
-  worker envs cannot take zetapy 4.x, which needs Python ≥ 3.9.
-* **Workers run on BUGPU.**
+| level | question | table |
+|---|---|---|
+| QC | is the recording and the cell trustworthy? (photons, gain, neuropil, kurtosis) | `Quality` |
+| active | is the trace alive? (SNR, noise, event rate) | `TraceQuality` |
+| responsive | is activity time-locked to these onsets, in any shape? | `Zeta` |
+| responsive | does a chosen PSTH window differ from its baseline? | `Readout` |
+| specific | does it respond to *this* stimulus? which one is preferred? | `Zeta.Condition`, `Readout.Condition`, `Readout.Cell.pref_*` |
+| reliable | is the stimulus response repeatable? | `Readout.Cell.oracle_r`, `response_snr` |
+| tuned | orientation / direction tuning of moving stimuli | `DirectionTuning` |
+| decision | which cells pass a named set of thresholds? | `CellRule` + `cells()` |
 
-**The rule for v4: store nothing that is already stored, or derivable, elsewhere.** Every table and column below holds
-something no other table holds. §6 lists what v3 had and why it is gone.
+Rules:
 
-**What stays upstream, never copied:**
+1. **Store nothing that is stored, or derivable, elsewhere.** Traces stay in `imaging.Activity` / `imaging.Dff0`,
+   onsets in `event.Event` / `trial.TrialEvent`, masks and cell type in `imaging.Segmentation` /
+   `imaging.MaskClassification`.
+2. **Inherit keys, never translate them.** Every result carries the curation key (`imaging.Fluorescence`) and
+   `trace_source`; cell rows add `mask, fluo_channel` (`imaging.Fluorescence.Trace`). Event-dependent results add
+   `event_selector` and their own parameter set. Any curation-keyed analysis joins to them directly.
+3. **Every choice is a key.** Trace type, onset rule, PSTH window, measure, correction, test, ZETA setting and
+   tuning setting are rows of lookup tables; variants coexist and never overwrite each other.
+4. **Universal tables do not know the paradigm.** Only `EventSelector` / `EventSet` describe stimuli or tasks; a new
+   paradigm is one `EventSelector` row (plus a parser if its labels are new).
+5. **Stimulus-specific follow-ups read `Readout`** and are keyed on it plus their own parameter set.
+6. **Thresholds are applied by query.** A new threshold never requires recomputation.
+7. DataJoint calls only; deferred `activate()`; nothing is declared on import.
 
-| Fact | Lives in |
+## 2. Tables (10 + 9 parts)
+
+```
+UNIVERSAL, event-independent
+  TraceSource          Lookup    dff0_r2 -> DffParamSet 2 | cascade25 -> cascade_inference_25ms_filter | oasis -> suite2p_deconvolution
+  Quality(.Cell)       Computed  per curation, raw F: gain from the intensity distribution referenced to shutter-closed dark
+                                 frames (Lees et al. 2025), neuropil sweep; per cell kurtosis, r(F, Fneu), photons/s
+  TraceQuality(.Cell)  Computed  per curation x trace source: Suite2p SNR, CASCADE noise level, event rate, mean, max
+
+PARADIGM (built on the trial schema)
+  EventSelector        Lookup    which trial events / trial types, condition source + parser, min repeats, random seed,
+                                 circular period, optional stimulus duration
+  EventSet(.Onset)     Computed  one Onset per trial.TrialEvent (-> trial.Trial, -> event.Event); onset_idx, condition, shift_s
+
+UNIVERSAL, event-dependent
+  ReadoutParamSet      Lookup    PSTH read-out: window unit (s | frames from the nearest frame), response edges anchored to
+                                 stimulus onset or end, length rule, baseline (fixed | gap | matched | none), measure,
+                                 smoothing, correction, test
+  ZetaParamSet         Lookup    ZETA anchor, window (default median onset interval), resampling, per condition
+  ResponseTask(.Readout, .Zeta, .Tuning)
+                       Manual    curation x trace source x event selector, and which variants to compute
+  Readout(.Cell, .Condition)     per-onset read-out (trial_resp), mean, effect, test p, preferred condition (plain and
+                                 cross-validated), oracle r, response SNR; per-condition mean +- SEM
+  Zeta(.Cell, .Condition)        ZETA p / z / latency, Holm-adjusted per-condition p; per-condition p
+
+STIMULUS-SPECIFIC
+  TuningParamSet       Lookup    rectification, fit, shuffles, bootstraps
+  DirectionTuning(.Cell)         moving gratings / bars (circular_period 360): 1-CirVar, 1-DirCirVar, Hotelling T2,
+                                 direction dot-product test, double-Gaussian fit, OI/DI/OSI/DSI (Mazurek et al. 2014)
+
+DECISIONS
+  CellRule             Lookup    thresholds bound to a trace source, read-out and ZETA variant; cells(rule) -> flags
+```
+
+### 2.1 Seeded rows
+
+| ReadoutParamSet | definition |
 |---|---|
-| traces | `imaging.Activity.Trace` (suite2p, CASCADE), `imaging.Dff0.Trace` (dF/F0 per recipe) |
-| F0 statistics, F0 ≤ 0 flag, dark window | `imaging.Dff0`, `imaging.Dff0.Trace` |
-| cell type | `imaging.MaskClassification.MaskType` |
-| onset times, stimulus strings | `event.Event` |
-| trials, trial attributes | `trial.Trial`, `trial.Trial.Attribute`, reached through `trial.TrialEvent` |
-| frame times, frame rate | `event.Event` (`bench2p_frames`), `scan.ScanInfo` |
-| cross-session identity | `cell_registration.CellRegResult.Member` |
-| provenance of legacy CASCADE rows | **derivable** from the external-store timestamp, so a helper function, not a table |
+| 1 | [onset + 0.1 s, offset) vs pre-onset gap (<= 3 s); mean; subtract |
+| 2 | Leon export, gratings: frames [on, on + n), n = off - on + 2 of the first trial; matched control ending 1 frame before onset; raw mean (reproduced 234/234 by the v1-drift-audit) |
+| 3 | Leon export, images: frames [on + 3, on + 3 + n); no baseline; raw mean (84/84) |
+| 4 | peak of a 200 ms boxcar in [onset, offset), z-scored to pre-onset noise |
+| 5 | OFF: [offset + 0.1, offset + 1.0) vs [offset - 0.5, offset) |
+| 6 | [onset, offset) vs [onset - 0.5, onset); mean; subtract |
+| 7 | Leon export, CASCADE "opt" trees: frames [on + 1, on + 15) |
 
----
+ZETA 1 = audit t73/t140 (onset, median-interval window, 100 resamples, pooled); ZETA 2 = 1 + per condition.
+Selectors: `gratings`, `gratings_orientation`, `moving_bars`, `nat_images` (all 4,900), `nat_images_repeated`
+(images shown >= 5x: the 100 x 10 set), `rf_checkerboard`, `rf_classical`, and `*_random` controls.
 
-## 2. The tables (17 + parts)
+### 2.2 Stimulus strings (Bonsai)
 
-```
- DEFINITIONS (Lookup)            WHAT TO COMPUTE (Manual)                     RESULTS (Computed)
+Fields of the event string, from `leondrift.stim.events.parse_event_type` and the v1-drift-audit:
+`Name:label ; Name ; azimuth ; elevation ; size (w:h) ; direction ; spatial frequency ; temporal frequency`.
+The stimulus end is `event.Event.event_end_time` (checked against the Bonsai frame logs for both grating protocols:
+Leon 2024 3 s on / 4 s off; Natalia 2023 12 directions x 0.52 s sweeps). Natural-image identity is the image
+number (labels carry corrupted spellings of the same number). Checkerboard positions form a cross
+(azimuth sweep at elevation 15 deg, elevation sweep at azimuth 0 deg).
 
- QC, no task needed (computed for curations some task uses):
-   scan.Scan ────────────► PhotonTransfer ─┐
-   imaging.Fluorescence ─┬──────────────────┴─► PhotonBudget(.Mask)              photons/s per cell        FIDELITY
-                         ├─► NeuropilSweep                                       neuropil factor            FIDELITY
-                         └─► TraceQuality(.Mask)                                 kurtosis, neuropil r       FIDELITY
-   imaging.Segmentation ───► MaskShape(.Mask)                                    compactness, overlap       FIDELITY
-   imaging.Dff0 ───────────► DffQuality(.Mask)                                   noise nu, SNR, skew        ACTIVE
-
- Responses:
-   TraceSource ──┐
-   EventSelector ┼──► ResponseTask ◄── imaging.Fluorescence
-   ResponseParamSet ┘      │
-                           ├─► EventSet(.Event)
-                           ├─► Zeta(.Mask, .Condition)                           RESPONSIVE / SPECIFIC / SELECTIVE
-                           └─► WindowResponse(.Mask) ─┬─► CircularTuning(.Mask)   TUNED (circular axes)
-                                                      └─► ResponseReliability(.Mask)  RELIABLE (oracle, SNR, FEV, CC_max)
- Decisions:
-   CellRule(.Criterion) ──► CellCategory(.Mask)                                  DECISION
-```
-
-![responsiveness v4](../notebooks/schema_diagrams/responsiveness_v4_proposal.svg)
-
-### 2.1 Definitions (Lookup)
+## 3. Population
 
 ```python
-@schema
+from adamacs.schemas import responsiveness as resp      # after resp.activate(...) with imaging, scan, event, trial
+resp.plan_tasks(curations, ["cascade25", "oasis", "dff0_r2"], ["gratings", "gratings_random"],
+                readouts=[2, 6], zetas=[1, 2], owner="tobiasr", tunings=[(6, 1)])
+```
+
+`plan_tasks` stages `imaging.Dff0Task` for dF/F0 sources and one `ResponseTask` per curation x trace source x
+selector whose events exist among the scan's trial events. The worker
+(`python -m adamacs.workers.responsiveness_worker --schema <name> [--once] [--no-tls]`, ibehaveGPU1,
+env `datajoint_ingest`) populates in order: `imaging.Dff0` -> `EventSet` -> `Quality` -> `TraceQuality` ->
+`Readout` -> `Zeta` -> `DirectionTuning`. ZETA uses a process pool (`RESPONSIVENESS_ZETA_PROCS`, default 24).
+
+## 4. Pilot (tobiasr_responsiveness_v6, ROS-1841 curation 2, 2026-11-15/16)
+
+| check | result |
+|---|---|
+| ZETA vs v1-drift-audit t73 (OASIS, CASCADE) | same window (gratings 7.016 s, images 3.517 s) and onsets (177, 1,000); log-p r 0.96-0.99; fraction p < 0.05 identical (gratings 98 % / 100 %, images 77 % vs 76 %, 75 %) |
+| export read-outs | gratings 86 frames, images +3 / 18 frames, as the audit's exact recompute |
+| image oracle, audit's 103 cells | OASIS 0.176 (audit 0.187), dF/F0 0.25, CASCADE 0.12 |
+| ZETA under random onsets | images 5.5-8 %, gratings 8-12 % (audit null 8-16 %) |
+| Wilcoxon read-out under random onsets | dF/F0 with 0.5 s baseline 5-6 % (calibrated); CASCADE / OASIS with 0.5 s baseline 29-81 % (**not calibrated**: zero-inflated baselines); base 'none' tests vs 0 are meaningless for non-negative traces |
+| detector | dark-referenced gain r2 0.95 on both drift scans; RF scan without shutter frames falls back to the PTC (r2 0.46) |
+| photons / s / soma | median 1,800-3,600 (expected 1e3-1e4) |
+| neuropil sweep | cells decorrelate at alpha 1.05-1.1 (pipeline uses 0.7) |
+| direction tuning (dF/F0, read-out 6) | 30 % of masks Hotelling p < 0.05; OSI exceeds 1 - CirVar systematically for weakly tuned cells |
+
+Run time: ZETA 7.5 h for 21 sets on all masks (1,361-1,994 per scan) while BUGPU was shared with an
+80-process audit job; one call costs ~9 s for 180 onsets (zetapy's time-series ZETA interpolates every trial onto
+the union of all trials' sample times, so cost grows with onsets squared).
+
+Bugs found and fixed in the pilot: `Quality` read whole scans through scanreader (214 GB for a 147,300-frame scan)
+and now reads only the needed TIFF pages; `noise_nu` multiplied instead of divided by sqrt(fps) (the stored pilot
+rows still carry the old value).
+
+## 5. Open before production
+
+1. ZETA on soma masks only (a `mask_type` column in `ZetaParamSet`) and reuse of the pooled test in the
+   per-condition variant: roughly 2-3x less work.
+2. Fetch traces once per task and reuse them across read-out variants (Readout took 31 min for 39 sets).
+3. Recommended read-outs for deconvolved traces: matched-length baselines or ZETA (see the calibration row above).
+4. Grating ingest gap: one 2023 protocol has 27 of 324 Bonsai presentations in `event.Event` (separate audit proposed).
+5. Production schema `roselab_responsiveness` and its cron entry: not created.
+
+## 6. References
+
+- Mazurek M, Kager M, Van Hooser SD (2014) Robust quantification of orientation selectivity and direction
+  selectivity. Front Neural Circuits 8:92. doi:10.3389/fncir.2014.00092
+- Montijn JS et al. (2021) A parameter-free statistical test for neuronal responsiveness (ZETA). eLife 10:e71969
+- Lees RM et al. (2025) Standardized measurements for monitoring and comparing multiphoton microscope systems.
+  Nat Protoc. doi:10.1038/s41596-024-01120-w
+- Rupprecht P et al. (2021) A database and deep learning toolbox for noise-optimized, generalized spike inference
+  from calcium imaging (CASCADE). Nat Neurosci 24:1324-1337
+- Niell CM, Stryker MP (2008) Highly selective receptive fields in mouse visual cortex. J Neurosci 28:7520-7536
+- Labrigger (2026) 2P calcium imaging fidelity. labrigger.com/blog/2026/07/25/2p-calcium-imaging-fidelity
+- v1-drift-audit: `figures_fable/tables/export_audit/GRATINGS_AUDIT.md`, `EXPORT_AUDIT_FINDINGS.md`, `artefacts/t73`
+
+## Appendix: table definitions (generated from the module)
+
+```python
 class TraceSource(dj.Lookup):
     definition = """
-    # A trace type responses are computed on: exactly one of an imaging activity method or a dF/F0 recipe
-    trace_source         : varchar(24)    # 'dff0', 'cascade25', 's2p'
+    # A trace type: exactly one imaging activity extraction method or one dF/F0 recipe
+    trace_source            : varchar(24)
     ---
     -> [nullable] imaging.ActivityExtractionMethod
     -> [nullable] imaging.DffParamSet
+    trace_unit              : varchar(16)            # 'dF/F0' | 'spikes/s' | 'a.u.'
     """
-    contents = [("dff0", None, 2), ("cascade25", "cascade_inference_25ms_filter", None),
-                ("s2p", "suite2p_deconvolution", None)]
 ```
-DataJoint has no union foreign key. This is the standard way to express one: two nullable foreign keys, with a check
-on insert that exactly one is set. There is no free-text description column: the foreign keys are the description.
 
 ```python
-@schema
+class Quality(dj.Computed):
+    definition = """
+    # Data fidelity of one curation from raw fluorescence (Labrigger 2026 catechism; Lees et al. 2025 photon transfer)
+    -> imaging.Fluorescence
+    ---
+    gain_method             : enum('dark','ptc')  # dark: offset + read noise from shutter-closed frames; ptc: free-intercept fit (no dark frames)
+    gain=null               : double              # [grey levels / detected photon] (V - dark_var) = gain*(I - offset), frame-pair variance
+    offset=null             : double              # [grey levels] zero-photon level (mean dark frame, or fitted intercept)
+    gain_r2=null            : float               # fit quality over the lower half of the intensity range
+    n_frames                : int                 # raw frames used for the fit (dark frames come in addition)
+    alpha_opt=null          : float               # neuropil factor that brings the mean pairwise cell correlation closest to 0
+    mean_r_at_alpha07=null  : float               # mean pairwise correlation at the pipeline's 0.7
+    """
+
+    class Cell(dj.Part):
+        definition = """
+            -> master
+            -> imaging.Fluorescence.Trace
+            ---
+            kurtosis=null           : float           # Pearson kurtosis of raw F (normal 3); low = noise or neuropil-dominated
+            neuropil_r=null         : float           # r(F, Fneu); high = contaminated
+            photons_per_s=null      : float           # enf^2*(F0 - offset)*npix/gain*fps, F0 = 30th pct of raw F (typical 1e3-1e4)
+            """
+```
+
+```python
+class TraceQuality(dj.Computed):
+    definition = """
+    # Event-independent activity statistics of one trace type of one curation (ACTIVE level)
+    -> imaging.Fluorescence
+    -> TraceSource
+    """
+
+    class Cell(dj.Part):
+        definition = """
+            -> master
+            -> imaging.Fluorescence.Trace
+            ---
+            snr_s2p=null            : float           # Suite2p: 1 - var(diff x)/(2 var x)
+            noise_nu=null           : float           # [percent/sqrt(Hz)] CASCADE noise level (meaningful for dF/F0 only)
+            event_rate=null         : float           # [1/min] runs >= 2 frames above 3 robust SD
+            mean_level=null         : float           # mean of the trace (for spike-rate traces: mean rate)
+            max_value=null          : float           # maximum of the trace (audit rule: CASCADE cells > 50 are non-physical)
+            """
+```
+
+```python
 class EventSelector(dj.Lookup):
     definition = """
-    # A rule that picks response onsets from event.Event and labels their condition. Never edited.
-    event_selector       : varchar(48)    # 'gratings', 'gratings_random', 'nat_images_repeated', 'cricket_cue'
+    # How one paradigm's trial events become onsets with a condition label. Onsets are trial.TrialEvent rows:
+    # bench2p trial = stimulus block (trial_type e.g. 'Moving_Gratings'), Bpod trial = task trial. Never edited.
+    event_selector          : varchar(48)
     ---
-    event_type_like      : varchar(128)   # the onset events (for task trials: the alignment event, e.g. 'bpod_cue')
-    trial_type_like=''   : varchar(128)   # optional: keep only events inside trials of this type (via trial.TrialEvent)
-    condition_from       : enum('none','event_type','trial_type','trial_attribute')
-    condition_name=''    : varchar(32)    # 'direction', 'image_id', ... or the trial attribute's name
-    parser='none'        : varchar(32)    # registered function turning the source text into the condition label
-    circular_period=null : float          # [deg] 360 for direction: CircularTuning applies
-    random_seed=null     : int            # set = no-stimulus control: same number of onsets at seeded random times
-    filter=null          : longblob       # optional: {'min_repeats': 6}, {'block_parity': 'odd'}, {'attribute': {...}}
+    event_type_like         : varchar(128)           # onset events among trial.TrialEvent (LIKE on event_type)
+    trial_type_like=''      : varchar(128)           # optional: only trials of this type (trial.Trial.trial_type)
+    condition_source='event_type' : enum('event_type','trial_type','trial_attribute')
+                                                     # stimulus string of the event | its trial's type | a trial.Trial.Attribute
+    trial_attribute=''      : varchar(16)            # attribute_name when condition_source = 'trial_attribute'
+    condition_parser='none' : varchar(32)            # adamacs.responsiveness.parsers; 'none' = one condition
+    parser_args=''          : varchar(64)            # e.g. bonsai_fields '2,3' -> label 'x|y'
+    min_repeats=1           : smallint               # drop conditions shown fewer times
+    random_seed=null        : int                    # set = no-stimulus control: every onset shifted to a seeded random time
+    circular_period=null    : float                  # [deg] 360: labels are directions (DirectionTuning applies); 180: orientations
+    stim_duration_s=null    : float                  # [s] stimulus end = onset + this; NULL = event.Event.event_end_time
+                                                     # (set it where event_end_time is a trigger, not the stimulus end)
     """
 ```
-**Every onset is an `event.Event` row.** For task trials it is the alignment event inside the trial (e.g. `bpod_cue`),
-and the trial is reachable through `trial.TrialEvent`. So `EventSet` needs no trial part and no copied times. A
-**random** selector stores nothing: its onsets are a deterministic function of the seed, the scan's frame clock and
-the reference count.
 
 ```python
-@schema
-class ResponseParamSet(dj.Lookup):
+class EventSet(dj.Computed):
     definition = """
-    # Settings of one response method. Same settings -> same row (hash unique). Never edited.
-    resp_paramset_idx    : smallint
+    # The onsets one EventSelector picks among the trial events of one scan (computed for tasked scans)
+    -> scan.Scan
+    -> EventSelector
     ---
-    method               : enum('zeta','window')
-    resp_hash            : uuid
-    unique index (resp_hash)
-    params               : longblob       # zeta:   {'window': 'median_ioi', 'resampling': 100, 'jitter': 2, 'edge': 'drop',
-                                          #          'per_condition': True, 'vs_rest': True}      (False/False = audit t73)
-                                          # window: {'resp_s': [0.1, 0.6], 'base_s': [-0.3, 0], 'n_perm': 1000, 'n_boot': 1000}
+    n_onsets                : int
+    n_conditions            : smallint
+    n_trials                : smallint               # trials (blocks / task trials) the onsets come from
+    n_outside_trials        : int                    # matching event.Event rows in no trial (not used)
+    median_duration_s=null  : float                  # median stimulus duration used (stim_duration_s, or event end - start)
+    median_ioi_s=null       : float                  # median onset-to-onset interval
+    """
+
+    class Onset(dj.Part):
+        definition = """
+            # one onset = one trial event; time, stimulus string and trial come through the foreign key
+            -> master
+            -> trial.TrialEvent
+            ---
+            onset_idx               : smallint           # presentation order in this set = index into Readout.Cell.trial_resp
+            condition               : varchar(64)        # parsed label ('all' if none)
+            shift_s=0               : double             # [s] added to the event time: 0, or the seeded shift of a random-onset control
+            unique index (session_id, scan_id, event_selector, onset_idx)
+            """
+```
+
+```python
+class ReadoutParamSet(dj.Lookup):
+    definition = """
+    # Peri-event (PSTH) read-out, independent of trace and paradigm. Every choice is a column.
+    # Each window edge = reference edge of the stimulus + offset. Never edited; same content -> same hash.
+    readout_idx             : smallint
+    ---
+    readout_desc            : varchar(255)
+    readout_hash            : uuid
+    unique index (readout_hash)
+    window_unit='s'         : enum('s','frames')            # s: edges in seconds from the event times;
+                                                            # frames: edges in 2P frames from the frame NEAREST each event time
+                                                            # (the convention of the Leon export, reproduced by the v1-drift-audit)
+    resp_start_ref='onset'  : enum('onset','offset')        # response window start: stimulus start or end ...
+    resp_start              : float                         # ... + this (s or frames; e.g. 0.1 s, 3 frames)
+    resp_stop_ref='offset'  : enum('onset','offset')        # response window end: stimulus start or end ...
+    resp_stop=0             : float                         # ... + this (e.g. 0 = at stimulus end, -0.2 s = 200 ms before)
+    length_rule='per_onset' : enum('per_onset','first_onset')   # first_onset: every window gets the first onset's length
+                                                            # (Leon export; session-specific length - avoid for drift)
+    base_mode='fixed'       : enum('fixed','gap','matched','none')
+                                                            # fixed: [base_ref+base_start, base_ref+base_stop)
+                                                            # gap: inter-stimulus gap before onset, at most |base_start| (s)
+                                                            # matched: as long as the response window, ending at base_ref+base_stop
+                                                            # none: no baseline (test against 0, e.g. spike rates)
+    base_ref='onset'        : enum('onset','offset')
+    base_start=null         : float                         # e.g. -0.5 s
+    base_stop=0             : float                         # e.g. 0 s, or -1 frame
+    measure='mean'          : enum('mean','median','integral','peak','trough','peak_abs','auc_pos','peak_latency')
+    smooth_s=0              : float                         # [s] boxcar before peak / trough / peak_abs / peak_latency
+    correction='subtract'   : enum('subtract','divide','zscore','none')   # r-b | (r-b)/|b| | (r-b)/baseline frame SD | r
+    test='wilcoxon'         : enum('wilcoxon','ttest','signflip')         # paired response vs baseline (vs 0 if base 'none')
     """
 ```
 
-### 2.2 What to compute (Manual)
+```python
+class ZetaParamSet(dj.Lookup):
+    definition = """
+    # Time-series ZETA settings (zetapy). Response shape free; only the analysis window is chosen. Never edited.
+    zeta_idx                : smallint
+    ---
+    zeta_desc               : varchar(255)
+    zeta_hash               : uuid
+    unique index (zeta_hash)
+    zeta_anchor='onset'     : enum('onset','offset')
+    zeta_window_s=null      : float                         # [s] analysis window after the anchor; NULL = median onset-to-onset interval
+    zeta_resampling=100     : smallint
+    per_condition=0         : bool                          # also one-sample ZETA per condition
+    """
+```
 
 ```python
-@schema
+class TuningParamSet(dj.Lookup):
+    definition = """
+    # Settings of the stimulus-specific tuning follow-ups (DirectionTuning). Never edited; same content -> same hash.
+    tuning_idx              : smallint
+    ---
+    tuning_desc             : varchar(255)
+    tuning_hash             : uuid
+    unique index (tuning_hash)
+    rectify='clip'          : enum('clip','none')   # condition means < 0 set to 0 before vector / point indices
+    fit=1                   : bool                  # double-Gaussian fit (Mazurek et al. 2014 constraints)
+    n_perm=1000             : smallint              # label shuffles for the vector-length p (0 = skip)
+    n_boot=200              : smallint              # bootstraps for the preferred-orientation interval (0 = skip)
+    """
+```
+
+```python
 class ResponseTask(dj.Manual):
     definition = """
-    # Compute this method on this trace type of this curation for these onsets. Staged by people (helper), populated by the worker.
+    # Quantify these onsets on this trace type of this curation (staged with plan_tasks())
     -> imaging.Fluorescence
     -> TraceSource
     -> EventSelector
-    -> ResponseParamSet
     ---
-    task_owner           : varchar(32)
+    task_owner              : varchar(32)
     """
-```
-A helper `plan_tasks(restriction, trace_sources, selectors, paramsets, owner)` inserts tasks. It refuses tasks whose
-trace does not exist: no `imaging.Activity` row for the method, or no `imaging.Dff0` row for the recipe (in that case
-it inserts the `imaging.Dff0Task`, so dF/F0 is computed first).
 
-### 2.3 Results (Computed)
-
-```python
-@schema
-class EventSet(dj.Computed):
-    definition = """
-    # The onsets an EventSelector picks in one scan
-    -> scan.Scan
-    -> EventSelector
-    ---
-    n_onsets             : int
-    n_conditions         : smallint
-    """
-    class Event(dj.Part):                 # empty for random selectors (onsets regenerated from the seed)
+    class Readout(dj.Part):
         definition = """
-        -> master
-        -> event.Event
-        ---
-        condition            : varchar(32)    # parsed label ('all' if condition_from = 'none')
-        """
-    # key_source = (scan.Scan * EventSelector) & ResponseTask
+            # read-outs to compute for this task
+            -> master
+            -> ReadoutParamSet
+            """
+
+    class Zeta(dj.Part):
+        definition = """
+            # ZETA variants to compute for this task
+            -> master
+            -> ZetaParamSet
+            """
+
+    class Tuning(dj.Part):
+        definition = """
+            # stimulus-specific tuning follow-ups: on this read-out, with these settings
+            -> master.Readout
+            -> TuningParamSet
+            """
 ```
-The parsed `condition` is the only stored derivative here, because parsing is the fragile step and must be fixed per
-set. Onset times and order come from `event.Event`.
-
-#### Quality control: QC block (event-independent; ACTIVE level and data fidelity)
-
-Sources:
-* the Labrigger fidelity article (2026) and its "catechism";
-* Tomaska's kurtosis-gain-checker;
-* the Lees et al. photon-transfer protocol;
-* Suite2p 2026;
-* CASCADE (Rupprecht et al. 2021);
-* Harris et al. 2016 on neuropil contamination.
-
-References are in §8. Six tables, each keyed at the level its measurement belongs to, so nothing is computed twice:
-
-| Table | Key | Measures | Why at this level |
-|---|---|---|---|
-| `PhotonTransfer` | scan | the microscope's photon sensitivity and dark level | a property of detector + acquisition, not of a curation |
-| `NeuropilSweep` | curation | the neuropil factor that decorrelates the population | depends on the masks, not on a dF/F0 recipe |
-| `MaskShape` | curation | ROI morphology | from `Segmentation.Mask` pixels |
-| `TraceQuality` | curation | raw-F statistics (kurtosis, neuron–neuropil correlation, drift) | independent of any dF/F0 recipe |
-| `DffQuality` | curation × dF/F0 recipe | dF/F0 statistics (noise ν, SNR, skewness, event rate) | depends on the recipe |
-| `PhotonBudget` | curation × scan PTC | photons/s per cell | needs the PTC gain |
 
 ```python
-@schema
-class PhotonTransfer(dj.Computed):
+class Readout(dj.Computed):
     definition = """
-    # Detector calibration of one scan: two gain estimates, (a) free-intercept PTC, (b) dark-referenced intensity distribution
-    -> scan.Scan
-    ---
-    n_frames             : int            # raw frames used (contiguous, before motion correction)
-    # (a) photon transfer curve, Lees et al. 2025 (frame pairs, free intercept)
-    q_ptc                : double         # [grey levels / photon] Huber fit of V = q*(I - I0), weighted by pixel counts
-    i0_ptc               : double         # [grey levels] fitted zero-photon level (x-intercept)
-    r2_ptc               : float          # linearity of the fitted range
-    # (b) dark-referenced: offset and read noise MEASURED in the shutter-closed frames, then the intensity distribution
-    dark_source          : varchar(16)    # 'shutter' (frames between the first two shutter events) | 'none' (no usable dark frames)
-    dark_offset=null     : double         # [grey levels] mean of the dark frames (Lees: "black point")
-    dark_var=null        : double         # [grey levels^2] temporal variance in the dark frames (read/dark noise)
-    q_dark=null          : double         # [grey levels / photon] fit of (V - dark_var) = q*(I - dark_offset), intercept fixed
-    r2_dark=null         : float
-    # shared
-    enf                  : float          # detector excess noise factor assumed (GaAsP 1.2); photons = enf^2 * (I - offset) / q
-    cov_median           : float          # median CoV map value (1 = Poisson; >1 activity; <1 clipping/saturation)
-    """
-```
-* **(a) Free-intercept PTC (Lees et al. 2025).** Adjacent raw frames X, X′ with a 4-pixel edge margin give, per pixel,
-  M = round((X + X′)/2) and D = (X − X′)²/2. Bin by intensity: Vᵢ = mean D at M = Iᵢ. Fit V ≈ q·(I − I₀) robustly
-  (Huber), weighted by pixel counts, over the 0–50th intensity percentile.
-* **(b) Dark-referenced estimate.** The same binned intensity distribution of the bright frames, but with the zero
-  level and the read-noise variance measured in the shutter-closed frames at the start of the scan (the same window
-  `imaging.Dff0` uses for its dark signal): fit (V − dark_var) = q·(I − dark_offset) with the intercept fixed. Two
-  references for this:
-  * Lees et al.: the black point is the mean of the dark response, and it is subtracted before any statistic.
-  * Heintzmann et al. 2016, "Calibrating photon counts from a single image": gain = noise variance minus read-noise
-    variance, divided by the offset-corrected signal; the offset comes from dark frames or must be fitted.
-* **Fitted against measured offset.** `i0_ptc` vs `dark_offset` is a direct check of the detector baseline. A large
-  difference means the zero level drifts, or there is non-Poissonian noise.
-* **Which estimate is used.** `PhotonBudget` uses (b) where dark frames exist and (a) otherwise, and records which.
-
-```python
-@schema
-class NeuropilSweep(dj.Computed):
-    definition = """
-    # Neuropil factor that minimises mean pairwise correlation between cells (Labrigger catechism; Harris et al. 2016)
+    # Per-onset read-out of every trace of one trace type, for one event set and one read-out variant
     -> imaging.Fluorescence
+    -> TraceSource
+    -> EventSet
+    -> ReadoutParamSet
     ---
-    alpha_opt            : float          # alpha in F - alpha*Fneu where the mean off-diagonal r is closest to 0
-    mean_r_at_alpha07    : float          # mean pairwise r at the default 0.7 (contamination at the lab default)
-    curve                : longblob       # (alpha, mean r, SEM) for alpha = 0..2 in steps of 0.05
-    n_cells              : int            # soma masks used (classifier soma, >= 4 px from the FOV edge, raw kurtosis > 5)
+    n_onsets                : int                 # onsets whose windows lie inside the recording
+    n_repeats               : smallint            # K: repeats per condition after balancing (0 = no reliability)
+    resp_s                  : float               # [s] median response-window length actually used
+    base_s=null             : float               # [s] median baseline length actually used (NULL: no baseline)
+    software                : varchar(64)         # adamacs_ingest commit
     """
-```
 
-```python
-@schema
-class MaskShape(dj.Computed):
-    definition = """
-    # ROI morphology per mask (Suite2p 2026 definitions); npix is already Segmentation.Mask.mask_npix
-    -> imaging.Segmentation
-    """
-    class Mask(dj.Part):
+    class Cell(dj.Part):
         definition = """
-        -> master
-        -> imaging.Segmentation.Mask
-        ---
-        compactness          : float      # mean pixel distance from the median pixel / that of a disk of equal area (1 = disk)
-        aspect_ratio         : float      # 2*major / (major + minor) radius of a Gaussian fit (1..2)
-        radius_px            : float      # 2 x major-axis radius of the Gaussian fit
-        overlap_frac         : float      # fraction of pixels shared with other masks
-        edge_dist_px         : float      # distance to the nearest FOV edge
-        """
-```
+            -> master
+            -> imaging.Fluorescence.Trace
+            ---
+            trial_resp              : blob@external-raw   # float32 (EventSet.n_onsets,) corrected read-out per onset, EventSet.Onset order; NaN = outside
+            resp=null               : float           # mean of trial_resp over all onsets
+            effect_d=null           : float           # mean / SD of trial_resp
+            resp_p=null             : float           # RESPONSIVE  ReadoutParamSet.test: response vs baseline (or vs 0)
+            pref_condition=null     : varchar(64)     # condition with the largest mean read-out (preferred orientation, image, RF position)
+            pref_resp=null          : float           # mean read-out at pref_condition (chosen on the same onsets: biased up)
+            pref_resp_cv=null       : float           # cross-validated: chosen on odd presentations, read on even, and reverse
+            pref_p=null             : float           # Wilcoxon of the read-out at pref_condition vs 0 (not corrected for the choice)
+            oracle_r=null           : float           # RELIABLE  leave-one-repeat-out correlation of the condition curve
+            response_snr=null       : float           # RELIABLE  signal_var / noise_var across condition means (snr_bc)
+            """
 
-```python
-@schema
-class TraceQuality(dj.Computed):
-    definition = """
-    # Raw-fluorescence statistics per mask, independent of any dF/F0 recipe
-    -> imaging.Fluorescence
-    """
-    class Mask(dj.Part):
+    class Condition(dj.Part):
         definition = """
-        -> master
-        -> imaging.Fluorescence.Trace
-        ---
-        kurtosis_raw         : float      # Pearson kurtosis of raw F (normal = 3); Labrigger "garbage control", checker default cut 5
-        neuron_neuropil_r    : float      # Pearson r(F, Fneu); high = neuropil-dominated soma (catechism Q2)
-        neuropil_ratio       : float      # median Fneu / median F (Labrigger: ~50/50 usable, 90/10 lost in shot noise)
-        f_drift              : float      # [%/min] linear slope of raw F over the session (bleaching, z-drift)
-        """
+            -> master.Cell
+            condition               : varchar(64)
+            ---
+            n_onsets                : smallint
+            resp=null               : float           # mean read-out over this condition
+            resp_sem=null           : float
+            """
 ```
 
 ```python
-@schema
-class DffQuality(dj.Computed):
-    definition = """
-    # dF/F0 statistics per mask for one recipe (ACTIVE level)
-    -> imaging.Dff0
-    """
-    class Mask(dj.Part):
-        definition = """
-        -> master
-        -> imaging.Dff0.Trace
-        ---
-        noise_nu             : float      # [%/sqrt(Hz)] CASCADE noise level: 100 * median|diff(dF/F0)| * sqrt(fps)
-        snr_s2p              : float      # Suite2p: 1 - var(diff(x)) / (2 var(x)); 0 = white noise, -> 1 = slow signal
-        skewness             : float      # of dF/F0 (Suite2p classifier feature)
-        snr_peak             : float      # 99th percentile of dF/F0 / robust noise SD (1.4826 * MAD of diff / sqrt 2)
-        event_rate           : float      # [1/min] transients > 3 x robust noise SD lasting >= 2 frames
-        """
-    # key_source = imaging.Dff0 & (ResponseTask * TraceSource): recipes some task uses
-```
-
-```python
-@schema
-class PhotonBudget(dj.Computed):
-    definition = """
-    # Detected photons per second per cell (Labrigger: "the key question"; typical 1e3-1e4)
-    -> imaging.Fluorescence
-    -> PhotonTransfer
-    ---
-    gain_method          : enum('dark','ptc')   # dark-referenced (b) if available, else free-intercept PTC (a)
-    """
-    class Mask(dj.Part):
-        definition = """
-        -> master
-        -> imaging.Fluorescence.Trace
-        ---
-        photons_per_s        : float      # enf^2 * (F0 - offset) * npix / q * fps, F0 = 30th percentile of raw F (no neuropil subtraction)
-        """
-```
-* **Single-AP detectability is derivable, not stored.** d′ ≈ (ΔF/F per AP) · √(photons_per_s · τ_decay / 2) (Wilt et
-  al. 2013, Eq. 9), using indicator constants (Chen et al. 2013; Zhang et al. 2023 for GCaMP8). Helper:
-  `dprime_1ap(photons_per_s, indicator)`.
-* **Registration quality is derivable** from `imaging.MotionCorrection` (rigid/non-rigid offsets), so no table.
-
-```python
-@schema
 class Zeta(dj.Computed):
     definition = """
-    # Time-series ZETA (zetapy) for every trace of one task (RESPONSIVE: pooled; SPECIFIC/SELECTIVE: per condition)
-    -> ResponseTask                       # method = 'zeta'
+    # Time-series ZETA of every trace of one trace type, for one event set and one ZETA variant
+    -> imaging.Fluorescence
+    -> TraceSource
     -> EventSet
+    -> ZetaParamSet
     ---
-    window_s             : float          # [s] resolved window (median onset-to-onset interval)
-    n_onsets_used        : int            # after dropping onsets whose jitter window leaves the recording
-    software             : varchar(64)    # 'zetapy 4.1 | adamacs_ingest <commit>'
+    n_onsets                : int                 # onsets whose jitter window (-2w, +3w) lies inside the recording
+    window_s                : float               # [s] analysis window actually used
+    software                : varchar(64)         # zetapy version | adamacs_ingest commit
     """
-    class Mask(dj.Part):
+
+    class Cell(dj.Part):
         definition = """
-        -> master
-        -> imaging.Fluorescence.Trace
-        ---
-        zeta_p               : float      # time-locked to the onsets, any response shape?
-        zeta_z               : float      # zetapy zeta_score
-        latency=null         : float      # [s] time of the largest deviation
-        """
-    class Condition(dj.Part):             # only if params.per_condition
+            -> master
+            -> imaging.Fluorescence.Trace
+            ---
+            zeta_p=null             : float           # RESPONSIVE  time-locked to the onsets, any response shape
+            zeta_z=null             : float           # zetapy zeta_score
+            latency=null            : float           # [s] peak latency
+            condition_p=null        : float           # SPECIFIC  Holm-adjusted min of the per-condition p (per_condition only)
+            """
+
+    class Condition(dj.Part):
         definition = """
-        -> master.Mask
-        condition            : varchar(32)
-        ---
-        zeta_p               : float      # responds to THIS condition (one-sample ZETA on its onsets)?
-        zeta2_p=null         : float      # differs from the other conditions (two-sample zetatstest2)? (params.vs_rest)
-        """
+            -> master.Cell
+            condition               : varchar(64)
+            ---
+            zeta_p=null             : float           # responds to THIS condition
+            """
 ```
-* The seed is `crc32(scan_id)`, derivable, so it is not stored.
-* The number of onsets per condition is derivable from `EventSet.Event`.
 
 ```python
-@schema
-class WindowResponse(dj.Computed):
+class DirectionTuning(dj.Computed):
     definition = """
-    # Response- and baseline-window means per onset, and the statistics that rules filter on
-    -> ResponseTask                       # method = 'window'
-    -> EventSet
+    # Orientation / direction tuning from one Readout of a direction stimulus (moving gratings, moving bars).
+    # Mazurek, Kager & Van Hooser 2014 (doi:10.3389/fncir.2014.00092); classic indices for comparison.
+    -> Readout
+    -> TuningParamSet
+    ---
+    n_directions            : smallint
+    n_repeats               : smallint            # repeats per direction after balancing (Hotelling / dot-product tests)
+    software                : varchar(64)
     """
-    class Mask(dj.Part):
+
+    class Cell(dj.Part):
         definition = """
-        -> master
-        -> imaging.Fluorescence.Trace
-        ---
-        resp                 : longblob   # (n_onsets,) response-window mean, EventSet.Event order (by event_start_time)
-        base                 : longblob   # (n_onsets,) baseline-window mean
-        effect_d             : float      # paired Cohen's d (sign = excited/suppressed)
-        resp_p               : float      # Wilcoxon resp vs base over all onsets
-        cond_p=null          : float      # Kruskal-Wallis across conditions (NULL if one condition)
-        """
+            -> master
+            -> Readout.Cell
+            ---
+            ori_vec=null            : float           # 1-CirVar = |sum R e^(2i theta)| / sum R   (recommended orientation selectivity)
+            dir_vec=null            : float           # 1-DirCirVar = |sum R e^(i theta)| / sum R (recommended direction selectivity)
+            pref_ori_vec=null       : float           # [deg, 0-180) angle of the orientation vector
+            pref_dir_vec=null       : float           # [deg, 0-360) angle of the direction vector
+            hotelling_p=null        : float           # orientation tuning significant? Hotelling T2, per-repeat orientation vectors vs 0
+            dir_dot_p=null          : float           # direction tuning significant? t-test of per-repeat direction vectors on the orientation axis
+            pref_dir_dot=null       : float           # [deg] preferred direction from the dot-product sign (pref_ori_vec or +180)
+            ori_vec_perm_p=null     : float           # label-shuffle p of ori_vec
+            dir_vec_perm_p=null     : float           # label-shuffle p of dir_vec
+            pref_ori_ci=null        : float           # [deg] width of the 95-percent bootstrap interval of pref_ori_vec
+            r_pref=null             : float           # measured mean at the best direction
+            r_null=null             : float           # ... at best + 180
+            r_orth=null             : float           # ... mean of best +/- 90
+            oi=null                 : float           # (Rp - Ro)/Rp      (biased at low selectivity; for comparison)
+            di=null                 : float           # (Rp - Rn)/Rp
+            osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve)
+            dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
+            fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction (report only if hotelling_p small)
+            fit_sigma=null          : float           # [deg]
+            fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
+            fit_rp=null             : float           # response above offset at preferred
+            fit_rn=null             : float           # response above offset at null
+            fit_c=null              : float           # offset
+            fit_r2=null             : float
+            fit_osi=null            : float           # OSI from the fitted curve
+            fit_dsi=null            : float           # DSI from the fitted curve
+            """
 ```
-* Per-condition means, SEMs and the mean amplitude are derivable from `resp`, `base` and `EventSet.Event`, so they are
-  not stored.
-* The three statistics are stored because rules filter on them. Reliability measures need repeats: they are in `ResponseReliability`.
 
 ```python
-@schema
-class CircularTuning(dj.Computed):
-    definition = """
-    # Orientation/direction tuning from WindowResponse, for selectors with a circular condition axis
-    -> WindowResponse
-    """
-    class Mask(dj.Part):
-        definition = """
-        -> master
-        -> WindowResponse.Mask
-        ---
-        pref_deg             : float      # [deg] preferred direction (first harmonic)
-        pref_axis_deg        : float      # [deg] preferred orientation (second harmonic)
-        dsi_vec              : float
-        osi_vec              : float      # 1 - circular variance
-        dsi_perm_p           : float      # label-permutation p of dsi_vec
-        osi_perm_p           : float      # label-permutation p of osi_vec (nb37 tuning test)
-        pref_ci_width        : float      # [deg] bootstrap 95 % CI of pref_axis_deg
-        """
-    # key_source = WindowResponse & (ResponseTask * EventSelector & 'circular_period IS NOT NULL')
-```
-A separate table, so `WindowResponse` carries no columns that are NULL for every non-grating selector.
-
-```python
-@schema
-class ResponseReliability(dj.Computed):
-    definition = """
-    # Trial-to-trial reliability of the condition curve (selectors with >= 2 repeats per condition): oracle, SNR, FEV, CC_max
-    -> WindowResponse
-    """
-    class Mask(dj.Part):
-        definition = """
-        -> master
-        -> WindowResponse.Mask
-        ---
-        signal_var           : float      # s2: variance of condition means minus mean noise variance / n_repeats (unbiased)
-        noise_var            : float      # sigma2: mean within-condition variance of single-repeat responses
-        oracle_r             : float      # mean over repeats of r(single-repeat curve, mean curve of the other repeats)
-        splithalf_sb         : float      # Spearman-Brown of random half-splits (mean of k splits)
-        r2er                 : float      # noise-corrected r2 between half-split curves (Pospisil & Bair 2021)
-        """
-    # key_source = WindowResponse & EventSet with >= 2 onsets in every condition
-```
-**SNR, FEV and CC_max are not stored: they are exact functions of `signal_var`, `noise_var` and the repeat count n.**
-They can be used in restrictions as SQL expressions, e.g. `ResponseReliability.Mask & "signal_var / noise_var > 0.5"`:
-* single-trial SNR = s²/σ² (the Stringer et al. 2019 SNR is the two-repeat case);
-* FEV = s²/(s² + σ²) (Cadena et al. 2019);
-* CC_max = √(s²/(s² + σ²/n)) (Schoppe et al. 2016).
-
-`oracle_r`, `splithalf_sb` and `r2er` are different estimators, not functions of each other, so they are stored.
-
-### 2.4 Decisions
-
-```python
-@schema
 class CellRule(dj.Lookup):
     definition = """
-    # A named set of thresholds. Never edited; a changed threshold is a new rule.
-    cell_rule            : varchar(48)
+    # Named thresholds, bound to the variants they apply to. NULL threshold = criterion not used. Never edited.
+    cell_rule               : varchar(32)
     ---
-    decided_by           : varchar(32)
-    decided_on           : date
+    -> [nullable] TraceSource                     # trace type the ACTIVE / RESPONSIVE / RELIABLE criteria refer to (NULL: every one)
+    -> [nullable] ReadoutParamSet                 # read-out for resp_p / oracle_r
+    -> [nullable] ZetaParamSet                    # ZETA variant for zeta_p / condition_p
+    mask_type=''            : varchar(16)         # QC          imaging.MaskClassification.MaskType (e.g. 'soma'); '' = any
+    max_trace_value=null    : float               # QC          TraceQuality.Cell.max_value (audit: 50 for CASCADE)
+    min_kurtosis=null       : float               # QC          Quality.Cell.kurtosis
+    min_photons_per_s=null  : float               # QC          Quality.Cell.photons_per_s
+    min_snr_s2p=null        : float               # ACTIVE      TraceQuality.Cell.snr_s2p
+    max_zeta_p=null         : float               # RESPONSIVE  Zeta.Cell.zeta_p
+    max_resp_p=null         : float               # RESPONSIVE  Readout.Cell.resp_p
+    max_condition_p=null    : float               # SPECIFIC    Zeta.Cell.condition_p
+    min_oracle_r=null       : float               # RELIABLE    Readout.Cell.oracle_r
+    rule_note               : varchar(255)
     """
-    class Criterion(dj.Part):
-        definition = """
-        -> master
-        criterion            : varchar(32)
-        ---
-        level                : enum('active','responsive','selective','specific')
-        source               : varchar(48)    # 'TraceQuality.Mask', 'DffQuality.Mask', 'PhotonBudget.Mask', 'MaskShape.Mask',
-                                              # 'Zeta.Mask', 'Zeta.Condition', 'WindowResponse.Mask', 'ResponseReliability.Mask',
-                                              # 'CircularTuning.Mask', 'imaging.MaskClassification.MaskType', 'imaging.Dff0.Trace'
-        attribute            : varchar(64)    # a column, or a SQL expression of columns (e.g. 'signal_var/noise_var')
-        op                   : enum('<','<=','>','>=','==')
-        threshold            : varchar(32)
-        holm=0               : bool           # Holm across conditions within the cell (Condition sources)
-        -> [nullable] TraceSource
-        -> [nullable] EventSelector
-        -> [nullable] ResponseParamSet
-        """
-
-@schema
-class CellCategory(dj.Computed):
-    definition = """
-    # One rule applied to one curation
-    -> CellRule
-    -> imaging.Curation
-    """
-    class Mask(dj.Part):
-        definition = """
-        -> master
-        -> imaging.Segmentation.Mask
-        ---
-        is_active=null       : bool       # NULL: the rule has no criterion at this level
-        is_responsive=null   : bool
-        is_selective=null    : bool
-        is_specific=null     : bool
-        """
 ```
-* **`CellCategory` is the one deliberate cache.** It is derivable from the measurements and the rule, but storing it
-  makes "responsive cells" a restriction that joins to `cell_registration`, and it is deleted with its inputs.
-* Counts per curation and the list of passing conditions are derivable (`dj.U().aggr`, `Zeta.Condition`), so they are
-  not stored.
-* **A level requires the level below it.**
-
-**Removed, now a function:** `legacy_cascade_recipe(activity_key)` returns the dF/F0 recipe of a CASCADE activity
-written before `Activity.CascadeInput` existed. It uses the external-store timestamp: before 2026-09-03 15:22 → recipe
-3 (dark frames 12–24), after → recipe 2. This replaces the v3 tables `responsiveness.CascadeInput` and
-`CascadeRecompute`. The recomputation evidence stays in adamacs_ingest PR #25 and `docs/DFF0_IN_ACTIVITY_MAKE_PROPOSAL.md`.
-
----
-
-## 3. Population: who computes what, and in which order
-
-| Table | Inputs it waits for | Cost | Computed by |
-|---|---|---|---|
-| `imaging.Dff0` | `Dff0Task` (inserted by `plan_tasks` when a task uses `dff0`) or a pending CASCADE task | CPU, minutes per curation | CASCADE worker (pending CASCADE tasks), else the responsiveness worker |
-| `EventSet` | `ResponseTask` for the scan | seconds | responsiveness worker |
-| `PhotonTransfer` | raw frames of a scan some task uses | ~1 min (500 frames) | responsiveness worker |
-| `NeuropilSweep`, `TraceQuality`, `MaskShape` | curation some task uses | seconds | responsiveness worker |
-| `DffQuality` | `Dff0` of a recipe some task uses | seconds | responsiveness worker |
-| `PhotonBudget` | `PhotonTransfer` + curation | seconds | responsiveness worker |
-| `WindowResponse` | `EventSet` + trace (`Activity` or `Dff0`) | seconds | responsiveness worker |
-| `CircularTuning` | `WindowResponse` | seconds (permutations, bootstrap) | responsiveness worker |
-| `ResponseReliability` | `WindowResponse` with repeats | seconds (splits) | responsiveness worker |
-| `Zeta` | `EventSet` + trace | **dominant**: masks × (1 + conditions) × resamples | responsiveness worker, parallel over masks |
-| `CellCategory` | every source a rule names | seconds | responsiveness worker |
-
-**`key_source` does the ordering.** Each table's `key_source` requires its inputs, so a single loop that populates the
-tables in the order above never computes from missing inputs. People only insert `ResponseTask` rows (and, rarely,
-`CellRule` rows). The worker computes everything else.
-
----
-
-## 4. The BUGPU worker
-
-| | |
-|---|---|
-| Code | `adamacs/workers/responsiveness_worker.py` in `adamacs_ingest` (next to `cellreg_worker.py`) |
-| Host / env | ibehaveGPU1, `datajoint_ingest` (Python 3.11, zetapy 4.1, element `roselab-0.1.0b1`, imports `adamacs_ingest`) |
-| Working dir | **`~/adamacs_ingest`**: has `dj_local_conf.json`. Starting from `~` imports `~/adamacs` as a namespace package. |
-| Start | `SOPs/Serverscripts/check_and_start_population_process_responsiveness.sh` from cron (`*/10`), same pattern as the other workers; log `~/logs/responsiveness_worker.log` |
-| Loop | `PhotonTransfer → NeuropilSweep → MaskShape → TraceQuality → DffQuality → PhotonBudget → EventSet → WindowResponse → CircularTuning → ResponseReliability → Zeta → CellCategory`, each `populate(reserve_jobs=True, suppress_errors=True, order='random', limit=…, max_calls=1)`, then a 30 s sleep when nothing was pending |
-| Parallelism | one worker process. Inside `Zeta.make`, masks are spread over a process pool (`n_procs`, default 24, single-threaded BLAS). Other makes are single-process. |
-| CPU etiquette | `nice -n 10`; `n_procs` capped by `os.cpu_count() - 32`; BUGPU also runs the CASCADE (GPU), denoise (GPU) and DLC workers |
-| Never | no deletes, no job-table clears (proposed to Tobias), no writes outside `roselab_responsiveness` except `imaging.Dff0Task` inserts and `imaging.Dff0` populates |
-| Versions | `Zeta.software` records zetapy + the git commit of `adamacs_ingest`; the worker refuses to start on a dirty checkout |
-| Stop | SIGTERM is caught between iterations. Inside a `make`, DataJoint turns SIGTERM into an error job, so stop the worker only when the jobs table shows no reservation for its pid. |
-
-**Cost estimate:** to be measured on one scan before the first production populate. t73/t140 ran pooled ZETA for
-about 10,000 cells × 2 signals on 80 processes in hours. Per-condition ZETA multiplies that by about (1 + number of
-conditions).
-
----
-
-## 5. Build order and checks
-
-1. **Test schema `tobiasr_responsiveness_v4`** (the phase-1 `tobiasr_responsiveness` is obsolete; dropping it needs
-   your OK). Lookups + `EventSet` for the drift scans:
-   * 180 grating onsets in 12 conditions per scan;
-   * repeated-image counts as expected;
-   * one Bpod scan (`cricket_cue`).
-2. **`Zeta` pooled** on `cascade25` and `s2p`: p-values equal `v1-drift-audit/artefacts/t140/zeta_all.tsv` for the
-   same events and seed; random selectors give 5–6 % false positives.
-3. **`WindowResponse` + `CircularTuning`:** values equal the leondrift Kruskal and `sub_vec` tuning for the same windows.
-4. **QC block:**
-   * `PhotonTransfer` on a static fluorescent slide and on a recording gives a linear fit;
-   * `PhotonBudget` falls in the 10³–10⁴ photons/s range and agrees with the kurtosis-gain-checker on the same scan;
-   * `NeuropilSweep` `alpha_opt` matches the checker's sweep;
-   * `DffQuality.noise_nu` matches CASCADE's own noise estimate;
-   * `ResponseReliability.oracle_r` matches the audit's Q1 oracle tables.
-5. **`CellRule 'drift2026_v1'`, `CellCategory`:** the cohort sizes reproduce nb37.
-6. **Worker:** dry run on the test schema, then time one scan.
-7. **Production `roselab_responsiveness` and the cron entry:** only with your OK.
-
----
-
-## 6. v3 → v4: what was removed and why
-
-| v3 | v4 | Reason |
-|---|---|---|
-| `Signal` (with description) | `TraceSource` (foreign keys only) | the description duplicated what the foreign key says |
-| `EventClass` with `unit`, `kind` | `EventSelector` | every onset is an event (task trials: their alignment event), so `unit` and the trial part went; `random_seed` replaces `kind` |
-| `EventSet.onsets`, `.conditions`, `.trial_ids`, `.median_ioi`, `.Trial` part | `EventSet.Event` (link + condition) | times, order and trial ids are in `event.Event` / `trial.TrialEvent`; the window is derivable |
-| `TraceQuality.f0_*` | (gone) | already in `imaging.Dff0.Trace` |
-| `ZetaTest.meanrate_p`, `.seed`, `Condition.n_onsets` | (gone) | a second mean test duplicates `WindowResponse.resp_p`; seed and counts are derivable |
-| `WindowStats.amp_mean`, `frac_pref_sig`, `r2er`, `snr`, `.Condition` | (gone) | derivable from `resp`/`base`, or not used by any rule |
-| tuning columns inside `WindowStats` (NULL for non-circular) | `CircularTuning` | no columns that are NULL by design |
-| `CellCategory` counts, `specific_to` | (gone) | derivable by aggregation / from `Zeta.Condition` |
-| `responsiveness.CascadeInput`, `CascadeRecompute` | `legacy_cascade_recipe()` | derivable from the external-store timestamp; not responsiveness |
-| one `TraceQuality` per dF/F0 recipe | `TraceQuality` (raw F, per curation) + `DffQuality` (per recipe) | raw-F metrics would otherwise repeat for every recipe |
-| SNR, FEV, CC_max as columns | `signal_var`, `noise_var` | the three are exact functions of s², σ² and n |
-| d′ as a column | `dprime_1ap()` helper | derivable from `photons_per_s` and indicator constants |
-| registration QC table | (none) | derivable from `imaging.MotionCorrection` |
-
----
-
-## 7. Decisions for you
-
-1. **Approve v4 for the test schema** (`tobiasr_responsiveness_v4`), and **dropping the obsolete `tobiasr_responsiveness`**?
-2. **First rule `drift2026_v1`** = nb37: soma; ZETA p < 0.05 (pooled, `cascade25` or `s2p`?); orientation-tuned (`osi_perm_p`
-   < 0.05) for the selective level. Which trace source is primary?
-3. **Per-condition ZETA by default:** only for selectors with ≤ 12 conditions?
-4. **The worker's CPU share on BUGPU** (`n_procs` 24?), given the CASCADE, denoise and DLC workers.
-5. **QC defaults:**
-   * the detector ENF (1.2 for GaAsP);
-   * the raw-frame window for `PhotonTransfer` (first 500 frames?);
-   * whether `NeuropilSweep.alpha_opt` should only be reported, or later feed a new `DffParamSet` recipe.
-6. **Indicator constants for d′** (ΔF/F per AP, τ_decay for GCaMP6s / GCaMP8s / GCaMP8f): from the literature, or
-   measured in the lab?
-
----
-
-## 8. References
-
-**Data fidelity and quality control:**
-* **S. L. Smith, Labrigger (2026).** "2p calcium imaging fidelity" (2026-07-25) and "The Labrigger 2p calcium imaging
-  catechism" (2026-06-13). Photons/s/cell as the key metric (typically 10³–10⁴); kurtosis as quick "garbage control";
-  neuropil contamination seen as population correlation; tune the neuropil factor (often > 0.7) by decorrelation.
-  labrigger.com/blog/2026/07/25/2p-calcium-imaging-fidelity/
-* **F. Tomaska, kurtosis-gain-checker.** Photon transfer from adjacent-frame pairs (40 percentile bins, 0–50 % fit range),
-  gain = slope / ENF² (ENF 1.2), photons/s/cell from raw F × npix at the 30th percentile, neuropil sweep α = 0–2
-  (mean pairwise r → 0), Pearson kurtosis (normal = 3, default cut 5). github.com/ftomaska/kurtosis-gain-checker
-* **Lees, Bianco, Campbell, Orlova, Peterka, Pichler, Smith, Yatsenko, Yu, Packer (2025).** Standardized measurements for
-  monitoring and comparing multiphoton microscope systems. *Nat Protoc* 20:2171–2208, doi:10.1038/s41596-024-01120-w
-  (PMID 40097833; preprint doi:10.1101/2024.01.23.576417). Black point = mean dark response, subtracted first; SNR = (μ_light − μ_dark)/σ_dark. Photon transfer
-  curve: frame pairs, V ≈ q·(I − I₀) with a Huber fit, photon flux images, coefficient-of-variation map.
-* **Heintzmann, Relich, Nieuwenhuizen, Lidke & Rieger (2016).** Calibrating photon counts from a single image.
-  arXiv:1611.05654. Gain from out-of-band (high-frequency) noise variance minus read-noise variance over the offset-corrected
-  signal; offset from dark frames or a tiled mean–variance fit.
-* **Wilt, Fitzgerald & Schnitzer (2013).** Photon shot noise limits on optical detection of neuronal spikes and estimation
-  of spike timing. *Biophys J* 104:51–62, doi:10.1016/j.bpj.2012.07.058. d′ ≈ (ΔF/F)·√(F₀τ/2).
-* **Harris, Quian Quiroga, Freeman & Smith (2016).** Improving data quality in neuronal population recordings.
-  *Nat Neurosci* 19:1165–74, doi:10.1038/nn.4365.
-* **Stringer, Pachitariu et al. (2026).** Extracting large-scale neural activity with Suite2p. bioRxiv,
-  doi:10.64898/2026.02.04.703741. Quality-control features `snr`, `skew`, `compact`, `npix_norm`, `aspect_ratio`, overlap; registration-offset QC.
-  Suite2p documentation: `snr = 1 − var(diff(x))/(2·var(x))`.
-* **Rupprecht et al. (2021).** A database and deep learning toolbox for noise-optimized, generalized spike inference from
-  calcium imaging. *Nat Neurosci* 24:1324. Noise level ν.
-* **Chen et al. (2013).** Ultrasensitive fluorescent proteins for imaging neuronal activity. *Nature* 499:295,
-  doi:10.1038/nature12354. Indicator ΔF/F per AP and decay.
-
-**Reliability, noise ceilings and explainable variance:**
-* **Schoppe, Harper, Willmore, King & Schnupp (2016).** Measuring the performance of neural models. *Front Comput
-  Neurosci* 10:10. CC_norm and CC_max.
-* **Cadena et al. (2019).** Deep convolutional models improve predictions of macaque V1 responses to natural images.
-  *PLoS Comput Biol* 15:e1006897. Fraction of explainable variance.
-* **Pospisil & Bair (2021).** Accounting for bias in the estimation of r² between two sets of noisy neural responses.
-  *J Neurosci*. r²_ER.
-* **Stringer, Pachitariu, Steinmetz, Carandini & Harris (2019).** High-dimensional geometry of population responses in
-  visual cortex. *Nature* 571:361. Single-cell SNR from repeats; cross-validated stimulus variance.
-* **Walker et al. (2019).** Inception loops discover what excites neurons most using deep predictive models.
-  *Nat Neurosci* 22:2060. Oracle correlation as the noise ceiling.
-* **Kay et al. (2025).** Disentangling signal and noise in neural responses through generative modeling (GSN).
-  *PLoS Comput Biol*. Signal/noise distributions, noise ceilings.
-
-**Responsiveness and tuning** (unchanged from v3): Montijn et al. 2021 *eLife* (ZETA); Montijn, Heimel et al. 2023
-(time-series and two-sample ZETA); de Vries et al. 2020 *Nat Neurosci*; Mazurek, Kager & Van Hooser 2014 *Front Neural
-Circuits*; Stevenson et al. 2011 *J Neurophysiol*; Niell & Stryker 2010 *Neuron*.
