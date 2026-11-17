@@ -234,6 +234,9 @@ def paired_test(resp, base, test, n_perm=10000, seed=0):
         return float(_st.wilcoxon(d).pvalue)
     if test == "ttest":
         return float(_st.ttest_1samp(d, 0.0).pvalue)
+    if test == "ttest_greater":                     # v1-drift-audit gratings p_resp: one-sided, response > baseline
+        t, p = _st.ttest_1samp(d, 0.0)
+        return float(p / 2 if t > 0 else 1 - p / 2)
     if test == "signflip":
         rng = np.random.default_rng(seed)
         null = np.abs((rng.choice([-1.0, 1.0], size=(n_perm, d.size)) * d).mean(1))
@@ -272,3 +275,14 @@ def preferred_cv(values, conditions):
         if lab is not None and np.any(b & (c == lab)):
             out.append(np.nanmean(v[b & (c == lab)]))
     return float(np.mean(out)) if out else np.nan
+
+
+def kruskal_p(values, groups):
+    """Kruskal-Wallis p across groups (NaN dropped; v1-drift-audit kw_p without tie correction is within 1e-3 for
+    continuous read-outs). NaN if fewer than two non-empty groups or no variance."""
+    v = np.asarray(values, float); g = np.asarray(groups)
+    parts = [v[(g == u) & np.isfinite(v)] for u in np.unique(g)]
+    parts = [x for x in parts if x.size]
+    if len(parts) < 2 or np.ptp(np.concatenate(parts)) == 0:
+        return np.nan
+    return float(_st.kruskal(*parts).pvalue)

@@ -6,15 +6,17 @@ ZETA uses a process pool (RESPONSIVENESS_ZETA_PROCS, default 24); everything els
 Order of one pass (each step only touches keys that ResponseTask asks for):
     1. imaging.Dff0           dF/F0 for every Dff0Task a dF/F0 ResponseTask needs (any task_note)
     2. EventSet               onsets from trial.TrialEvent
-    3. Quality                raw-frame gain / neuropil sweep / per-cell raw statistics (reads the scan files)
+    2b. ScreenTiming          photodiode (LED) onsets from the aux .h5 where the rig has a diode
+    3. ScanQuality            raw-TIFF detector gain per scan (curation-independent; reads only the needed pages)
+    3b. Quality               neuropil sweep and per-cell raw statistics per curation
     4. TraceQuality           per trace type
     5. Readout                PSTH read-outs (cheap)
     6. Zeta                   ZETA variants (expensive)
     7. DirectionTuning        stimulus-specific follow-ups on Readout
 
 Usage:
-    python -m adamacs.workers.responsiveness_worker --schema tobiasr_responsiveness_v6 --once
-    python -m adamacs.workers.responsiveness_worker --schema tobiasr_responsiveness_v6 --poll 600
+    python -m adamacs.workers.responsiveness_worker --schema tobiasr_responsiveness_v7 --once
+    python -m adamacs.workers.responsiveness_worker --schema tobiasr_responsiveness_v7 --poll 600
 
 The datajoint_ingest env's OpenSSL fails the handshake with the server's TLS: pass --no-tls (LAN only).
 Populate errors are recorded in the schema's jobs table (suppress_errors); nothing is deleted here.
@@ -25,6 +27,9 @@ import argparse
 import logging
 import os
 import time
+
+# CPU-only worker (numpy, scipy, zetapy): hide every GPU so no library can allocate one (BUGPU: GPU 0 is never ours)
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
 
 log = logging.getLogger("responsiveness_worker")
 
@@ -54,7 +59,7 @@ def one_pass(resp, imaging, restriction=None, reserve_jobs=True):
     need = (resp.ResponseTask * resp.TraceSource & "dff_paramset_idx IS NOT NULL" & r).proj("dff_paramset_idx")
     dff_tasks = imaging.Dff0Task & need
     steps = [("imaging.Dff0", imaging.Dff0, dff_tasks),
-             ("EventSet", resp.EventSet, r), ("Quality", resp.Quality, r), ("TraceQuality", resp.TraceQuality, r),
+             ("EventSet", resp.EventSet, r), ("ScreenTiming", resp.ScreenTiming, r), ("ScanQuality", resp.ScanQuality, r), ("Quality", resp.Quality, r), ("TraceQuality", resp.TraceQuality, r),
              ("Readout", resp.Readout, r), ("Zeta", resp.Zeta, r), ("DirectionTuning", resp.DirectionTuning, r)]
     out = {}
     if not reserve_jobs:
@@ -73,7 +78,7 @@ def one_pass(resp, imaging, restriction=None, reserve_jobs=True):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--schema", required=True, help="e.g. tobiasr_responsiveness_v6 (test) / roselab_responsiveness")
+    ap.add_argument("--schema", required=True, help="e.g. tobiasr_responsiveness_v7 (test) / roselab_responsiveness")
     ap.add_argument("--conf", default=os.path.expanduser("~/adamacs_ingest/dj_local_conf.json"))
     ap.add_argument("--no-tls", action="store_true")
     ap.add_argument("--once", action="store_true", help="one pass, then exit")

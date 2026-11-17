@@ -27,6 +27,14 @@ import numpy as np
 from scipy import stats as _st
 
 
+def _kw(v, g):
+    parts = [v[(g == u) & np.isfinite(v)] for u in np.unique(g)]
+    parts = [x for x in parts if x.size]
+    if len(parts) < 2 or np.ptp(np.concatenate(parts)) == 0:
+        return np.nan
+    return float(_st.kruskal(*parts).pvalue)
+
+
 def _angdiff(x, period):
     """Signed smallest difference on a circle of the given period."""
     return (np.asarray(x, float) + period / 2) % period - period / 2
@@ -190,10 +198,27 @@ def bootstrap_pref_ori_ci(values, conditions, n_boot, mode, seed=0):
     return float(2 * np.percentile(dev, 95)) if dev else np.nan
 
 
-def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1000, n_boot=200, seed=0):
-    """All measures for one cell. values: per-onset read-outs; conditions: direction labels [deg]."""
+ANGLE_CONVENTIONS = {
+    # stimulus label L (Bonsai 'Moving_Gratings:<L>') -> angle used for tuning [deg]
+    "90_minus_label": lambda L: (90.0 - L) % 360.0,   # Leon export / v1-drift-audit (gr_common.load_animal: theta = (90 - L) mod 360)
+    "minus_label": lambda L: (-L) % 360.0,            # motion angle measured in the Bonsai frame logs (GRATINGS_AUDIT, +X right / +Y up)
+    "label": lambda L: L % 360.0,                     # the label itself
+}
+
+
+def to_angle(labels, convention):
+    return ANGLE_CONVENTIONS[convention](np.asarray(labels, float))
+
+
+def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1000, n_boot=200, seed=0,
+                     angle_convention="90_minus_label"):
+    """All measures for one cell. values: per-onset read-outs; conditions: direction labels [deg] as in the stimulus
+    string; they are converted with ``angle_convention`` first, so every angle out is in that convention."""
     v = np.asarray(values, float); c = np.asarray(conditions)
     ok = np.isfinite(v); v, c = v[ok], c[ok]
+    th = to_angle(c.astype(float), angle_convention)
+    kw_dir = _kw(v, th); kw_ori = _kw(v, th % 180.0)         # audit p_dir (12 directions) / p_tuned (6 orientations)
+    c = np.array([f"{x:g}" for x in th])
     ang = np.array(sorted({float(x) for x in c}))
     raw = np.array([v[c.astype(float) == a].mean() for a in ang])
     m = rectify(raw, rectify_mode)
@@ -201,7 +226,7 @@ def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1
     _, R = condition_matrix(v, c)
     p_ori = hotelling_orientation_p(ang, R) if R.size else np.nan
     p_dir, dsign = direction_dot_test(ang, R, po) if R.size else (np.nan, np.nan)
-    out = dict(n_directions=int(ang.size), n_repeats=int(R.shape[1]) if R.size else 0,
+    out = dict(n_directions=int(ang.size), n_repeats=int(R.shape[1]) if R.size else 0, dir_kw_p=kw_dir, ori_kw_p=kw_ori,
                ori_vec=lo, dir_vec=ld, pref_ori_vec=po, pref_dir_vec=pd,
                hotelling_p=p_ori, dir_dot_p=p_dir,
                pref_dir_dot=(po if dsign > 0 else (po + 180) % 360) if np.isfinite(dsign) else np.nan)
