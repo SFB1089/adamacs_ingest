@@ -575,6 +575,9 @@ _READOUTS = {
     18: ("v1-drift-audit ZETA window, natural images (t73/t140): [onset, onset + 3.517 s) = the median onset-to-onset interval; "
          "DataJoint event time; raw mean, no baseline (exists so that Zeta on it reproduces the audit's ZETA)",
          "event", "s", "onset", 0.0, "onset", 3.517, "per_onset", None, None, None, None, "explicit", "mean", 0.0, "none", "ttest"),
+    19: ("v1-drift-audit ZETA window, any paradigm (t73/t140): [onset, onset + the event set's median onset-to-onset interval); "
+         "DataJoint event time; raw mean, no baseline (Zeta on it reproduces the audit's ZETA; 17 / 18 fix the interval of one protocol)",
+         "event", "s", "onset", 0.0, "onset", 0.0, "median_ioi", None, None, None, None, "explicit", "mean", 0.0, "none", "ttest"),
 }
 
 
@@ -595,7 +598,9 @@ class ReadoutParamSet(dj.Lookup):
     resp_start              : float                         # ... + this (s or frames)
     resp_stop_ref           : enum('onset','offset')        # response window END (exclusive) = stimulus onset or offset ...
     resp_stop               : float                         # ... + this (e.g. 0 = at stimulus end; -0.2 = 200 ms before)
-    resp_length='per_onset' : enum('per_onset','first_onset')   # first_onset: every response window as long as the first one (Leon export)
+    resp_length='per_onset' : enum('per_onset','first_onset','median_ioi')   # first_onset: every response window as long as the first one
+                                                    # (Leon export); median_ioi: response end = start + the median onset-to-onset
+                                                    # interval of the REAL events (EventSet.median_ioi_s; the v1-drift-audit ZETA window)
     base_start_ref=null     : enum('onset','offset')        # baseline window START reference (NULL: no baseline; tests against 0)
     base_start=null         : float                         # ... + this
     base_stop_ref=null      : enum('onset','offset')        # baseline window END (exclusive) reference
@@ -795,7 +800,7 @@ def nearest_frame(ft, t):
     return _np.where(_np.abs(ft[i] - t) < _np.abs(ft[i - 1] - t), i, i - 1)
 
 
-def windows(t0, t1, ps, ft, latency_s=0.0):
+def windows(t0, t1, ps, ft, latency_s=0.0, ioi_s=None):
     """Resolve a ReadoutParamSet for every onset -> (r0, r1), (b0, b1) or None, all in session time [s].
 
     Reference times are the DataJoint onset / offset, plus ``latency_s`` when ps['time_ref'] == 'display'.
@@ -826,6 +831,10 @@ def windows(t0, t1, ps, ft, latency_s=0.0):
         def to_t(x):
             return x
     s = edge(ps["resp_start_ref"], ps["resp_start"]); e = edge(ps["resp_stop_ref"], ps["resp_stop"])
+    if ps["resp_length"] == "median_ioi":
+        if ioi_s is None or not _np.isfinite(ioi_s):
+            raise ValueError("resp_length 'median_ioi' needs the event set's median onset interval")
+        e = s + (ioi_s * _np.ones_like(s) if ps["window_unit"] == "s" else int(round(ioi_s / float(_np.median(_np.diff(ft))))))
     if ps["resp_length"] == "first_onset" and s.size:
         e = s + (e[0] - s[0])
     resp = (to_t(s), to_t(e))
@@ -911,7 +920,7 @@ class Readout(dj.Computed):
         tk, X, ft, t0, t1, cond, info = _inputs(key)
         lat = info["latency_s"] if ps["time_ref"] == "display" else 0.0
         f = 1.0 / float(_np.median(_np.diff(ft)))
-        (r0, r1), base = windows(t0, t1, ps, ft, info["latency_s"])
+        (r0, r1), base = windows(t0, t1, ps, ft, info["latency_s"], info["ioi_s"])
         dt = 1.0 / f
         with _np.errstate(invalid="ignore"):
             inside = (r0 >= ft[0]) & (r1 <= ft[-1] + dt) & (r1 > r0)
@@ -1044,7 +1053,7 @@ class Zeta(dj.Computed):
             sel = [i for i, k in enumerate(tk) if k["mask"] in keep]
             tk, X = [tk[i] for i in sel], X[sel]
         # the epoch is the read-out's own: same time reference, latency and edges as Readout (one definition)
-        (r0, r1), base = windows(t0, t1, rps, ft, info["latency_s"])
+        (r0, r1), base = windows(t0, t1, rps, ft, info["latency_s"], info["ioi_s"])
         start = base[0] if (ps["zeta_span"] == "epoch" and base is not None) else r0
         with _np.errstate(invalid="ignore"):
             ok = _np.isfinite(start) & _np.isfinite(r1) & (r1 > start)

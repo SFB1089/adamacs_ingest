@@ -1,8 +1,8 @@
-"""Build notebooks/responsiveness_v7_tour.ipynb: a guided tour of the responsiveness schema on the v7 pilot
-(tobiasr_responsiveness_v7, 10 recordings from 9 animals drawn at random). Execute on ibehaveGPU1:
+"""Build notebooks/responsiveness_v8_tour.ipynb: a guided tour of the responsiveness schema on the v8 pilot
+(tobiasr_responsiveness_v8, 10 recordings drawn at random). Execute on ibehaveGPU1:
 
-    python scripts/make_responsiveness_tour.py notebooks/responsiveness_v7_tour.ipynb
-    jupyter nbconvert --to notebook --execute --output ... notebooks/responsiveness_v7_tour.ipynb
+    python scripts/make_responsiveness_tour.py notebooks/responsiveness_v8_tour.ipynb
+    jupyter nbconvert --to notebook --execute --output ... notebooks/responsiveness_v8_tour.ipynb
 """
 import sys
 
@@ -23,7 +23,7 @@ md(r"""
 # Responsiveness schema — a guided tour on 10 random recordings
 
 This notebook shows what every table of the responsiveness schema contains and how to use it, on the pilot
-schema **`tobiasr_responsiveness_v7`**: 10 recordings drawn at random (seed 20261116) from 9 animals of the drift
+schema **`tobiasr_responsiveness_v8`**: 10 recordings drawn at random (seed 20261116) from 9 animals of the drift
 cohort — 4 moving-grating, 4 natural-image and 2 checkerboard receptive-field recordings — each on three trace types
 (dF/F0, CASCADE 25 ms, OASIS). Everything is read-only.
 
@@ -53,7 +53,8 @@ PARADIGM (trial schema)
                       └─► ScreenTiming(.Onset)                 photodiode (LED) onsets, per-recording latency
 UNIVERSAL, event-dependent (curation x trace type x event set x own parameter set)
   ReadoutParamSet ─► Readout(.Cell, .Condition)   explicit baseline / response windows, measure, test; trial_resp
-  ZetaParamSet    ─► Zeta(.Cell, .Condition)      time-series ZETA (copied across curations for identical traces)
+  Readout + ZetaParamSet ─► Zeta(.Cell, .Condition)   time-series ZETA on the read-out's epoch (span: epoch = baseline
+                                                       start to response end, or response only); comparable across epochs
 STIMULUS-SPECIFIC
   TuningParamSet  ─► DirectionTuning(.Cell)       Mazurek, Kager & Van Hooser 2014 measures, angle convention
 DECISIONS
@@ -83,7 +84,7 @@ for p in (os.path.expanduser("~/resp_pilot/adamacs_ingest"), os.path.expanduser(
 from adamacs.responsiveness import photodiode as PD                  # pure helpers, no schema activation
 
 vm = lambda n: dj.create_virtual_module(n, n, create_schema=False, create_tables=False)
-r, imaging, event, trial, session = (vm("tobiasr_responsiveness_v7"), vm("roselab_imaging"), vm("roselab_event"),
+r, imaging, event, trial, session = (vm("tobiasr_responsiveness_v8"), vm("roselab_imaging"), vm("roselab_event"),
                                      vm("roselab_trial"), vm("roselab_session"))
 
 mpl.rcParams.update({"figure.dpi": 105, "font.size": 9, "axes.titlesize": 10, "axes.titleweight": "bold",
@@ -111,6 +112,9 @@ def std(selector, source):
     sel = selector.replace("_random", "")
     if sel == "nat_images_repeated": return 11 if source == "cascade25" else 3
     return {"gratings": 16, "rf_checkerboard": 1}[sel]
+def zstd(selector, source="oasis"):   # standard ZETA: ZETA 1 (epoch span) on the standard read-out of the paradigm
+    return {"zeta_idx": 1, "readout_idx": std(selector, source)}
+AUDIT_ZETA = {"zeta_idx": 1, "readout_idx": 19}   # the audit's t73 window: [onset, onset + median onset interval), event time
 TUNE = {"readout_idx": 16, "tuning_idx": 1, "trace_source": "cascade25"}   # standard window, Mazurek indices on rectified means
 AUDIT_TUNE = {"readout_idx": 2, "tuning_idx": 2, "trace_source": "oasis"}  # audit g1: OASIS, Leon's export window, unrectified
 rows = []
@@ -232,7 +236,7 @@ code(r"""
 cand = REC[REC.has_diode == True]
 row = (cand[cand.paradigm == "gratings"].iloc[0] if (cand.paradigm == "gratings").any() else cand.iloc[0]) if len(cand) else REC.iloc[0]
 k = key(row); tm = timing(k, row.selector); ft = frame_times(k)
-z = (r.Zeta.Cell & k & {"event_selector": row.selector, "trace_source": "oasis", "zeta_idx": 1}).proj("zeta_p").fetch(format="frame").reset_index()
+z = (r.Zeta.Cell & k & {"event_selector": row.selector, "trace_source": "oasis", **zstd(row.selector)}).proj("zeta_p").fetch(format="frame").reset_index()
 m = int(z.sort_values("zeta_p").iloc[0]["mask"]); x = trace(k, m, "dff0_r2"); RIDX = std(row.selector, "dff0_r2"); ro8 = readout_row(k, row.selector, "dff0_r2", RIDX)
 i = int(np.argmin(np.abs(tm["t0"] - np.median(tm["t0"])))); t = tm["t0"][i]
 fig, ax = plt.subplots(figsize=(12, 3.6))
@@ -332,7 +336,7 @@ condition). Titles give animal, date, paradigm, curation and the latency source.
 code(r"""
 def gallery(row):
     k = key(row); sel = row.selector; tm = timing(k, sel); ft = frame_times(k)
-    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", "zeta_idx": 1}
+    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", **zstd(sel)}
          & 'mask_type="soma"').proj("zeta_p", "latency").fetch(format="frame").reset_index().dropna(subset=["zeta_p"]).sort_values("zeta_p")
     if not len(z): print("no ZETA rows for", row.scan_id); return
     picks = [z.iloc[0], z.iloc[len(z) // 2], z.iloc[-1]]
@@ -405,13 +409,17 @@ for par in ("gratings", "images"):
 md(r"""
 ## 6. Calibration: real onsets vs random onsets ("no stimulus")
 
-The `*_random` selectors move every onset of a recording to a seeded random time; ZETA keeps the real events' window
-(as the audit's t73 null). With nothing time-locked, the fraction of soma cells with p < 0.05 should be ≈ 5 %.
+The `*_random` selectors move every onset of a recording to a seeded random time. ZETA is computed on a read-out's
+epoch ("ZETA 1 on 16" = ZETA span `epoch` on read-out 16: from its baseline start to its response end; ZETA 3 = the
+response window only); the random sets use the same epochs. With nothing time-locked, the fraction of soma cells with
+p < 0.05 should be ≈ 5 %.
 Read-outs without a baseline (3, 7: Leon's image window, CASCADE trees) are not tests and are left out — for images the
 audit decides responsiveness by ZETA and reliability by the oracle.
 
-**What the pilot shows.** Calibrated (≈ 5 %): ZETA on images; Leon's grating window (read-out 2, 2–3 %); read-outs 1,
-8 and 9 (4–8 %). ZETA on gratings gives 12–14 %, as the audit's own null (8–16 %). Read-out 5 (OFF window, 1 s after
+**What the pilot shows.** Calibrated (≈ 5 %): ZETA on the grating read-out epochs (16, 15, 2: 3–5 %); Leon's grating
+window (read-out 2, 2–3 %); read-outs 1, 8 and 9 (4–8 %). ZETA on the audit's window (read-outs 17 / 19, onset + the
+median onset interval) gives 12–14 % on gratings, as the audit's own null (8–16 %): the epoch matters. ZETA on the short
+image epochs (3, 11, 14) is slightly liberal (6–8 %, one recording with a control). Read-out 5 (OFF window, 1 s after
 offset against 0.5 s before onset) stays at 10–13 % on the deconvolved traces — prefer ZETA or read-out 2 for calls.
 How the read-outs are built so that they hold: the baseline is read with the same measure as the response; any
 measure other than the mean needs equally long windows (`base_length = 'match_response'`; `Readout` refuses otherwise);
@@ -425,18 +433,71 @@ rp = pd.DataFrame(((r.Readout & "base_stop_s IS NOT NULL").proj() * r.Readout.Ce
 rp["kind"] = np.where(rp.event_selector.str.endswith("_random"), "random onsets", "real onsets"); rp["paradigm"] = rp.event_selector.str.replace("_random", "")
 rr = rp[rp.scan_id.isin(rp[rp.kind == "random onsets"].scan_id.unique())]
 tab = rr.groupby(["paradigm", "readout_idx", "trace_source", "kind"]).resp_p.apply(lambda p: np.mean(p < .05)).unstack("kind").mul(100).round(1)
-zp = pd.DataFrame((r.Zeta.Cell & "zeta_idx=1").proj("zeta_p").fetch(as_dict=True))
+zp = pd.DataFrame((r.Zeta.Cell & "fluo_channel=0").proj("zeta_p").fetch(as_dict=True))
 zp["kind"] = np.where(zp.event_selector.str.endswith("_random"), "random onsets", "real onsets"); zp["paradigm"] = zp.event_selector.str.replace("_random", "")
 zp = zp[zp.scan_id.isin(zp[zp.kind == "random onsets"].scan_id.unique())]
-zt = zp.groupby(["paradigm", "trace_source", "kind"]).zeta_p.apply(lambda p: np.mean(p < .05)).unstack("kind").mul(100).round(1)
-zt.index = pd.MultiIndex.from_tuples([(a, "ZETA", b) for a, b in zt.index], names=tab.index.names)
+zt = zp.groupby(["paradigm", "readout_idx", "zeta_idx", "trace_source", "kind"]).zeta_p.apply(lambda p: np.mean(p < .05)).unstack("kind").mul(100).round(1)
+zt.index = pd.MultiIndex.from_tuples([(a, f"ZETA {z} on {ro}", b) for a, ro, z, b in zt.index], names=tab.index.names)
+tab.index = pd.MultiIndex.from_tuples([(a, f"read-out {ro}", b) for a, ro, b in tab.index], names=tab.index.names)
 pd.concat([tab, zt]).sort_index().style.background_gradient(subset=["random onsets"], cmap="Reds", vmin=0, vmax=30).format("{:.1f} %").set_caption("% of soma cells with p < 0.05")
+""")
+
+md(r"""
+### 6b. ZETA on the read-out epoch, and positive cells
+
+`Zeta` is keyed on `Readout`: its window is the epoch of a read-out, so ZETA can be compared between epoch settings.
+Left: the same grating cells under ZETA on read-out 16's epoch (−1.9 to +3.1 s around the screen onset) and on the
+audit's window (read-out 19, onset to the next onset). Right: how many cells each epoch calls, with the false-positive
+rate on random onsets (bars; dashed line = 5 %).
+
+**Direction.** `Readout.Cell.resp_delta` is the mean response minus the baseline (read-outs with a baseline);
+`resp_vs_trace` the mean response minus the trace's mean (any read-out). `CellRule.direction` and the `<rule>_pos` rules
+restrict to activated cells; `cells(rule)` returns `is_positive`. Below: grating cells responsive on read-out 16
+(CASCADE), split into activated and suppressed, with one example of each.
+""")
+code(r"""
+Z = pd.DataFrame((r.Zeta.Cell * imaging.MaskClassification.MaskType & 'mask_type="soma"' & "fluo_channel=0" & {"trace_source": "cascade25"}).proj("zeta_p").fetch(as_dict=True))
+Z["random"] = Z.event_selector.str.endswith("_random"); Z["paradigm"] = Z.event_selector.str.replace("_random", "")
+fig, ax = plt.subplots(1, 2, figsize=(14, 4.2))
+g = Z[(Z.event_selector == "gratings") & (Z.zeta_idx == 1)]
+pv = g.pivot_table(index=["scan_id", "curation_id", "mask"], columns="readout_idx", values="zeta_p")
+a = ax[0]; a.scatter(-np.log10(pv[19].clip(1e-30)), -np.log10(pv[16].clip(1e-30)), s=5, alpha=.4, color=COL["cascade25"])
+a.axhline(-np.log10(.05), color="#555", ls=":"); a.axvline(-np.log10(.05), color="#555", ls=":"); a.plot([0, 30], [0, 30], color="k", lw=.5)
+a.set(xlabel="ZETA on the audit window (read-out 19), −log10 p", ylabel="ZETA on read-out 16's epoch, −log10 p", title="gratings, CASCADE, soma cells")
+rs = Z[Z.random].scan_id.unique(); rows = []
+for (par, ro, zi), d in Z[Z.scan_id.isin(rs)].groupby(["paradigm", "readout_idx", "zeta_idx"]):
+    rows.append(dict(paradigm=par, epoch=f"{ro}/{zi}", real=100 * np.mean(d[~d.random].zeta_p < .05), random=100 * np.mean(d[d.random].zeta_p < .05)))
+C_ = pd.DataFrame(rows); C_ = C_[C_.paradigm != "rf_checkerboard"]; xs = np.arange(len(C_))
+a = ax[1]; a.bar(xs - .2, C_.real, .4, color=COL["cascade25"], label="real onsets"); a.bar(xs + .2, C_.random, .4, color=COL["null"], label="random onsets")
+a.axhline(5, color="k", ls="--", lw=.7); a.set_xticks(xs); a.set_xticklabels([f"{p[:4]} {e}" for p, e in zip(C_.paradigm, C_.epoch)], rotation=60, fontsize=7)
+a.set(ylabel="% soma cells, ZETA p < 0.05", title="per read-out epoch / ZETA variant (CASCADE)"); a.legend(fontsize=7)
+plt.tight_layout(); plt.show()
+C_.round(1)
+""")
+code(r"""
+row = G0 = REC[REC.paradigm == "gratings"].iloc[0]; k = key(row); tm = timing(k, row.selector); ft = frame_times(k)
+D = pd.DataFrame((r.Readout.Cell * imaging.MaskClassification.MaskType & k & 'mask_type="soma"'
+                  & {"event_selector": "gratings", "trace_source": "cascade25", "readout_idx": 16}).proj("resp_p", "resp_delta", "resp_vs_trace").fetch(as_dict=True))
+D = D[D.resp_p < .05]
+print(f"{row.subject}: {len(D)} soma cells responsive on read-out 16 (CASCADE); activated {np.mean(D.resp_delta > 0):.0%}, suppressed {np.mean(D.resp_delta < 0):.0%}; "
+      f"sign of resp_delta = sign of resp_vs_trace for {np.mean(np.sign(D.resp_delta) == np.sign(D.resp_vs_trace)):.0%}")
+fig, ax = plt.subplots(1, 3, figsize=(16, 3.8))
+for a, (name, d) in zip(ax[:2], (("activated (is_positive)", D[D.resp_delta > 0]), ("suppressed", D[D.resp_delta < 0]))):
+    if not len(d): a.set_title(f"no {name} cell"); continue
+    m = int(d.sort_values("resp_p").iloc[0]["mask"])
+    for src in ("dff0_r2", "cascade25"):
+        g_, M_ = peri(trace(k, m, src), ft, tm["t0"], 2.0, 5.0); psth(a, g_, M_, COL[src], LBL[src], scale=True)
+    mark_psth(a, tm, readout_row(k, row.selector, "cascade25", 16)); a.set(title=f"{name}: mask {m}", xlabel="time from DataJoint onset [s]")
+ax[0].legend(fontsize=7)
+a = ax[2]; a.hist(D.resp_delta, bins=60, color=COL["cascade25"]); a.axvline(0, color="k", lw=.7); a.set(title="resp_delta of responsive cells", xlabel="response − baseline (CASCADE)")
+plt.tight_layout(); plt.show()
 """)
 
 md(r"""
 ## 7. Agreement with the v1-drift-audit
 
-* **ZETA** vs the audit's own run (`artefacts/t73`) for every pilot recording it covered: same traces, events, window.
+* **ZETA** vs the audit's own run (`artefacts/t73`) for every pilot recording it covered: same traces and events, ZETA
+  on read-out 19 = the audit's window (onset to onset + the recording's median onset interval).
 * **Grating tuning** vs the audit's `g1` table (OASIS, the export stimulus window = read-out 2, θ = (90 − label),
   unrectified = tuning setting 2): OSI = 1 − CirVar, DSI = 1 − DirCirVar, preferred angles, `p_tuned`, `p_resp`.
 """)
@@ -449,7 +510,7 @@ for _, row in REC.iterrows():
     if not par or not os.path.exists(f): continue
     A = pd.read_csv(f, sep="\t")
     for src in ("oasis", "cascade25"):
-        z = (r.Zeta.Cell & key(row) & {"event_selector": row.selector, "trace_source": src, "zeta_idx": 1}).proj("zeta_p").fetch(format="frame").reset_index()
+        z = (r.Zeta.Cell & key(row) & {"event_selector": row.selector, "trace_source": src, **AUDIT_ZETA}).proj("zeta_p").fetch(format="frame").reset_index()
         m = A[A.signal == src][["mask", "zeta_p"]].merge(z, on="mask", suffixes=("_audit", ""))
         if not len(m): continue
         ax[0].scatter(-np.log10(m.zeta_p_audit.clip(1e-30)), -np.log10(m.zeta_p.clip(1e-30)), s=7, alpha=.6, label=f"{row.subject} {par} {src}")
@@ -612,7 +673,7 @@ for _, row in REC[REC.paradigm == "rf"].iterrows():
     cc = pd.DataFrame((r.Readout.Condition & k & {"event_selector": "rf_checkerboard", "readout_idx": 1, "trace_source": "dff0_r2"}).fetch(as_dict=True))
     if not len(cc): print("no RF rows", row.scan_id); continue
     cc[["az", "el"]] = cc.condition.str.split("|", expand=True).astype(float); el0 = cc.el.mode().iloc[0]; az0 = cc.az.mode().iloc[0]
-    zc = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": "rf_checkerboard", "zeta_idx": 1, "trace_source": "oasis"} & 'mask_type="soma"').proj("zeta_p").fetch(format="frame").reset_index()
+    zc = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": "rf_checkerboard", **zstd("rf_checkerboard"), "trace_source": "oasis"} & 'mask_type="soma"').proj("zeta_p").fetch(format="frame").reset_index()
     top = zc.sort_values("zeta_p").head(4)["mask"].astype(int).tolist()
     fig, ax = plt.subplots(2, 4, figsize=(14, 4.6), sharey="col")
     for j, m in enumerate(top):
@@ -668,7 +729,7 @@ code(r"""
 def onset_profiles(row, n=40):
     k = key(row); tm = timing(k, row.selector); ft = frame_times(k)
     scr = tm["screen_on"][1:]; on = np.array([int(np.argmin(np.abs(ft - t))) for t in scr])
-    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": row.selector, "trace_source": "oasis", "zeta_idx": 1}
+    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": row.selector, "trace_source": "oasis", **zstd(row.selector)}
          & 'mask_type="soma"' & "zeta_p < 0.001").fetch("mask", order_by="zeta_p", limit=n)
     L = np.arange(-120, 11); out = {}
     for src in ("dff0_r2", "oasis", "cascade25"):
@@ -716,7 +777,7 @@ def lanes(ax, k, sel, src, ws, y0, dy):
 
 def window_figure(row, ws, pre, post, zoom=(-0.5, 0.6)):
     k = key(row); sel = row.selector; tm = timing(k, sel)
-    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", "zeta_idx": 1}
+    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", **zstd(sel)}
          & 'mask_type="soma"' & "zeta_p < 0.001").fetch("mask")
     if len(z) < 3: print("few responsive cells", row.scan_id); return
     masks = [int(m) for m in z[:120]]
@@ -765,7 +826,7 @@ with each window's per-trial value distribution (box per read-out; trial value =
 code(r"""
 def cell_windows(row, ws, src, pre, post):
     k = key(row); sel = row.selector; tm = timing(k, sel); ft = frame_times(k)
-    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", "zeta_idx": 1}
+    z = (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", **zstd(sel)}
          & 'mask_type="soma"').proj("zeta_p").fetch(format="frame").reset_index().sort_values("zeta_p")
     z = z[z.zeta_p < .01]; picks = [z.iloc[0], z.iloc[len(z) // 2], z.iloc[-1]]
     fig, ax = plt.subplots(2, 3, figsize=(15, 6.4), gridspec_kw=dict(height_ratios=[1.2, 1]))
@@ -939,7 +1000,7 @@ def frame_psth(X, on, pre=90, post=200):
     return np.arange(-pre, post), np.nanmean(X[..., idx], axis=-2)
 
 def zmask(k, sel, p=0.001):
-    return (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", "zeta_idx": 1}
+    return (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", **zstd(sel)}
             & 'mask_type="soma"' & f"zeta_p < {p}").fetch("mask")
 """)
 
@@ -1244,7 +1305,7 @@ for _, row in REC.iterrows():
     k = key(row); s = soma(k)
     qcd = pd.DataFrame((r.Quality.Cell & k).proj("kurtosis").fetch(as_dict=True)); qcd = qcd[qcd["mask"].isin(s)]
     tqd = pd.DataFrame((r.TraceQuality.Cell & k & {"trace_source": "dff0_r2"}).proj("snr_s2p").fetch(as_dict=True)); tqd = tqd[tqd["mask"].isin(s)]
-    zd = pd.DataFrame((r.Zeta.Cell & k & {"event_selector": row.selector, "trace_source": "oasis", "zeta_idx": 1}).proj("zeta_p").fetch(as_dict=True))
+    zd = pd.DataFrame((r.Zeta.Cell & k & {"event_selector": row.selector, "trace_source": "oasis", **zstd(row.selector)}).proj("zeta_p").fetch(as_dict=True))
     d = dict(recording=f"{row.subject} {row.date}", paradigm=row.paradigm, soma=len(s), latency=("photodiode" if row.has_diode else "default"),
              qc=f"{(qcd['kurtosis'] >= 5).mean():.0%}", active=f"{(tqd.snr_s2p >= .2).mean():.0%}", responsive=f"{(zd.zeta_p < .05).mean():.0%}" if len(zd) else "")
     if row.paradigm == "gratings":
@@ -1259,7 +1320,7 @@ pd.DataFrame(out).fillna("")
 md(r"""
 ```python
 # responsive soma cells of a curation on CASCADE, with their tuning on the standard grating window (read-out 16, tuning 1)
-q = (r.Zeta.Cell & curation & {"trace_source": "cascade25", "event_selector": "gratings", "zeta_idx": 1} & "zeta_p < 0.01") \
+q = (r.Zeta.Cell & curation & {"trace_source": "cascade25", "event_selector": "gratings", "zeta_idx": 1, "readout_idx": 16} & "zeta_p < 0.01") \
     * (r.DirectionTuning.Cell & {"readout_idx": 16, "tuning_idx": 1}).proj("ori_vec", "dir_vec", "ori_kw_p", "fit_pref_dir")
 
 # per-trial responses with the trial, stimulus string, DataJoint and LED times of every onset
