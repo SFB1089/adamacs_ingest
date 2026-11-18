@@ -895,7 +895,344 @@ baseline).
 """)
 
 md(r"""
-## 12. Summary per recording, and how to query
+## 12. What the review found, with example PSTHs
+
+Four things looked wrong in the figures above. Each is checked here on the data, with examples:
+
+1. **Responses after the stimulus, not during it** (ROS-1841 mask 44): a timing error, or real OFF responses?
+2. **Strong suppression during the stimulus** (ROS-2328 mask 49): real, or neuropil over-subtraction?
+3. **ROIs without fluorescence**: suite2p gives some ROIs F = 0 in every frame; what their traces contain.
+4. **Two baseline problems**: a negative dF/F0 baseline F0 (sign inversion), and a test baseline that sits on the
+   decaying OFF response of the previous trial.
+""")
+
+code(r"""
+from scipy import stats as SS
+from element_calcium_imaging import dff as DFF
+G = REC[REC.paradigm == "gratings"].reset_index(drop=True)
+
+def activity_rows(k, src, masks=None):
+    # all traces of one trace source of a curation in one fetch: (mask ids, matrix)
+    s = (r.TraceSource & {"trace_source": src}).fetch1()
+    if s["extraction_method"]:
+        q = imaging.Activity.Trace & k & {"extraction_method": s["extraction_method"]} & "fluo_channel=0"; a = "activity_trace"
+    else:
+        q = imaging.Dff0.Trace & k & {"dff_paramset_idx": s["dff_paramset_idx"]} & "fluo_channel=0"; a = "dff"
+    if masks is not None: q = q & [{"mask": int(m)} for m in masks]
+    m, X = q.fetch("mask", a, order_by="mask")
+    return np.asarray(m, int), np.vstack(X).astype(float)
+
+def fluor(k):
+    # raw fluorescence and neuropil of every channel-0 ROI of a curation
+    m, F, Fn = (imaging.Fluorescence.Trace & k & "fluo_channel=0").fetch("mask", "fluorescence", "neuropil_fluorescence", order_by="mask")
+    return np.asarray(m, int), np.vstack(F).astype(float), np.vstack(Fn).astype(float)
+
+def onset_frames(k, sel):
+    tm = timing(k, sel); ft = frame_times(k)
+    on = np.searchsorted(ft, tm["screen_on"]); n = int(round(np.nanmedian(tm["t1"] - tm["t0"]) * (1 / np.median(np.diff(ft)))))
+    return tm, ft, on, n
+
+def frame_psth(X, on, pre=90, post=200):
+    # trial-mean around onset frames, rows of X; frames relative to the on-screen onset
+    on = on[(on - pre >= 0) & (on + post < X.shape[-1])]
+    idx = on[:, None] + np.arange(-pre, post)[None, :]
+    return np.arange(-pre, post), np.nanmean(X[..., idx], axis=-2)
+
+def zmask(k, sel, p=0.001):
+    return (r.Zeta.Cell * imaging.MaskClassification.MaskType & k & {"event_selector": sel, "trace_source": "oasis", "zeta_idx": 1}
+            & 'mask_type="soma"' & f"zeta_p < {p}").fetch("mask")
+""")
+
+md(r"""
+### 12.1 Timing: OFF responses are real, the clock is right
+
+Without a photodiode (ROS-1841, ROS-2083, ROS-2147) the screen time is the DataJoint onset + 100 ms. If that were
+wrong, the population onset response would sit at a different delay than in ROS-2328, which has a photodiode.
+
+Each recording below shows two panels:
+
+* **top:** where each ZETA-responsive soma cell (OASIS, p < 0.001) has its largest trial-mean response;
+* **bottom:** the population onset response, zoomed to ±0.5 s.
+""")
+
+code(r"""
+fig, ax = plt.subplots(2, len(G), figsize=(4.2 * len(G), 6.2))
+rows = []
+for j, row in G.iterrows():
+    k = key(row); tm, ft, on, n = onset_frames(k, row.selector); dt = float(np.median(np.diff(ft)))
+    z = zmask(k, row.selector); m, X = activity_rows(k, "oasis", z)
+    X = (X - X.mean(1, keepdims=True)) / (X.std(1, keepdims=True) + 1e-9)
+    L, P = frame_psth(X, on, 60, 200); t = L * dt
+    P = P - P[:, (L >= -30) & (L < -5)].mean(1, keepdims=True)
+    pk = t[np.argmax(P, 1)]; D = n * dt
+    a = ax[0, j]; a.hist(pk, bins=np.arange(-2, 6.7, 0.2), color=COL["oasis"]); a.axvspan(0, D, color=COL["stim"], alpha=.35, lw=0)
+    frac_on = np.mean((pk >= 0) & (pk < 1)); frac_off = np.mean((pk >= D) & (pk < D + 1.5))
+    a.set(title=f"{row.subject} ({'photodiode' if tm['has_diode'] else 'default latency'})", xlabel="peak time from screen onset [s]",
+          ylabel="cells" if j == 0 else None)
+    a.text(.98, .95, f"{len(z)} cells\nonset peak {frac_on:.0%}\noffset peak {frac_off:.0%}", transform=a.transAxes, ha="right", va="top", fontsize=8)
+    pop = P.mean(0); a = ax[1, j]; a.plot(t, pop, color=COL["oasis"], marker=".", ms=3); a.axvspan(0, D, color=COL["stim"], alpha=.35, lw=0)
+    a.axvline(0, color=COL["led"] if tm["has_diode"] else "#555", ls="--", lw=1); a.set(xlim=(-0.5, 0.5), xlabel="time from screen onset [s]",
+                                                                                        ylabel="population (z)" if j == 0 else None)
+    half = t[(t >= -0.2)][np.argmax(pop[t >= -0.2] >= 0.5 * pop[(t >= -0.2) & (t < 1)].max())]
+    thirds = []
+    for part in np.array_split(np.arange(len(on)), 3):
+        _, Pp = frame_psth(X, on[part], 60, 200); pp = (Pp - Pp[:, (L >= -30) & (L < -5)].mean(1, keepdims=True)).mean(0)
+        thirds.append(t[(t >= -0.2)][np.argmax(pp[t >= -0.2] >= 0.5 * pp[(t >= -0.2) & (t < 1)].max())] * 1e3)
+    rows.append(dict(recording=row.subject, timing="photodiode" if tm["has_diode"] else "default 100 ms", cells=len(z),
+                     onset_halfmax_ms=round(half * 1e3), thirds_ms=" / ".join(f"{v:.0f}" for v in thirds),
+                     onset_peak=f"{frac_on:.0%}", offset_peak=f"{frac_off:.0%}"))
+plt.suptitle("Where responsive grating cells peak (top) and the population onset (bottom); yellow = stimulus on screen", y=1.0)
+plt.tight_layout(); plt.show()
+pd.DataFrame(rows)
+""")
+
+md(r"""
+How to read the timing check:
+
+* **Same delay everywhere.** The population reaches half its onset peak at the same delay in every recording,
+  including the photodiode recording, and the delay does not change between the first, middle and last third of the
+  session. Any timing error is at most about one frame.
+* **Clocks agree.** Frames and stimuli come from the same DAQ clock, and the number of frame pulses equals the
+  number of frames in every recording.
+* **Offset peaks are common.** They make up 13–36 % of the responsive cells, and the photodiode recording has the most.
+
+Mask 44 below responds to the grating's **disappearance**:
+
+* the peak sits 0.1–0.2 s after the screen offset for every direction;
+* its size depends on direction;
+* during the stimulus the response is weak.
+
+Read-out 16 measures only the time on screen, so OFF responses are not in it (ZETA's window covers them).
+CASCADE (orange) peaks a few frames *before* the offset line. That is its non-causal kernel (section 11); dF/F0
+rises after the offset.
+""")
+
+code(r"""
+row = G[G.subject == "ROS-1841"].iloc[0]; k = key(row); tm, ft, on, n = onset_frames(k, row.selector); dt = float(np.median(np.diff(ft)))
+x = trace(k, 44, "dff0_r2")[:len(ft)]; c = trace(k, 44, "cascade25")[:len(ft)]
+conds = sorted(set(tm["cond"]), key=float)
+fig, ax = plt.subplots(2, 6, figsize=(17, 5.2), sharey=True)
+for i, cd in enumerate(conds):
+    a = ax.flat[i]; sel_ = tm["cond"] == cd
+    L, P = frame_psth(x[None, :], on[sel_], 60, 180); L, Pc = frame_psth(c[None, :], on[sel_], 60, 180)
+    a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.axvline(n * dt, color="#555", lw=.8)
+    a.plot(L * dt, P[0], color=COL["dff0_r2"], lw=1.2); a.plot(L * dt, Pc[0] / max(np.nanmax(Pc), 1e-9) * np.nanmax(P), color=COL["cascade25"], lw=1)
+    a.set(title=f"{cd}°", xlabel="time from screen onset [s]" if i >= 6 else None)
+ax[0, 0].set_ylabel("dF/F0"); ax[1, 0].set_ylabel("dF/F0")
+plt.suptitle("ROS-1841 mask 44 per direction: dF/F0 (black) and CASCADE (orange, scaled); grey line = stimulus offset", y=1.01)
+plt.tight_layout(); plt.show()
+""")
+
+md(r"""
+### 12.2 Suppression during the stimulus: not a neuropil artefact, but mostly the decay of an OFF response
+
+For ROS-2328 mask 49, dF/F0 (recipe 2) drops strongly while the grating is on. Neuropil subtraction
+(F − 0.7·Fneu) can produce such a dip when the neuropil rises with the stimulus. The test is to look at the raw
+fluorescence F, before any subtraction.
+""")
+
+code(r"""
+row = G[G.subject == "ROS-2328"].iloc[0]; k = key(row); tm, ft, on, n = onset_frames(k, row.selector); dt = float(np.median(np.diff(ft)))
+M, F, Fn = fluor(k); dark = float((imaging.Dff0 & k & {"dff_paramset_idx": 2}).fetch1("dark_signal"))
+soma_ids = set(int(v) for v in (imaging.MaskClassification.MaskType & k & 'mask_type="soma"').fetch("mask"))
+S = np.array([v in soma_ids for v in M]); empty = ~np.any(np.isfinite(F) & (F != 0), axis=1)   # criterion empty_f
+_r2 = (imaging.DffParamSet & {"dff_paramset_idx": 2}).fetch1(); rec2 = {c_: _r2[c_] for c_ in DFF.RECIPE_COLUMNS}
+fps = 1 / float(np.median(np.diff(ft)))
+def dff_at(a, rows):
+    Fd, Fnd = F[rows] - dark, Fn[rows] - dark
+    dF = DFF.neuropil_correct(Fd, Fnd, a, "median" if a > 0 else "none"); F0 = DFF.baseline(dF, DFF.normalise_recipe(dict(rec2, neuropil_factor=a)), fps, n_jobs=-1)
+    with np.errstate(divide="ignore", invalid="ignore"): return (dF - F0) / F0
+def resp_base(X):
+    on_ = on[(on - 60 >= 0) & (on + n < X.shape[1])]
+    R = np.stack([X[:, i:i + n].mean(1) for i in on_], 1); B = np.stack([X[:, i - 60:i - 10].mean(1) for i in on_], 1); return R, B
+
+j49 = int(np.where(M == 49)[0][0])
+L, PF = frame_psth(F[[j49]] - dark, on, 90, 200); L, PN = frame_psth(Fn[[j49]] - dark, on, 90, 200); t = L * dt
+fig, ax = plt.subplots(1, 3, figsize=(16, 4.2))
+a = ax[0]; a.plot(t, PF[0], color="#1d3557", label="raw F (no subtraction)"); a2 = a.twinx(); a2.plot(t, PN[0], color="#e9c46a", label="neuropil Fneu")
+a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.set(title="mask 49: raw F falls, neuropil rises", xlabel="time from screen onset [s]", ylabel="F [a.u.]")
+a2.set_ylabel("Fneu [a.u.]"); a.legend(loc="lower left", fontsize=7); a2.legend(loc="lower right", fontsize=7); a2.spines["right"].set_visible(True)
+a = ax[1]
+for al, ls in ((0.0, ":"), (0.7, "-"), (1.25, "--")):
+    Y = dff_at(al, [j49]); L, P = frame_psth(Y, on, 90, 200); a.plot(t, P[0], color=COL["dff0_r2"], ls=ls, label=f"neuropil factor {al}")
+a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.legend(fontsize=7); a.set(title="mask 49 dF/F0 at three neuropil factors", xlabel="time from screen onset [s]", ylabel="dF/F0")
+rows = []; idx = np.where(S & ~empty)[0]; calls = {}
+for al in (0.0, 0.3, 0.5, 0.7, 1.0, 1.25):
+    R, B = resp_base(dff_at(al, idx)); p = SS.ttest_rel(R, B, axis=1).pvalue; d = (R - B).mean(1)
+    calls[al] = (p < .05) & (d < 0)
+    rows.append(dict(neuropil_factor=al, enhanced=f"{np.mean((p < .05) & (d > 0)):.0%}", suppressed=f"{np.mean(calls[al]):.0%}"))
+T = pd.DataFrame(rows); a = ax[2]
+a.plot(T.neuropil_factor, [float(v[:-1]) for v in T.enhanced], "o-", color=COL["resp"], label="enhanced"); a.plot(T.neuropil_factor, [float(v[:-1]) for v in T.suppressed], "o-", color=COL["base"], label="suppressed")
+a.axvline(0.7, color="#555", ls=":"); a.set(title=f"all {len(idx)} soma ROIs of ROS-2328", xlabel="neuropil factor", ylabel="% of soma ROIs (paired t p < 0.05)"); a.legend()
+plt.tight_layout(); plt.show()
+Rf, Bf = resp_base(F[[j49]] - dark); Rn, Bn = resp_base(Fn[[j49]] - dark)
+print(f"mask 49: raw F stimulus vs baseline {100 * (Rf - Bf).mean() / Bf.mean():+.1f} %, neuropil {100 * (Rn - Bn).mean() / Bn.mean():+.1f} %")
+T
+""")
+
+md(r"""
+What the suppression check shows:
+
+* **Mask 49's drop is not a neuropil artefact.** Its raw fluorescence falls by about a fifth during the stimulus while
+  its neuropil rises, so no positive neuropil factor can create the dip. Subtraction only deepens it slightly.
+* **But it is not suppression below rest either.** Its raw F during the stimulus (≈ 4,000) equals its level during
+  the previous stimulus. What is high is the grey period in between: a slow OFF response that fills all 4 s, so every
+  pre-stimulus baseline sits on it (section 12.4 b). With 3 s on / 4 s off, a slow OFF cell and a cell suppressed by
+  the stimulus cannot be told apart by a baseline comparison.
+* **The factor does change the population counts.** The share of suppressed soma ROIs grows from 12 % without
+  subtraction to 23 % at the pipeline's 0.7, and the share of enhanced ROIs shrinks from 68 % to 53 %. Of the 130
+  ROIs called suppressed at 0.7, only 69 are suppressed in raw F.
+* **`Quality.alpha_opt` (1.25 here) is not a good choice for this.** It is the factor that decorrelates cells from
+  each other, and it would make a third of the cells look suppressed.
+
+Below are two examples: a cell whose raw F drops during the stimulus, and a cell that looks suppressed only after
+neuropil subtraction.
+""")
+
+code(r"""
+real = idx[calls[0.0] & calls[0.7]]; made = idx[~calls[0.0] & calls[0.7]]
+fig, ax = plt.subplots(1, 4, figsize=(17, 3.8))
+for col, (name, pool) in enumerate((("suppressed in raw F", real), ("suppressed only after subtraction", made))):
+    if len(pool) == 0: ax[2 * col].set_title(f"no {name} cell"); continue
+    jj = pool[np.argsort([np.median(F[q]) for q in pool])[len(pool) // 2]]
+    L, PF = frame_psth(F[[jj]] - dark, on, 90, 200); L, PN = frame_psth(Fn[[jj]] - dark, on, 90, 200)
+    a = ax[2 * col]; a.plot(t, PF[0] / PF[0][:60].mean(), color="#1d3557", label="raw F"); a.plot(t, PN[0] / PN[0][:60].mean(), color="#e9c46a", label="neuropil")
+    a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.set(title=f"mask {M[jj]}: {name}", xlabel="time from screen onset [s]", ylabel="relative to pre-onset"); a.legend(fontsize=7)
+    a = ax[2 * col + 1]
+    for al, ls in ((0.0, ":"), (0.7, "-"), (1.25, "--")):
+        L, P = frame_psth(dff_at(al, [jj]), on, 90, 200); a.plot(t, P[0], color=COL["dff0_r2"], ls=ls, label=f"factor {al}")
+    a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.set(title=f"mask {M[jj]}: dF/F0", xlabel="time from screen onset [s]"); a.legend(fontsize=7)
+plt.tight_layout(); plt.show()
+print(f"soma ROIs suppressed at factor 0.7: {calls[0.7].sum()}; of these suppressed already in raw F (factor 0): {(calls[0.7] & calls[0.0]).sum()}")
+""")
+
+md(r"""
+### 12.3 ROIs without fluorescence (`empty_f`)
+
+Suite2p leaves out of F every pixel that an ROI shares with another ROI. If **all** of an ROI's pixels are shared,
+its F is 0 in every frame. Its "dF/F0" is then 0 − 0.7·(Fneu − median), i.e. **neuropil only**, on a negative F0, and
+CASCADE runs on it.
+
+In this pilot:
+
+* ROS-2328 has 498 such ROIs, 41 of them classified as cells;
+* every other recording has 0–7.
+
+From element `roselab-0.1.0b2` on:
+
+* `imaging.RoiQC` lists these ROIs (criterion `empty_f`);
+* `Dff0` and CASCADE store NaN for them;
+* `cells()` leaves them out.
+
+The traces stored earlier still contain the neuropil signal.
+""")
+
+code(r"""
+cnt = []
+for _, rw in REC.iterrows():
+    kk = key(rw); Fx = (imaging.Fluorescence.Trace & kk & "fluo_channel=0").fetch("fluorescence")
+    e = np.array([not np.any(np.asarray(f)) for f in Fx]); cnt.append(dict(recording=f"{rw.subject} {rw.paradigm}", rois=len(e), empty_f=int(e.sum())))
+display(pd.DataFrame(cnt))
+je = np.where(empty & S)[0]; jn = j49
+ex = je[0]
+mm = [int(M[ex])]
+_, D2 = activity_rows(k, "dff0_r2", mm); _, C2 = activity_rows(k, "cascade25", mm)
+f0_med = float((imaging.Dff0.Trace & k & {"dff_paramset_idx": 2, "mask": mm[0]}).fetch1("f0_median"))
+w = slice(int(on[10]) - 300, int(on[10]) + 900); tt = np.arange(w.start, w.stop) * dt
+fig, ax = plt.subplots(2, 3, figsize=(17, 6))
+a = ax[0, 0]; a.plot(tt, F[ex, w], color="#1d3557", label="F (all zero)"); a.plot(tt, Fn[ex, w], color="#e9c46a", label="Fneu"); a.legend(fontsize=7); a.set(title=f"ROI {mm[0]} (classified soma): raw signals", ylabel="a.u.")
+a = ax[0, 1]; a.plot(tt, D2[0, w], color=COL["dff0_r2"]); a.set(title=f"stored dF/F0 recipe 2 (F0 median {f0_med:.0f} < 0)", ylabel="dF/F0")
+a = ax[0, 2]; a.plot(tt, C2[0, w], color=COL["cascade25"]); a.set(title="stored CASCADE 25 ms: spikes from neuropil", ylabel="spikes/s")
+for a in ax[0]:
+    for i in on[(on > w.start) & (on < w.stop)]: a.axvspan(i * dt, (i + n) * dt, color=COL["stim"], alpha=.3, lw=0)
+    a.set_xlabel("session time [s]")
+Lp, PN = frame_psth((Fn[je] - Fn[je].mean(1, keepdims=True)) / Fn[je].std(1, keepdims=True), on, 90, 200)
+_, De = activity_rows(k, "dff0_r2", M[je]); Lp, PD_ = frame_psth((De - np.nanmean(De, 1, keepdims=True)) / np.nanstd(De, 1, keepdims=True), on, 90, 200)
+_, Ce = activity_rows(k, "cascade25", M[je]); Lp, PC = frame_psth((Ce - np.nanmean(Ce, 1, keepdims=True)) / np.nanstd(Ce, 1, keepdims=True), on, 90, 200)
+for a, P, c, ttl in ((ax[1, 0], PN, "#e9c46a", "their neuropil Fneu"), (ax[1, 1], PD_, COL["dff0_r2"], "their stored dF/F0"), (ax[1, 2], PC, COL["cascade25"], "their stored CASCADE")):
+    a.plot(Lp * dt, P.mean(0), color=c); a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0); a.set(title=f"{len(je)} empty soma ROIs: {ttl}", xlabel="time from screen onset [s]", ylabel="z")
+plt.tight_layout(); plt.show()
+""")
+
+md(r"""
+The empty ROIs' dF/F0 and CASCADE follow their neuropil: they "respond" to gratings because the neuropil does.
+Before the fix, the CASCADE grating rule passed 38 of the 41 empty soma ROIs in ROS-2328.
+
+### 12.4 Two baseline problems, with examples
+
+**(a) A negative dF/F0 baseline inverts the sign.** dF/F0 = (dF − F0)/F0. When the running 8th percentile F0 is
+negative, which happens for the empty ROIs (their dF is −0.7·(Fneu − median)), every increase in dF becomes a
+decrease in dF/F0 and vice versa. Below, one empty ROI over one minute shows this:
+
+* **left:** dF and F0;
+* **right:** the resulting dF/F0 against −dF.
+
+For an empty ROI the inversion happens twice. dF is the *inverted* neuropil, and dividing by the negative F0
+inverts it back, so its dF/F0 follows the neuropil (section 12.3): it looks like a responsive cell.
+
+`Dff0.Trace.f0_nonpositive` flags such rows. In production, 4.2 % of all dF/F0 traces have F0 ≤ 0 somewhere; in the
+pilot these are almost all empty ROIs.
+""")
+
+code(r"""
+Fd, Fnd = F[[ex]] - dark, Fn[[ex]] - dark
+dFx = DFF.neuropil_correct(Fd, Fnd, 0.7, "median"); F0x = DFF.baseline(dFx, DFF.normalise_recipe(rec2), fps)
+w = slice(int(on[10]) - 300, int(on[10]) + 1500); tt = np.arange(w.start, w.stop) * dt
+fig, ax = plt.subplots(1, 2, figsize=(15, 3.6))
+a = ax[0]; a.plot(tt, dFx[0, w], color="#1d3557", lw=.8, label="dF = F − 0.7·Fneu + 0.7·median(Fneu)"); a.plot(tt, F0x[0, w], color=COL["base"], lw=2, label="F0 (running 8th percentile, 60 s)")
+a.axhline(0, color="#555", lw=.6); a.legend(fontsize=7); a.set(title=f"ROI {mm[0]}: F0 is negative", xlabel="session time [s]", ylabel="a.u.")
+a = ax[1]; y = (dFx - F0x)[0, w] / F0x[0, w]; a.plot(tt, y, color=COL["dff0_r2"], lw=.8, label="dF/F0 = (dF − F0) / F0")
+a2 = a.twinx(); a2.plot(tt, -dFx[0, w], color="#e76f51", lw=.6, alpha=.7, label="−dF"); a2.spines["right"].set_visible(True)
+a.legend(loc="upper left", fontsize=7); a2.legend(loc="upper right", fontsize=7); a.set(title="dF/F0 runs opposite to dF", xlabel="session time [s]")
+plt.tight_layout(); plt.show()
+print(f"r(dF/F0, dF) over the whole recording: {np.corrcoef((dFx - F0x)[0] / F0x[0], dFx[0])[0, 1]:+.2f}")
+""")
+
+md(r"""
+**(b) The test baseline can sit on the previous trial's OFF response.** Read-out 16 tests the response against
+frames [on − 60, on − 10) (−2.0 to −0.33 s). For most cells the previous grating's OFF response has decayed by then
+(section 11; right panel: the OFF-peaking responsive cells are flat in the baseline). Cells with a strong, slow OFF
+response, like mask 49, are still decaying there. Their baseline is too high, so they look suppressed during the
+stimulus, although their stimulus level equals their level during the previous stimulus (left panel, −5 s).
+
+The figure shows, for mask 49 and for the population of cells that peak after the offset:
+
+* the trial-mean raw F around the onset;
+* the baseline window (blue);
+* the last 10 frames before onset (grey).
+
+The table compares the response measured against each.
+""")
+
+code(r"""
+L, PF = frame_psth(F[[j49]] - dark, on, 150, 120); t = L * dt
+zr = set(int(v) for v in zmask(k, row.selector))
+offc = [jj for jj in idx if int(M[jj]) in zr and np.argmax(frame_psth(F[[jj]] - dark, on, 0, n + 45)[1][0]) >= n]   # responsive, raw-F peak after the offset
+L2, PO = frame_psth((F[offc] - dark) / (F[offc] - dark).mean(1, keepdims=True), on, 150, 120)
+fig, ax = plt.subplots(1, 2, figsize=(15, 3.8))
+for a, P, ttl in ((ax[0], PF[0], "mask 49"), (ax[1], PO.mean(0), f"{len(offc)} ZETA-responsive soma ROIs whose raw F peaks after the offset (mean, relative F)")):
+    a.plot(t, P, color="#1d3557"); a.axvspan(0, n * dt, color=COL["stim"], alpha=.35, lw=0)
+    a.axvspan(-60 * dt, -10 * dt, color=COL["base"], alpha=.25, lw=0); a.axvspan(-10 * dt, 0, color="#adb5bd", alpha=.4, lw=0)
+    a.set(title=ttl, xlabel="time from screen onset [s]", ylabel="raw F")
+plt.tight_layout(); plt.show()
+def rel(P, b0, b1):
+    base = P[(L >= b0) & (L < b1)].mean(); return 100 * (P[(L >= 0) & (L < n)].mean() - base) / base
+pd.DataFrame([dict(cells="mask 49", vs_base_60_10=f"{rel(PF[0], -60, -10):+.1f} %", vs_last_10_frames=f"{rel(PF[0], -10, 0):+.1f} %"),
+              dict(cells=f"OFF-peaking responsive soma ROIs (n={len(offc)})", vs_base_60_10=f"{rel(PO.mean(0), -60, -10):+.1f} %", vs_last_10_frames=f"{rel(PO.mean(0), -10, 0):+.1f} %")])
+""")
+
+md(r"""
+For cells with a slow OFF response, most of the measured "suppression" is the decay of the previous OFF response.
+Across the OFF-peaking responsive population the baseline is flat, so read-out 16 is not biased on average.
+
+* **Not fixed by moving the baseline.** Closer to onset it collides with CASCADE's pre-onset rise (section 11), and
+  earlier it sits on the OFF peak itself.
+* **What to do instead.** Report the OFF response as its own read-out, and read suppression of OFF-responsive cells
+  against the last frames before onset or with ZETA, which uses no baseline.
+""")
+
+md(r"""
+## 13. Summary per recording, and how to query
 
 Fraction of soma cells passing each level, per recording: QC (raw kurtosis ≥ 5), active (dF/F0 SNR ≥ 0.2), responsive
 (ZETA on OASIS p < 0.05), tuned (gratings: Kruskal–Wallis across orientations < 0.01, CASCADE, read-out 16), reliable (images: OASIS oracle ≥ 0.2, read-out 3). These are
