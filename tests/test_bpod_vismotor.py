@@ -42,3 +42,14 @@ def test_fit_excludes_aborted_first_trial():
     coeffs, keep, resid = bv.fit_clock(starts, pulses, bi, ai)
     assert not keep[0] and keep[1:].all()
     assert abs(coeffs[0] + 28.2) < 1e-6
+
+
+def test_reference_is_dot_exit_not_trial_start():
+    starts = np.cumsum(np.r_[35.0, np.full(39, 15.034)])
+    dot_exit = np.full(40, 5.0)
+    dot_exit[[0, 12, 33]] = [0.37, 0.12, 0.09]           # dot ended early in three trials
+    pulses = bv.sync_reference_times(starts, dot_exit) - 28.2
+    ref = bv.sync_reference_times(starts, dot_exit)
+    bi, ai = bv.match_pulses_to_trials(pulses, ref)
+    coeffs, keep, resid = bv.fit_clock(ref, pulses, bi, ai)
+    assert keep.all() and abs(coeffs[0] + 28.2) < 1e-6   # no trial is an outlier, no +5 s shift

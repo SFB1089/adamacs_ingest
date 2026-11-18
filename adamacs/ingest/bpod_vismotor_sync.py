@@ -8,6 +8,7 @@ import numpy as np
 
 VISMOTOR_PATTERN = "VisMotor"
 AUX_TRIAL_CHANNEL = "reward"        # Auxfile.bpod_channels key for analog channel 2 (WaveSurfer 'BPOD 2')
+SYNC_STATE = "DotIsOn"             # Bpod raises the BPOD 2 TTL when this state EXITS (entry into CueDelay)
 MAX_RESIDUAL_S = 0.010              # pulse-to-trial-start residual tolerated after the fit
 
 
@@ -79,3 +80,12 @@ def fit_clock(starts, pulses, bpod_idx, aux_idx, max_residual=MAX_RESIDUAL_S, mi
         raise VisMotorPulseMismatch(
             f"only {keep.sum()}/{len(keep)} trial/pulse pairs agree within {max_residual*1000:.0f} ms")
     return coeffs, keep, resid
+
+
+def sync_reference_times(trial_starts, dot_exits):
+    """Bpod-clock time of each trial's BPOD 2 TTL: trial start + exit of the DotIsOn state.
+
+    The TTL is NOT at trial start. Verified 2026-11-18 on 9 sessions: in trials where the dot
+    ended early the pulse arrives early by exactly (5 s - DotIsOn duration).
+    """
+    return np.asarray(trial_starts, float) + np.asarray(dot_exits, float)
