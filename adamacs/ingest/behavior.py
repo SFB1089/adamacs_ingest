@@ -2981,7 +2981,8 @@ def _eye_ocr_config(side, is_high_res, video_path):
             x_coords = [19, 31, 43, 55, 67, 79]
             threshold = 0.7
 
-    if "topdigit" in str(video_path).lower():            
+    topdigit = "topdigit" in str(video_path).lower()
+    if topdigit:
             width, height, y = 21, 32, 6
             x_coords = [37, 61, 85, 109, 133, 157]
             threshold = 0.7
@@ -2997,10 +2998,12 @@ def _eye_ocr_config(side, is_high_res, video_path):
         'width': width,
         'height': height,
         'threshold': threshold,
-        'resize_back_to_orig': is_high_res,
+        # topdigit glyphs are read at native 21x32 by digit_with_background_model (672 features);
+        # resizing them back to 10x12 (120 features) crashed on 720x480 topdigit videos.
+        'resize_back_to_orig': is_high_res and not topdigit,
         'orig_width': 10,
         'orig_height': 12,
-        'label': f"eye_{side}_{'high' if is_high_res else 'std'}"
+        'label': f"eye_{side}_{'topdigit' if topdigit else ('high' if is_high_res else 'std')}"
     }
 
 
@@ -3041,6 +3044,11 @@ def _candidate_ocr_configs(camera_role, video_path, frame_width, frame_height, i
             path_label = str(video_path).lower()
             side = "right" if "right" in path_label else "left"
         return [_eye_ocr_config(side, is_high_res, video_path)], side
+
+    if "topdigit" in str(video_path).lower():
+        # worldcam/topcam with the topdigit overlay: same overlay geometry as the eye cams
+        # (the scaled 10x12 configs do not fit digit_with_background_model)
+        return [_eye_ocr_config("left", is_high_res, video_path)], None
 
     base_height = 288.0
     scale = frame_height / base_height if frame_height else 1.0
@@ -3388,7 +3396,7 @@ def ingest_egocams_ocr(session_key, scan_key, eye_cameras=['mini2p1_eye_left', '
     # Step 1: Get eye camera video files from database
     try:
         eye_video_key = (model.VideoRecordingNew & {'session_id': session_key, 'scan_id': scan_key} &
-                         f'camera IN {tuple(eye_cameras)}').fetch('KEY')
+                         [{'camera': cam} for cam in eye_cameras]).fetch('KEY')
         eye_video_files = (model.VideoRecordingNew * model.VideoRecordingNew.File & eye_video_key).fetch(as_dict=True)
     except Exception as e:
         return {'error': f'Failed to fetch video files from database: {e}'}
@@ -3714,7 +3722,7 @@ def ingest_egocams_ocr_linear(session_key, scan_key, eye_cameras=['mini2p1_eye_l
     # Step 1: Get eye camera video files from database
     try:
         eye_video_key = (model.VideoRecordingNew & {'session_id': session_key, 'scan_id': scan_key} &
-                         f'camera IN {tuple(eye_cameras)}').fetch('KEY')
+                         [{'camera': cam} for cam in eye_cameras]).fetch('KEY')
         eye_video_files = (model.VideoRecordingNew * model.VideoRecordingNew.File & eye_video_key).fetch(as_dict=True)
     except Exception as e:
         return {'error': f'Failed to fetch video files from database: {e}'}
@@ -4594,7 +4602,7 @@ def ingest_egocams(session_key, scan_key, eye_cameras=['mini2p1_eye_left', 'mini
     # Step 1: Get eye camera video files from database
     try:
         video_file_key = (model.VideoRecordingNew & {'session_id': session_key, 'scan_id': scan_key} & 
-                         f'camera IN {tuple(eye_cameras)}').fetch('KEY')
+                         [{'camera': cam} for cam in eye_cameras]).fetch('KEY')
         video_files = (model.VideoRecordingNew * model.VideoRecordingNew.File & video_file_key).fetch(as_dict=True)
     except Exception as e:
         return {'error': f'Failed to fetch video files from database: {e}'}
@@ -5634,7 +5642,7 @@ def ingest_camera_timestamps(session_key, scan_key,
     # Get video files from database
     try:
         video_file_key = (model.VideoRecordingNew & key & 
-                         f'camera IN {tuple(eye_cameras)}').fetch('KEY')
+                         [{'camera': cam} for cam in eye_cameras]).fetch('KEY')
         video_files = (model.VideoRecordingNew * model.VideoRecordingNew.File & video_file_key).fetch(as_dict=True)
     except Exception as e:
         return {'error': f'Failed to fetch video files from database: {e}'}
