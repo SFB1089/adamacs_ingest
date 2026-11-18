@@ -887,8 +887,9 @@ baseline).
 * OASIS: Leon's window (3) is best (0.279). dF/F0 is the weakest image signal (0.16–0.17); the rule prefers read-out 1
   (on-screen window, 0.174 vs 0.162) for it, a gain within the 0.01 grid-search noise, and dF/F0 is not used for image calls.
 * Leon's MEI restimulation window (14: [on + 3, off + 3) − [on, on + 3)) is a calibrated test (4–7 %) that calls 67–76 %
-  of soma cells responsive vs 31–40 % for ZETA, at a lower oracle (0.10–0.13) — use it as the image responsiveness
-  test where a per-trial test is needed, ZETA where the response shape is unknown.
+  of soma cells responsive, about as many as ZETA over the same four recordings (CASCADE 65 %, OASIS 75 %; the 31–40 %
+  in the calibration table is ROS-2209 alone, the only image recording with a random-onset control), at a lower oracle
+  (0.10–0.13). ZETA stays the default; read-out 14 is the per-trial alternative.
 
 **Checkerboard — read-out 1** (no export window; calibrated 4–7 %), pending a dedicated evaluation.
 """)

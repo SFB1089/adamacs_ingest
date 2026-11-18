@@ -439,7 +439,9 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
   frames); the resolved edges are stored. Standard windows: gratings read-out 16 (stimulus on screen, raw trial
   values, baseline frames [on − 60, on − 10) for the test); images read-out 3 (OASIS, Leon's export) and 11 (CASCADE,
   v1-drift-audit consensus), with ZETA for responsiveness.
-* **Thresholds are rows** (`CellRule`) applied by query (`cells(rule)`).
+* **Thresholds are rows** (`CellRule`) applied by query (`cells(rule)`). Standard rules: `gratings_cascade25`,
+  `gratings_oasis` (read-out 16 p < 0.05, oracle >= 0.18) and `images_cascade25`, `images_oasis` (ZETA p < 0.05,
+  oracle >= 0.08); oracle thresholds = 95th percentile of a label-shuffle null.
 * **Pilot:** `tobiasr_responsiveness_v7`, 10 recordings of 8 animals; ZETA agrees with the v1-drift-audit (rank r
   0.955–0.991), read-out 2 and `DirectionTuning` reproduce the audit's grating export and tuning.
 * **`activate()` refuses** an `imaging` schema that lacks `Dff0`.

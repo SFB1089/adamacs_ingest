@@ -1166,6 +1166,11 @@ _DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit")
 # Thresholds
 # ======================================================================================
 
+_RULE_DEFAULTS = dict(trace_source=None, readout_idx=None, zeta_idx=None, mask_type="", max_trace_value=None,
+                      min_kurtosis=None, min_photons_per_s=None, min_snr_s2p=None, max_zeta_p=None, max_resp_p=None,
+                      max_condition_p=None, min_oracle_r=None)   # every rule row carries every column (DataJoint inserts need equal fields)
+
+
 @schema
 class CellRule(dj.Lookup):
     definition = """
@@ -1186,9 +1191,28 @@ class CellRule(dj.Lookup):
     min_oracle_r=null       : float               # RELIABLE    Readout.Cell.oracle_r
     rule_note               : varchar(255)
     """
-    contents = [{"cell_rule": "zeta05_dff0", "trace_source": "dff0_r2", "readout_idx": None, "zeta_idx": 2,
-                 "max_zeta_p": 0.05, "max_condition_p": 0.05,
-                 "rule_note": "dF/F0 recipe 2: ZETA p < 0.05 pooled; Holm per condition (ZETA variant 2); no QC cut"}]
+    # Standard rules (v7 pilot, 2026-11-18): the decided windows per paradigm and trace. min_oracle_r = 95th percentile
+    # of a condition-label-shuffle null of the same oracle (20 shuffles per soma cell, 8 recordings; per recording
+    # gratings 0.162-0.178, images 0.072-0.077), rounded up. The null depends on the number of conditions and
+    # repeats: re-derive it for a protocol other than 8 directions x ~20 repeats or 100 images x 10 repeats.
+    # max_trace_value 50 = the v1-drift-audit CASCADE cut. Rules are named after the event selector they belong to.
+    contents = [{**_RULE_DEFAULTS, **r} for r in [
+        {"cell_rule": "zeta05_dff0", "trace_source": "dff0_r2", "readout_idx": None, "zeta_idx": 2,
+         "max_zeta_p": 0.05, "max_condition_p": 0.05,
+         "rule_note": "dF/F0 recipe 2: ZETA p < 0.05 pooled; Holm per condition (ZETA variant 2); no QC cut"},
+        {"cell_rule": "gratings_cascade25", "trace_source": "cascade25", "readout_idx": 16, "zeta_idx": None,
+         "mask_type": "soma", "max_trace_value": 50.0, "max_resp_p": 0.05, "min_oracle_r": 0.18,
+         "rule_note": "gratings standard: read-out 16 t-test p < 0.05 (two-sided: includes suppression); oracle >= 0.18; soma"},
+        {"cell_rule": "gratings_oasis", "trace_source": "oasis", "readout_idx": 16, "zeta_idx": None,
+         "mask_type": "soma", "max_resp_p": 0.05, "min_oracle_r": 0.18,
+         "rule_note": "gratings standard: read-out 16 t-test p < 0.05 (two-sided: includes suppression); oracle >= 0.18; soma"},
+        {"cell_rule": "images_cascade25", "trace_source": "cascade25", "readout_idx": 11, "zeta_idx": 1,
+         "mask_type": "soma", "max_trace_value": 50.0, "max_zeta_p": 0.05, "min_oracle_r": 0.08,
+         "rule_note": "natural images (repeated set): ZETA 1 p < 0.05; oracle on read-out 11 (audit consensus) >= 0.08; soma"},
+        {"cell_rule": "images_oasis", "trace_source": "oasis", "readout_idx": 3, "zeta_idx": 1,
+         "mask_type": "soma", "max_zeta_p": 0.05, "min_oracle_r": 0.08,
+         "rule_note": "natural images (repeated set): ZETA 1 p < 0.05; oracle on read-out 3 (Leon's window) >= 0.08; soma"},
+    ]]
 
 
 def _flags(r, *crit):

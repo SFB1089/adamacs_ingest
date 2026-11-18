@@ -142,9 +142,27 @@ Why, in short (the evidence is section 11 of the tour notebook):
   read-out 8's baseline makes real onsets no better than chance (4 %). The CASCADE start offset does not matter
   (windows 3, 7, 11, 12, 13: oracle 0.260–0.266), so the audit's consensus window 11 stays. OASIS is best on Leon's
   window 3 (0.279). Read-out 14 is a calibrated test (4–7 % on random onsets) that calls 67–76 % of soma cells
-  responsive vs 31–40 % for ZETA.
+  responsive, about as many as ZETA (CASCADE 65 %, OASIS 75 % over the four recordings); ZETA stays the default.
 
-### 2.3 Stimulus strings (Bonsai)
+### 2.3 Standard cell rules (`CellRule`, `cells(rule, restriction)`)
+
+| rule | trace | responsive | reliable (oracle on) | QC | pilot: responsive / reliable / both |
+|---|---|---|---|---|---|
+| `gratings_cascade25` | CASCADE 25 ms | read-out 16 `resp_p` < 0.05 | 16, >= 0.18 | soma, max trace <= 50 | 79 / 78 / 65 % |
+| `gratings_oasis` | OASIS | read-out 16 `resp_p` < 0.05 | 16, >= 0.18 | soma | 82 / 84 / 70 % |
+| `images_cascade25` | CASCADE 25 ms | ZETA 1 p < 0.05 | 11, >= 0.08 | soma, max trace <= 50 | 65 / 79 / 60 % |
+| `images_oasis` | OASIS | ZETA 1 p < 0.05 | 3, >= 0.08 | soma | 75 / 82 / 69 % |
+| `zeta05_dff0` | dF/F0 recipe 2 | ZETA 2 p < 0.05, per condition Holm p < 0.05 | — | — | (v6 rule, kept) |
+
+* The oracle thresholds are the 95th percentile of a condition-label-shuffle null of the same oracle (20 shuffles per
+  soma cell): gratings 0.162–0.178, images 0.072–0.077 per recording, identical across traces, rounded up. The null
+  depends on the number of conditions and repeats (here 8 directions x ~20 repeats, 100 images x 10 repeats);
+  re-derive it for another protocol.
+* `resp_p` is two-sided, so a grating-"responsive" cell may be suppressed; use `Readout.Cell.resp` for the sign.
+* Under random onsets the rules call 4 % (gratings, CASCADE) and 5 % (images, OASIS) responsive.
+* Apply a rule with the event selector it was made for: `resp.cells("gratings_cascade25", {"event_selector": "gratings"})`.
+
+### 2.4 Stimulus strings (Bonsai)
 
 Fields of the event string, from `leondrift.stim.events.parse_event_type` and the v1-drift-audit:
 `Name:label ; Name ; azimuth ; elevation ; size (w:h) ; direction ; spatial frequency ; temporal frequency`.
@@ -182,7 +200,7 @@ photodiode; three trace sources each.
 | photodiode latency | 83–118 ms (median per recording; IQR 13–71 ms); default 0.1 s elsewhere |
 | calibration (random onsets) | read-outs 2, 10, 15, 16, 8, 9, 14 within 2–7 % on CASCADE / OASIS; 1 and 5 too liberal on deconvolved traces (7.6–13.5 %); ZETA 5 % (images), 13 % (gratings) |
 | standard windows | section 2.2 |
-| detector | dark-referenced gain r2 0.79–0.99 where shutter frames exist; one RF scan without them falls back to the PTC (r2 0.51, negative gain stored by v6 code; v7 stores NULL) |
+| detector | dark-referenced gain r2 0.79–0.99 where shutter frames exist; one RF scan without them falls back to the PTC (r2 0.51, no positive gain: stored NULL) |
 
 Bugs found and fixed in v6 → v7: Wilcoxon on windows of unequal length gave 15–45 % false positives on random onsets
 (zero-inflated deconvolved baselines) and read-out 9 100 %: t-test default, same measure on both windows, equal
@@ -191,20 +209,24 @@ baseline). 117 `Readout` and 24 `DirectionTuning` rows of the test schema were r
 
 ## 5. Open before production
 
-1. `CellRule` rows for the standard windows (currently one ZETA rule on dF/F0).
-2. Checkerboard window evaluation (read-out 1 is a placeholder).
-3. Read-out 5 (OFF) is miscalibrated on deconvolved traces (10–14 % on random onsets).
-4. Recompute `ScanQuality` for the RF scan with a negative pilot gain; ROS-2147's low gain (24 grey levels/photon) is unexplained.
-5. Grating ingest gap: one 2023 protocol has 27 of 324 Bonsai presentations in `event.Event` (separate audit proposed).
-6. Production schema `roselab_responsiveness` and its cron entry: not created.
+1. Checkerboard window evaluation (read-out 1 is a placeholder; deferred).
+2. Read-out 5 (OFF) is miscalibrated on deconvolved traces (10–14 % on random onsets).
+3. ROS-2147's low detector gain (24 grey levels/photon) is unexplained.
+4. Grating ingest gap: one 2023 protocol has 27 of 324 Bonsai presentations in `event.Event` (separate audit proposed).
+5. Production schema `roselab_responsiveness` and its cron entry: not created.
+
+Done on 2026-11-18: standard `CellRule` rows (section 2.3); the test schema `tobiasr_responsiveness_v6` dropped;
+`ScanQuality` of the RF scan without shutter frames recomputed (gain NULL instead of the v6 code's negative value).
 
 ## 6. Querying
 
 ```python
-# grating cells responsive on CASCADE under the standard window, with their reliability and tuning
-std = {"event_selector": "gratings", "trace_source": "cascade25", "readout_idx": 16}
-cells = (resp.Readout.Cell & std & "resp_p < 0.05").proj("oracle_r", "resp_p")
-tuned = cells * (resp.DirectionTuning.Cell & std & {"tuning_idx": 1})
+# standard rule: flags per soma cell (is_qc, is_active, is_responsive, is_specific, is_reliable; NULL = not used)
+flags = resp.cells("gratings_cascade25", {"event_selector": "gratings"})
+good = flags & "is_responsive AND is_reliable"
+# with the tuning on the same window
+std = {"event_selector": "gratings", "trace_source": "cascade25", "readout_idx": 16, "tuning_idx": 1}
+tuned = good.proj() * (resp.DirectionTuning.Cell & std)
 ```
 
 ## 7. References
