@@ -37,7 +37,7 @@ Everything below runs on TATCHU3 with DataJoint calls only. Code lives on branch
    Do not keep a copy inside the scan folder: the loader reads every `ops.npy` below it.
 
 ## 3. Behaviour and sync (driver script, same DataJoint calls as notebooks 07/09)
-Run from the worktree, as yourself (`DJ_PASS` = your DB password in the environment):
+Run from your own clone, as yourself (`DJ_PASS` = your DB password in the environment):
 ```bash
 # once: git clone https://github.com/SFB1089/adamacs_ingest ~/adamacs_ingest && cd ~/adamacs_ingest && git checkout feat/vismotor-bpod-ingest
 # (use main once the branch is merged; your own clone is needed because the run logs are written into the repo)
