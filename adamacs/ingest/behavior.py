@@ -329,9 +329,9 @@ def ingest_bpod(sessi, scansi, root_paths=get_imaging_root_data_dir(), aux_setup
     scan_key = (scan.Scan & f'scan_id = "{scansi}"').fetch('KEY')[0]
     bpod_path_relative = (scan.ScanPath & scan_key).fetch("path")[0]
     # VisMotor protocols (Anh Nguyen, mini2p1) have their own sync; see bpod_vismotor.py.
-    # Only scans whose folder holds a *VisMotor*.mat take this branch.
-    from .bpod_vismotor_sync import find_vismotor_file
-    if find_vismotor_file(find_full_path(get_experiment_root_data_dir(), bpod_path_relative)) is not None:
+    # Only scans whose folder holds a *VisMotor* file take this branch.
+    from .bpod_vismotor_sync import has_vismotor_files
+    if has_vismotor_files(find_full_path(get_experiment_root_data_dir(), bpod_path_relative)):
         from .bpod_vismotor import ingest_bpod_vismotor
         return ingest_bpod_vismotor(sessi, scansi, include_raw_bpod_events=include_raw_bpod_events,
                                     include_raw_bpod_states=include_raw_bpod_states, verbose=verbose)

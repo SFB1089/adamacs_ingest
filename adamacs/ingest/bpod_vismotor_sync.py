@@ -15,6 +15,11 @@ class VisMotorPulseMismatch(RuntimeError):
     """The AUX trial-pulse train does not belong to this Bpod file."""
 
 
+def has_vismotor_files(scan_dir):
+    """True if any file of a VisMotor protocol (.mat, _backup.m, ...) is in ``scan_dir``."""
+    return any(VISMOTOR_PATTERN in p.name for p in pathlib.Path(scan_dir).iterdir())
+
+
 def find_vismotor_file(scan_dir):
     """The VisMotor Bpod session file in ``scan_dir`` or None. Never the *_LM_coord.mat."""
     mats = sorted(p for p in pathlib.Path(scan_dir).glob("*.mat")
@@ -49,3 +54,28 @@ def match_pulses_to_trials(pulses, starts, max_residual=MAX_RESIDUAL_S):
             f"AUX pulse intervals do not match Bpod trial intervals (median error "
             f"{med_err*1000:.1f} ms over {n} pairs) - wrong .mat for this scan?")
     return np.arange(b0, b0 + n), np.arange(a0, a0 + n)
+
+
+def fit_clock(starts, pulses, bpod_idx, aux_idx, max_residual=MAX_RESIDUAL_S, min_inlier_fraction=0.8):
+    """Robust linear clock model aux = a + b * bpod from paired trial starts and pulses.
+
+    Fits once, drops pairs whose residual exceeds ``max_residual`` (e.g. an aborted first
+    trial or a dropped pulse), refits on the inliers. Returns (coeffs, inlier_mask, residuals).
+    """
+    from numpy.polynomial import polynomial as P
+    x = np.asarray(starts, float)[bpod_idx]
+    y = np.asarray(pulses, float)[aux_idx]
+    keep = np.ones(len(x), bool)
+    for _ in range(5):
+        coeffs = P.polyfit(x[keep], y[keep], deg=1)
+        resid = y - P.polyval(x, coeffs)
+        new = np.abs(resid - np.median(resid[keep])) < max_residual
+        if new.sum() < 2 or (new == keep).all():
+            break
+        keep = new
+    coeffs = P.polyfit(x[keep], y[keep], deg=1)
+    resid = y - P.polyval(x, coeffs)
+    if keep.mean() < min_inlier_fraction or np.max(np.abs(resid[keep])) > max_residual:
+        raise VisMotorPulseMismatch(
+            f"only {keep.sum()}/{len(keep)} trial/pulse pairs agree within {max_residual*1000:.0f} ms")
+    return coeffs, keep, resid

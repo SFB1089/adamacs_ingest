@@ -32,7 +32,7 @@ from ..paths import get_experiment_root_data_dir
 from .aux import Auxfile
 from .bpod import Bpodfile, Trial
 from .bpod_vismotor_sync import (VISMOTOR_PATTERN, AUX_TRIAL_CHANNEL, MAX_RESIDUAL_S,  # noqa: F401
-                                  VisMotorPulseMismatch, find_vismotor_file, match_pulses_to_trials)
+                                  VisMotorPulseMismatch, find_vismotor_file, match_pulses_to_trials, fit_clock)
 
 class VisMotorTrial(Trial):
     @property
@@ -73,15 +73,16 @@ class VisMotorBpodfile(Bpodfile):
         pulses = np.asarray(aux.bpod_channels[AUX_TRIAL_CHANNEL], float)
         starts = np.asarray(self.session_data["TrialStartTimestamp"], float)[: self.n_trials]
         bi, ai = match_pulses_to_trials(pulses, starts)
-        coeffs = P.polyfit(starts[bi], pulses[ai], deg=1)
-        resid = pulses[ai] - P.polyval(starts[bi], coeffs)
-        if np.max(np.abs(resid)) > MAX_RESIDUAL_S:
-            raise VisMotorPulseMismatch(f"max sync residual {np.max(np.abs(resid))*1000:.1f} ms")
+        coeffs, keep, resid = fit_clock(starts, pulses, bi, ai)
+        if (~keep).any():
+            print(f"VisMotor sync: excluded {(~keep).sum()} outlier pair(s) from the clock fit: "
+                  f"bpod trials {bi[~keep].tolist()} (residuals {np.round(resid[~keep], 3).tolist()} s)")
+        resid = resid[keep]
         drift = (coeffs[1] - 1.0) * (starts[-1] - starts[0])
-        print(f"VisMotor sync: {len(bi)}/{self.n_trials} trials paired with {len(pulses)} AUX pulses; "
+        print(f"VisMotor sync: {int(keep.sum())}/{self.n_trials} trials paired with {len(pulses)} AUX pulses; "
               f"aux = {coeffs[0]:.4f} + {coeffs[1]:.8f}*bpod; drift {drift*1000:.2f} ms; "
               f"residual std {np.std(resid)*1000:.3f} ms")
-        self.sync_report = {"n_pairs": int(len(bi)), "n_trials": int(self.n_trials), "n_pulses": int(len(pulses)),
+        self.sync_report = {"n_pairs": int(keep.sum()), "n_excluded": int((~keep).sum()), "n_trials": int(self.n_trials), "n_pulses": int(len(pulses)),
                             "intercept": float(coeffs[0]), "slope": float(coeffs[1]),
                             "residual_std_ms": float(np.std(resid) * 1000), "drift_ms": float(drift * 1000)}
         return P.polyval(starts, coeffs), pulses
@@ -93,7 +94,8 @@ def ingest_bpod_vismotor(sessi, scansi, include_raw_bpod_events=True, include_ra
     scan_dir = find_full_path(get_experiment_root_data_dir(), (scan.ScanPath & scan_key).fetch1("path"))
     bpod_file = find_vismotor_file(scan_dir)
     if bpod_file is None:
-        raise FileNotFoundError(f"no *{VISMOTOR_PATTERN}*.mat in {scan_dir}")
+        from ..ingest_log import StepSkipped
+        raise StepSkipped(f"VisMotor Bpod: no *{VISMOTOR_PATTERN}*.mat session file in {scan_dir} (Bpod not run?)")
     bp = VisMotorBpodfile(bpod_file, sessi)
     try:
         bp._aux_timestamps()   # validate the pulse train before anything is written

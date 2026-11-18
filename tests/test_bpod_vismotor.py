@@ -32,3 +32,13 @@ def test_wrong_schedule_is_refused():
     pulses = np.arange(5, 600, 15.034)       # 15 s ITI session
     with pytest.raises(bv.VisMotorPulseMismatch):
         bv.match_pulses_to_trials(pulses, starts)
+
+
+def test_fit_excludes_aborted_first_trial():
+    starts = np.cumsum(np.r_[35.0, 0.5, np.full(40, 15.034)])   # trial 0 aborted after 0.5 s
+    pulses = starts - 28.2
+    pulses[0] -= 4.4                                            # its pulse is off by seconds
+    bi, ai = bv.match_pulses_to_trials(pulses, starts)
+    coeffs, keep, resid = bv.fit_clock(starts, pulses, bi, ai)
+    assert not keep[0] and keep[1:].all()
+    assert abs(coeffs[0] + 28.2) < 1e-6
