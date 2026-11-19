@@ -1,409 +1,409 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1036pt" height="357pt" viewBox="0.00 0.00 1036.25 357.00">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="954pt" height="357pt" viewBox="0.00 0.00 953.50 357.00">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 353)">
 <title>%3</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-353 1032.25,-353 1032.25,4 -4,4"/>
-<!-- vm.DirectionTuning.Cell -->
-<g id="node1" class="node">
-<title>vm.DirectionTuning.Cell</title>
-<g id="a_node1"><a xlink:title="→ vm.DirectionTuning→ vm.Readout.Cell------------------------------ori_kw_p=null        dir_kw_p=null        ori_vec=null         dir_vec=null         pref_ori_vec=null    pref_dir_vec=null    hotelling_p=null     dir_dot_p=null       pref_dir_dot=null    ori_vec_perm_p=null  dir_vec_perm_p=null  pref_ori_ci=null     r_pref=null          r_null=null          r_orth=null          oi=null              di=null              osi=null             dsi=null             fit_pref_dir=null    fit_sigma=null       fit_hwhh=null        fit_rp=null          fit_rn=null          fit_c=null           fit_r2=null          fit_osi=null         fit_dsi=null         ">
-<polygon fill="transparent" stroke="transparent" points="379.75,-74 257.75,-74 257.75,-55 379.75,-55 379.75,-74"/>
-<text text-anchor="middle" x="318.75" y="-62" font-family="arial" font-size="10.00">vm.DirectionTuning.Cell</text>
-</a>
-</g>
-</g>
-<!-- vm.Zeta.Condition -->
-<g id="node2" class="node">
-<title>vm.Zeta.Condition</title>
-<g id="a_node2"><a xlink:title="→ vm.Zeta.Cellcondition            ------------------------------zeta_p=null          ">
-<polygon fill="transparent" stroke="transparent" points="733.25,-19 636.25,-19 636.25,0 733.25,0 733.25,-19"/>
-<text text-anchor="start" x="644.25" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.Zeta.Condition</text>
-</a>
-</g>
-</g>
-<!-- vm.ResponseTask.Tuning -->
-<g id="node3" class="node">
-<title>vm.ResponseTask.Tuning</title>
-<g id="a_node3"><a xlink:title="→ vm.ResponseTask.Readout→ vm.TuningParamSet">
-<polygon fill="transparent" stroke="transparent" points="636.25,-132.5 505.25,-132.5 505.25,-113.5 636.25,-113.5 636.25,-132.5"/>
-<text text-anchor="middle" x="570.75" y="-120.5" font-family="arial" font-size="10.00">vm.ResponseTask.Tuning</text>
-</a>
-</g>
-</g>
-<!-- vm.TuningParamSet -->
-<g id="node4" class="node">
-<title>vm.TuningParamSet</title>
-<g id="a_node4"><a xlink:title="tuning_idx           ------------------------------tuning_desc          tuning_hash          angle_convention=&quot;90_minus_label&quot; : enum('90_minus_label','minus_label','label') # stimulus label → angle (all output angles)rectify=&quot;clip&quot;       fit=1                n_perm=1000          n_boot=200           UNIQUE INDEX (tuning_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="382.75,-207 276.75,-207 276.75,-172 382.75,-172 382.75,-207"/>
-<text text-anchor="start" x="284.75" y="-188" font-family="arial" text-decoration="underline" font-size="10.00">vm.TuningParamSet</text>
-</a>
-</g>
-</g>
-<!-- vm.TuningParamSet&#45;&gt;vm.ResponseTask.Tuning -->
-<g id="edge1" class="edge">
-<title>vm.TuningParamSet-&gt;vm.ResponseTask.Tuning</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M382.94,-174.27C430.62,-161.5 499.01,-143.2 538.76,-132.56"/>
-</g>
-<!-- vm.DirectionTuning -->
-<g id="node18" class="node">
-<title>vm.DirectionTuning</title>
-<g id="a_node18"><a xlink:title="→ vm.Readout→ vm.TuningParamSet------------------------------n_directions         n_repeats            software             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="318.75" cy="-123" rx="13" ry="13"/>
-<text text-anchor="middle" x="318.75" y="-119.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DirectionTuning</text>
-</a>
-</g>
-</g>
-<!-- vm.TuningParamSet&#45;&gt;vm.DirectionTuning -->
-<g id="edge2" class="edge">
-<title>vm.TuningParamSet-&gt;vm.DirectionTuning</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M326.92,-171.89C325.01,-160.69 322.53,-146.17 320.81,-136.07"/>
-</g>
-<!-- vm.Zeta.Cell -->
-<g id="node5" class="node">
-<title>vm.Zeta.Cell</title>
-<g id="a_node5"><a xlink:title="→ vm.Zeta→ `roselab_imaging`.`__fluorescence__trace`------------------------------zeta_p=null          zeta_z=null          latency=null         condition_p=null     source_curation_id=null ">
-<polygon fill="transparent" stroke="transparent" points="721.25,-74 648.25,-74 648.25,-55 721.25,-55 721.25,-74"/>
-<text text-anchor="middle" x="684.75" y="-62" font-family="arial" font-size="10.00">vm.Zeta.Cell</text>
-</a>
-</g>
-</g>
-<!-- vm.Zeta.Cell&#45;&gt;vm.Zeta.Condition -->
-<g id="edge3" class="edge">
-<title>vm.Zeta.Cell-&gt;vm.Zeta.Condition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M684.75,-54.75C684.75,-44.87 684.75,-28.9 684.75,-19.09"/>
-</g>
-<!-- vm.TraceSource -->
-<g id="node6" class="node">
-<title>vm.TraceSource</title>
-<g id="a_node6"><a xlink:title="trace_source         ------------------------------→ [nullable] `roselab_imaging`.`#activity_extraction_method`→ [nullable] `roselab_imaging`.`#dff_param_set`trace_unit           ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="570.25,-349 481.25,-349 481.25,-314 570.25,-314 570.25,-349"/>
-<text text-anchor="start" x="489.25" y="-330" font-family="arial" text-decoration="underline" font-size="10.00">vm.TraceSource</text>
-</a>
-</g>
-</g>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-353 949.5,-353 949.5,4 -4,4"/>
 <!-- vm.CellRule -->
-<g id="node11" class="node">
+<g id="node1" class="node">
 <title>vm.CellRule</title>
-<g id="a_node11"><a xlink:title="cell_rule            ------------------------------→ [nullable] vm.TraceSource→ [nullable] vm.ReadoutParamSet→ [nullable] vm.ZetaParamSetmask_type=&quot;&quot;         max_trace_value=null min_kurtosis=null    min_photons_per_s=null min_snr_s2p=null     max_zeta_p=null      max_resp_p=null      max_condition_p=null min_oracle_r=null    direction=&quot;any&quot;      rule_note            ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="728.25,-207 657.25,-207 657.25,-172 728.25,-172 728.25,-207"/>
-<text text-anchor="start" x="665.25" y="-188" font-family="arial" text-decoration="underline" font-size="10.00">vm.CellRule</text>
+<g id="a_node1"><a xlink:title="cell_rule            ------------------------------→ [nullable] vm.TraceSource→ [nullable] vm.ReadoutParamSet→ [nullable] vm.ZetaParamSetmask_type=&quot;&quot;         max_trace_value=null min_kurtosis=null    min_photons_per_s=null min_snr_s2p=null     max_zeta_p=null      max_resp_p=null      max_condition_p=null min_oracle_r=null    direction=&quot;any&quot;      rule_note            ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="477.5,-207 406.5,-207 406.5,-172 477.5,-172 477.5,-207"/>
+<text text-anchor="start" x="414.5" y="-188" font-family="arial" text-decoration="underline" font-size="10.00">vm.CellRule</text>
 </a>
 </g>
 </g>
-<!-- vm.TraceSource&#45;&gt;vm.CellRule -->
-<g id="edge4" class="edge">
-<title>vm.TraceSource-&gt;vm.CellRule</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M570.35,-317.31C593.33,-308.85 620.66,-296.03 640.75,-278 662.98,-258.05 678.52,-226.31 686.52,-207.04"/>
+<!-- vm.EventSelector -->
+<g id="node2" class="node">
+<title>vm.EventSelector</title>
+<g id="a_node2"><a xlink:title="event_selector       ------------------------------event_type_like      trial_type_like=&quot;&quot;   condition_source=&quot;event_type&quot; trial_attribute=&quot;&quot;   condition_parser=&quot;none&quot; parser_args=&quot;&quot;       : varchar(64)                  # e.g. bonsai_fields '2,3' → label 'x|y'min_repeats=1        random_seed=null     circular_period=null stim_duration_s=null display_latency_s=0.1 ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="592.5,-349 497.5,-349 497.5,-314 592.5,-314 592.5,-349"/>
+<text text-anchor="start" x="505.5" y="-330" font-family="arial" text-decoration="underline" font-size="10.00">vm.EventSelector</text>
+</a>
+</g>
+</g>
+<!-- vm.EventSet -->
+<g id="node9" class="node">
+<title>vm.EventSet</title>
+<g id="a_node9"><a xlink:title="→ `roselab_scan`.`scan`→ vm.EventSelector------------------------------n_onsets             n_conditions         n_trials             n_outside_trials     median_duration_s=null median_ioi_s=null    ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="688" cy="-260.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="688" y="-257.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.EventSet</text>
+</a>
+</g>
+</g>
+<!-- vm.EventSelector&#45;&gt;vm.EventSet -->
+<g id="edge1" class="edge">
+<title>vm.EventSelector-&gt;vm.EventSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M579.25,-313.97C610.82,-298.74 655.82,-277.03 676.63,-266.99"/>
 </g>
 <!-- vm.ResponseTask -->
-<g id="node12" class="node">
+<g id="node24" class="node">
 <title>vm.ResponseTask</title>
-<g id="a_node12"><a xlink:title="→ `roselab_imaging`.`__fluorescence`→ vm.TraceSource→ vm.EventSelector------------------------------task_owner           ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="462.25,-278 347.25,-278 347.25,-243 462.25,-243 462.25,-278"/>
-<text text-anchor="middle" x="404.75" y="-257.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ResponseTask</text>
+<g id="a_node24"><a xlink:title="→ `roselab_imaging`.`__fluorescence`→ vm.TraceSource→ vm.EventSelector------------------------------task_owner           ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="269.5,-278 154.5,-278 154.5,-243 269.5,-243 269.5,-278"/>
+<text text-anchor="middle" x="212" y="-257.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ResponseTask</text>
 </a>
 </g>
 </g>
-<!-- vm.TraceSource&#45;&gt;vm.ResponseTask -->
-<g id="edge5" class="edge">
-<title>vm.TraceSource-&gt;vm.ResponseTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M496.77,-313.97C477.75,-303.13 452.97,-289 433.92,-278.13"/>
+<!-- vm.EventSelector&#45;&gt;vm.ResponseTask -->
+<g id="edge2" class="edge">
+<title>vm.EventSelector-&gt;vm.ResponseTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M497.29,-320.61C437.22,-308.17 334.12,-286.8 269.69,-273.45"/>
+</g>
+<!-- vm.ReadoutParamSet -->
+<g id="node3" class="node">
+<title>vm.ReadoutParamSet</title>
+<g id="a_node3"><a xlink:title="readout_idx          ------------------------------readout_desc         readout_hash         time_ref=&quot;display&quot;   window_unit=&quot;s&quot;      resp_start_ref       resp_start           resp_stop_ref        resp_stop            resp_length=&quot;per_onset&quot; base_start_ref=null  base_start=null      base_stop_ref=null   base_stop=null       base_length=&quot;explicit&quot; measure=&quot;mean&quot;       smooth_s=0           correction=&quot;subtract&quot; test=&quot;wilcoxon&quot;      UNIQUE INDEX (readout_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="439.5,-278 326.5,-278 326.5,-243 439.5,-243 439.5,-278"/>
+<text text-anchor="start" x="334.5" y="-259" font-family="arial" text-decoration="underline" font-size="10.00">vm.ReadoutParamSet</text>
+</a>
+</g>
+</g>
+<!-- vm.ReadoutParamSet&#45;&gt;vm.CellRule -->
+<g id="edge3" class="edge">
+<title>vm.ReadoutParamSet-&gt;vm.CellRule</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M397.28,-242.8C406.56,-231.95 418.6,-217.87 427.85,-207.05"/>
 </g>
 <!-- vm.Readout -->
 <g id="node13" class="node">
 <title>vm.Readout</title>
 <g id="a_node13"><a xlink:title="→ `roselab_imaging`.`__fluorescence`→ vm.TraceSource→ vm.EventSet→ vm.ReadoutParamSet------------------------------n_onsets             n_repeats            latency_s            latency_source       resp_start_s         resp_stop_s          base_start_s=null    base_stop_s=null     software             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="441.75" cy="-189.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="441.75" y="-186.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Readout</text>
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="575" cy="-189.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="575" y="-186.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Readout</text>
 </a>
 </g>
 </g>
-<!-- vm.TraceSource&#45;&gt;vm.Readout -->
+<!-- vm.ReadoutParamSet&#45;&gt;vm.Readout -->
+<g id="edge4" class="edge">
+<title>vm.ReadoutParamSet-&gt;vm.Readout</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M428.99,-242.97C473.14,-227.1 536.88,-204.2 563.07,-194.79"/>
+</g>
+<!-- vm.ResponseTask.Readout -->
+<g id="node25" class="node">
+<title>vm.ResponseTask.Readout</title>
+<g id="a_node25"><a xlink:title="→ vm.ResponseTask→ vm.ReadoutParamSet">
+<polygon fill="transparent" stroke="transparent" points="264,-199 126,-199 126,-180 264,-180 264,-199"/>
+<text text-anchor="middle" x="195" y="-187" font-family="arial" font-size="10.00">vm.ResponseTask.Readout</text>
+</a>
+</g>
+</g>
+<!-- vm.ReadoutParamSet&#45;&gt;vm.ResponseTask.Readout -->
+<g id="edge5" class="edge">
+<title>vm.ReadoutParamSet-&gt;vm.ResponseTask.Readout</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M337.97,-242.97C300.27,-229.14 248,-209.95 218.23,-199.03"/>
+</g>
+<!-- vm.TraceSource -->
+<g id="node4" class="node">
+<title>vm.TraceSource</title>
+<g id="a_node4"><a xlink:title="trace_source         ------------------------------→ [nullable] `roselab_imaging`.`#activity_extraction_method`→ [nullable] `roselab_imaging`.`#dff_param_set`trace_unit           ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="299.5,-349 210.5,-349 210.5,-314 299.5,-314 299.5,-349"/>
+<text text-anchor="start" x="218.5" y="-330" font-family="arial" text-decoration="underline" font-size="10.00">vm.TraceSource</text>
+</a>
+</g>
+</g>
+<!-- vm.TraceSource&#45;&gt;vm.CellRule -->
 <g id="edge6" class="edge">
+<title>vm.TraceSource-&gt;vm.CellRule</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M263.11,-313.87C273.3,-294.51 292.45,-262.69 317,-243 324.39,-237.07 371.93,-217.84 406.19,-204.37"/>
+</g>
+<!-- vm.TraceSource&#45;&gt;vm.Readout -->
+<g id="edge7" class="edge">
 <title>vm.TraceSource-&gt;vm.Readout</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M515.78,-313.89C498.31,-284.77 462.64,-225.31 448.11,-201.11"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M299.62,-329.18C376.06,-325.92 527.3,-314.88 563,-278 582.62,-257.73 580.24,-221.39 577.34,-202.56"/>
 </g>
 <!-- vm.TraceQuality -->
-<g id="node22" class="node">
+<g id="node17" class="node">
 <title>vm.TraceQuality</title>
-<g id="a_node22"><a xlink:title="→ `roselab_imaging`.`__fluorescence`→ vm.TraceSource">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="875.75" cy="-260.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="875.75" y="-257.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TraceQuality</text>
+<g id="a_node17"><a xlink:title="→ `roselab_imaging`.`__fluorescence`→ vm.TraceSource">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="70" cy="-260.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="70" y="-257.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TraceQuality</text>
 </a>
 </g>
 </g>
 <!-- vm.TraceSource&#45;&gt;vm.TraceQuality -->
-<g id="edge7" class="edge">
+<g id="edge8" class="edge">
 <title>vm.TraceSource-&gt;vm.TraceQuality</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M570.38,-323.5C627.17,-314.33 728.2,-297.15 813.75,-278 831.14,-274.11 851.01,-268.64 863.47,-265.08"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M210.69,-313.97C168.36,-298.18 107.35,-275.43 81.87,-265.93"/>
 </g>
-<!-- vm.Readout.Condition -->
-<g id="node7" class="node">
-<title>vm.Readout.Condition</title>
-<g id="a_node7"><a xlink:title="→ vm.Readout.Cellcondition            ------------------------------n_onsets             resp=null            resp_sem=null        ">
-<polygon fill="transparent" stroke="transparent" points="511.75,-74 397.75,-74 397.75,-55 511.75,-55 511.75,-74"/>
-<text text-anchor="start" x="405.75" y="-63" font-family="arial" text-decoration="underline" font-size="10.00">vm.Readout.Condition</text>
+<!-- vm.TraceSource&#45;&gt;vm.ResponseTask -->
+<g id="edge9" class="edge">
+<title>vm.TraceSource-&gt;vm.ResponseTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M244.59,-313.8C237.83,-302.95 229.05,-288.87 222.31,-278.05"/>
+</g>
+<!-- vm.TuningParamSet -->
+<g id="node5" class="node">
+<title>vm.TuningParamSet</title>
+<g id="a_node5"><a xlink:title="tuning_idx           ------------------------------tuning_desc          tuning_hash          angle_convention=&quot;90_minus_label&quot; : enum('90_minus_label','minus_label','label') # stimulus label → angle (all output angles)rectify=&quot;clip&quot;       fit=1                n_perm=1000          n_boot=200           UNIQUE INDEX (tuning_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="388,-207 282,-207 282,-172 388,-172 388,-207"/>
+<text text-anchor="start" x="290" y="-188" font-family="arial" text-decoration="underline" font-size="10.00">vm.TuningParamSet</text>
 </a>
 </g>
 </g>
+<!-- vm.DirectionTuning -->
+<g id="node7" class="node">
+<title>vm.DirectionTuning</title>
+<g id="a_node7"><a xlink:title="→ vm.Readout→ vm.TuningParamSet------------------------------n_directions         n_repeats            software             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="452" cy="-123" rx="13" ry="13"/>
+<text text-anchor="middle" x="452" y="-119.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DirectionTuning</text>
+</a>
+</g>
+</g>
+<!-- vm.TuningParamSet&#45;&gt;vm.DirectionTuning -->
+<g id="edge10" class="edge">
+<title>vm.TuningParamSet-&gt;vm.DirectionTuning</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M365.13,-171.89C389.91,-158.23 423.65,-139.63 440.88,-130.13"/>
+</g>
+<!-- vm.ResponseTask.Tuning -->
+<g id="node26" class="node">
+<title>vm.ResponseTask.Tuning</title>
+<g id="a_node26"><a xlink:title="→ vm.ResponseTask.Readout→ vm.TuningParamSet">
+<polygon fill="transparent" stroke="transparent" points="234.5,-132.5 103.5,-132.5 103.5,-113.5 234.5,-113.5 234.5,-132.5"/>
+<text text-anchor="middle" x="169" y="-120.5" font-family="arial" font-size="10.00">vm.ResponseTask.Tuning</text>
+</a>
+</g>
+</g>
+<!-- vm.TuningParamSet&#45;&gt;vm.ResponseTask.Tuning -->
+<g id="edge11" class="edge">
+<title>vm.TuningParamSet-&gt;vm.ResponseTask.Tuning</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M292.25,-171.89C259.97,-159.35 216.98,-142.64 191.24,-132.64"/>
+</g>
 <!-- vm.ZetaParamSet -->
-<g id="node8" class="node">
+<g id="node6" class="node">
 <title>vm.ZetaParamSet</title>
-<g id="a_node8"><a xlink:title="zeta_idx             ------------------------------zeta_desc            zeta_hash            zeta_span=&quot;epoch&quot;    zeta_resampling=100  per_condition=0      mask_type=&quot;&quot;         UNIQUE INDEX (zeta_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="804.75,-278 708.75,-278 708.75,-243 804.75,-243 804.75,-278"/>
-<text text-anchor="start" x="716.75" y="-259" font-family="arial" text-decoration="underline" font-size="10.00">vm.ZetaParamSet</text>
+<g id="a_node6"><a xlink:title="zeta_idx             ------------------------------zeta_desc            zeta_hash            zeta_span=&quot;epoch&quot;    zeta_resampling=100  per_condition=0      mask_type=&quot;&quot;         UNIQUE INDEX (zeta_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="554,-278 458,-278 458,-243 554,-243 554,-278"/>
+<text text-anchor="start" x="466" y="-259" font-family="arial" text-decoration="underline" font-size="10.00">vm.ZetaParamSet</text>
 </a>
 </g>
 </g>
 <!-- vm.ZetaParamSet&#45;&gt;vm.CellRule -->
-<g id="edge8" class="edge">
+<g id="edge12" class="edge">
 <title>vm.ZetaParamSet-&gt;vm.CellRule</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M741.26,-242.8C731.19,-231.95 718.13,-217.87 708.1,-207.05"/>
-</g>
-<!-- vm.ResponseTask.Zeta -->
-<g id="node19" class="node">
-<title>vm.ResponseTask.Zeta</title>
-<g id="a_node19"><a xlink:title="→ vm.ResponseTask.Readout→ vm.ZetaParamSet">
-<polygon fill="transparent" stroke="transparent" points="854.25,-132.5 733.25,-132.5 733.25,-113.5 854.25,-113.5 854.25,-132.5"/>
-<text text-anchor="middle" x="793.75" y="-120.5" font-family="arial" font-size="10.00">vm.ResponseTask.Zeta</text>
-</a>
-</g>
-</g>
-<!-- vm.ZetaParamSet&#45;&gt;vm.ResponseTask.Zeta -->
-<g id="edge9" class="edge">
-<title>vm.ZetaParamSet-&gt;vm.ResponseTask.Zeta</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M761.29,-242.89C769.24,-213.77 785.41,-154.53 791.43,-132.5"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M490.51,-242.8C480.44,-231.95 467.38,-217.87 457.35,-207.05"/>
 </g>
 <!-- vm.Zeta -->
-<g id="node27" class="node">
+<g id="node19" class="node">
 <title>vm.Zeta</title>
-<g id="a_node27"><a xlink:title="→ vm.Readout→ vm.ZetaParamSet------------------------------n_onsets             n_reused=0           epoch_start_s        window_s             software             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="684.75" cy="-123" rx="13" ry="13"/>
-<text text-anchor="middle" x="684.75" y="-119.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Zeta</text>
+<g id="a_node19"><a xlink:title="→ vm.Readout→ vm.ZetaParamSet------------------------------n_onsets             n_reused=0           epoch_start_s        window_s             software             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="668" cy="-123" rx="13" ry="13"/>
+<text text-anchor="middle" x="668" y="-119.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Zeta</text>
 </a>
 </g>
 </g>
 <!-- vm.ZetaParamSet&#45;&gt;vm.Zeta -->
-<g id="edge10" class="edge">
-<title>vm.ZetaParamSet-&gt;vm.Zeta</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M755.88,-242.96C754.28,-224.53 749.72,-194.38 736.75,-172 726.4,-154.14 707.24,-139.05 695.29,-130.78"/>
-</g>
-<!-- vm.ScreenTiming.Onset -->
-<g id="node9" class="node">
-<title>vm.ScreenTiming.Onset</title>
-<g id="a_node9"><a xlink:title="→ vm.ScreenTiming→ vm.EventSet.Onset------------------------------diode_on=null        : double                       # [s] physical onset (first bright→dark flip of the corner square)diode_off=null       : double                       # [s] physical offset (next dark→bright flip)">
-<polygon fill="transparent" stroke="transparent" points="185.75,-132.5 63.75,-132.5 63.75,-113.5 185.75,-113.5 185.75,-132.5"/>
-<text text-anchor="middle" x="124.75" y="-120.5" font-family="arial" font-size="10.00">vm.ScreenTiming.Onset</text>
-</a>
-</g>
-</g>
-<!-- vm.ScanQuality -->
-<g id="node10" class="node">
-<title>vm.ScanQuality</title>
-<g id="a_node10"><a xlink:title="→ `roselab_scan`.`scan`------------------------------gain_method          gain=null            offset=null          gain_r2=null         n_frames             n_dark_frames=0      ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="740.75" cy="-331.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="740.75" y="-328.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.ScanQuality</text>
-</a>
-</g>
-</g>
-<!-- vm.ResponseTask.Readout -->
-<g id="node16" class="node">
-<title>vm.ResponseTask.Readout</title>
-<g id="a_node16"><a xlink:title="→ vm.ResponseTask→ vm.ReadoutParamSet">
-<polygon fill="transparent" stroke="transparent" points="638.75,-199 500.75,-199 500.75,-180 638.75,-180 638.75,-199"/>
-<text text-anchor="middle" x="569.75" y="-187" font-family="arial" font-size="10.00">vm.ResponseTask.Readout</text>
-</a>
-</g>
-</g>
-<!-- vm.ResponseTask&#45;&gt;vm.ResponseTask.Readout -->
-<g id="edge11" class="edge">
-<title>vm.ResponseTask-&gt;vm.ResponseTask.Readout</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M444.27,-242.97C477.26,-229.18 522.97,-210.06 549.14,-199.12"/>
-</g>
-<!-- vm.Readout&#45;&gt;vm.DirectionTuning -->
-<g id="edge12" class="edge">
-<title>vm.Readout-&gt;vm.DirectionTuning</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M430.4,-182.55C406.97,-170.26 353.48,-142.21 330.07,-129.94"/>
-</g>
-<!-- vm.Readout.Cell -->
-<g id="node25" class="node">
-<title>vm.Readout.Cell</title>
-<g id="a_node25"><a xlink:title="→ vm.Readout→ `roselab_imaging`.`__fluorescence__trace`------------------------------trial_resp           trial_base=null      resp=null            effect_d=null        resp_p=null          resp_delta=null      resp_vs_trace=null   cond_kw_p=null       pref_condition=null  pref_resp=null       pref_resp_cv=null    pref_p=null          oracle_r=null        response_snr=null    INDEX (trial_resp)INDEX (trial_base)">
-<polygon fill="transparent" stroke="transparent" points="486.75,-132.5 396.75,-132.5 396.75,-113.5 486.75,-113.5 486.75,-132.5"/>
-<text text-anchor="middle" x="441.75" y="-120.5" font-family="arial" font-size="10.00">vm.Readout.Cell</text>
-</a>
-</g>
-</g>
-<!-- vm.Readout&#45;&gt;vm.Readout.Cell -->
 <g id="edge13" class="edge">
-<title>vm.Readout-&gt;vm.Readout.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M441.75,-176.37C441.75,-163.67 441.75,-144.04 441.75,-132.77"/>
+<title>vm.ZetaParamSet-&gt;vm.Zeta</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M554.06,-246.6C577.64,-238.35 605.17,-225.63 625,-207 646.53,-186.78 659.18,-153.36 664.69,-135.73"/>
 </g>
-<!-- vm.Readout&#45;&gt;vm.Zeta -->
+<!-- vm.ResponseTask.Zeta -->
+<g id="node27" class="node">
+<title>vm.ResponseTask.Zeta</title>
+<g id="a_node27"><a xlink:title="→ vm.ResponseTask.Readout→ vm.ZetaParamSet">
+<polygon fill="transparent" stroke="transparent" points="373.5,-132.5 252.5,-132.5 252.5,-113.5 373.5,-113.5 373.5,-132.5"/>
+<text text-anchor="middle" x="313" y="-120.5" font-family="arial" font-size="10.00">vm.ResponseTask.Zeta</text>
+</a>
+</g>
+</g>
+<!-- vm.ZetaParamSet&#45;&gt;vm.ResponseTask.Zeta -->
 <g id="edge14" class="edge">
-<title>vm.Readout-&gt;vm.Zeta</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M453.99,-184.13C464.05,-180.61 478.73,-175.67 491.75,-172 558.98,-153.04 577.26,-154.04 644.75,-136 654.14,-133.49 664.66,-130.32 672.55,-127.87"/>
+<title>vm.ZetaParamSet-&gt;vm.ResponseTask.Zeta</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M506.94,-243C507.11,-223.46 504.3,-191.16 486,-172 476.61,-162.17 399.64,-143.44 351.58,-132.51"/>
 </g>
-<!-- vm.EventSet -->
-<g id="node14" class="node">
-<title>vm.EventSet</title>
-<g id="a_node14"><a xlink:title="→ `roselab_scan`.`scan`→ vm.EventSelector------------------------------n_onsets             n_conditions         n_trials             n_outside_trials     median_duration_s=null median_ioi_s=null    ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="250.75" cy="-260.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="250.75" y="-257.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.EventSet</text>
+<!-- vm.DirectionTuning.Cell -->
+<g id="node8" class="node">
+<title>vm.DirectionTuning.Cell</title>
+<g id="a_node8"><a xlink:title="→ vm.DirectionTuning→ vm.Readout.Cell------------------------------ori_kw_p=null        dir_kw_p=null        ori_vec=null         dir_vec=null         pref_ori_vec=null    pref_dir_vec=null    hotelling_p=null     dir_dot_p=null       pref_dir_dot=null    ori_vec_perm_p=null  dir_vec_perm_p=null  pref_ori_ci=null     r_pref=null          r_null=null          r_orth=null          oi=null              di=null              osi=null             dsi=null             fit_pref_dir=null    fit_sigma=null       fit_hwhh=null        fit_rp=null          fit_rn=null          fit_c=null           fit_r2=null          fit_osi=null         fit_dsi=null         ">
+<polygon fill="transparent" stroke="transparent" points="506,-74 384,-74 384,-55 506,-55 506,-74"/>
+<text text-anchor="middle" x="445" y="-62" font-family="arial" font-size="10.00">vm.DirectionTuning.Cell</text>
 </a>
 </g>
 </g>
-<!-- vm.EventSet&#45;&gt;vm.Readout -->
+<!-- vm.DirectionTuning&#45;&gt;vm.DirectionTuning.Cell -->
 <g id="edge15" class="edge">
-<title>vm.EventSet-&gt;vm.Readout</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M262.7,-255.18C297,-242.79 395.51,-207.2 429.81,-194.81"/>
-</g>
-<!-- vm.ScreenTiming -->
-<g id="node17" class="node">
-<title>vm.ScreenTiming</title>
-<g id="a_node17"><a xlink:title="→ vm.EventSet------------------------------has_diode            n_detected           latency_s=null       latency_iqr_s=null   refresh_hz=null      aux_file=&quot;&quot;          ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="68.75" cy="-189.5" rx="68.5" ry="17.5"/>
-<text text-anchor="middle" x="68.75" y="-186.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.ScreenTiming</text>
-</a>
-</g>
-</g>
-<!-- vm.EventSet&#45;&gt;vm.ScreenTiming -->
-<g id="edge16" class="edge">
-<title>vm.EventSet-&gt;vm.ScreenTiming</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M238.81,-254.97C212.16,-244.87 146.92,-220.13 105.43,-204.41"/>
+<title>vm.DirectionTuning-&gt;vm.DirectionTuning.Cell</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M450.52,-110.02C449.18,-99.26 447.26,-83.74 446.07,-74.15"/>
 </g>
 <!-- vm.EventSet.Onset -->
-<g id="node23" class="node">
+<g id="node10" class="node">
 <title>vm.EventSet.Onset</title>
-<g id="a_node23"><a xlink:title="→ vm.EventSet→ `roselab_trial`.`_trial_event`------------------------------onset_idx            condition            shift_s=0            UNIQUE INDEX (session_id, scan_id, event_selector, onset_idx)">
-<polygon fill="transparent" stroke="transparent" points="258.25,-199 155.25,-199 155.25,-180 258.25,-180 258.25,-199"/>
-<text text-anchor="middle" x="206.75" y="-187" font-family="arial" font-size="10.00">vm.EventSet.Onset</text>
+<g id="a_node10"><a xlink:title="→ vm.EventSet→ `roselab_trial`.`_trial_event`------------------------------onset_idx            condition            shift_s=0            UNIQUE INDEX (session_id, scan_id, event_selector, onset_idx)">
+<polygon fill="transparent" stroke="transparent" points="775.5,-199 672.5,-199 672.5,-180 775.5,-180 775.5,-199"/>
+<text text-anchor="middle" x="724" y="-187" font-family="arial" font-size="10.00">vm.EventSet.Onset</text>
 </a>
 </g>
 </g>
 <!-- vm.EventSet&#45;&gt;vm.EventSet.Onset -->
-<g id="edge17" class="edge">
+<g id="edge16" class="edge">
 <title>vm.EventSet-&gt;vm.EventSet.Onset</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M244.07,-249.02C235.41,-235.45 220.48,-212.03 212.38,-199.32"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M693.62,-248.72C700.74,-235.07 712.87,-211.83 719.44,-199.24"/>
+</g>
+<!-- vm.EventSet&#45;&gt;vm.Readout -->
+<g id="edge17" class="edge">
+<title>vm.EventSet-&gt;vm.Readout</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M677.17,-252.88C655.51,-239.66 607.13,-210.12 585.64,-197"/>
+</g>
+<!-- vm.ScreenTiming -->
+<g id="node22" class="node">
+<title>vm.ScreenTiming</title>
+<g id="a_node22"><a xlink:title="→ vm.EventSet------------------------------has_diode            n_detected           latency_s=null       latency_iqr_s=null   refresh_hz=null      aux_file=&quot;&quot;          ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="862" cy="-189.5" rx="68.5" ry="17.5"/>
+<text text-anchor="middle" x="862" y="-186.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.ScreenTiming</text>
+</a>
+</g>
+</g>
+<!-- vm.EventSet&#45;&gt;vm.ScreenTiming -->
+<g id="edge18" class="edge">
+<title>vm.EventSet-&gt;vm.ScreenTiming</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M699.96,-254.76C725.68,-244.56 787.11,-220.2 826.51,-204.57"/>
+</g>
+<!-- vm.ScreenTiming.Onset -->
+<g id="node23" class="node">
+<title>vm.ScreenTiming.Onset</title>
+<g id="a_node23"><a xlink:title="→ vm.ScreenTiming→ vm.EventSet.Onset------------------------------diode_on=null        : double                       # [s] physical onset (first bright→dark flip of the corner square)diode_off=null       : double                       # [s] physical offset (next dark→bright flip)">
+<polygon fill="transparent" stroke="transparent" points="880,-132.5 758,-132.5 758,-113.5 880,-113.5 880,-132.5"/>
+<text text-anchor="middle" x="819" y="-120.5" font-family="arial" font-size="10.00">vm.ScreenTiming.Onset</text>
+</a>
+</g>
+</g>
+<!-- vm.EventSet.Onset&#45;&gt;vm.ScreenTiming.Onset -->
+<g id="edge19" class="edge">
+<title>vm.EventSet.Onset-&gt;vm.ScreenTiming.Onset</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M736.81,-179.8C755.04,-167.42 788.27,-144.86 806.39,-132.56"/>
 </g>
 <!-- vm.Quality -->
-<g id="node15" class="node">
+<g id="node11" class="node">
 <title>vm.Quality</title>
-<g id="a_node15"><a xlink:title="→ `roselab_imaging`.`__fluorescence`------------------------------alpha_opt=null       mean_r_at_alpha07=null n_sweep_cells=0      ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="986.75" cy="-331.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="986.75" y="-328.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Quality</text>
+<g id="a_node11"><a xlink:title="→ `roselab_imaging`.`__fluorescence`------------------------------alpha_opt=null       mean_r_at_alpha07=null n_sweep_cells=0      ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="790" cy="-331.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="790" y="-328.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Quality</text>
 </a>
 </g>
 </g>
 <!-- vm.Quality.Cell -->
-<g id="node24" class="node">
+<g id="node12" class="node">
 <title>vm.Quality.Cell</title>
-<g id="a_node24"><a xlink:title="→ vm.Quality→ `roselab_imaging`.`__fluorescence__trace`------------------------------kurtosis=null        neuropil_r=null      photons_per_s=null   ">
-<polygon fill="transparent" stroke="transparent" points="1028.25,-270 945.25,-270 945.25,-251 1028.25,-251 1028.25,-270"/>
-<text text-anchor="middle" x="986.75" y="-258" font-family="arial" font-size="10.00">vm.Quality.Cell</text>
+<g id="a_node12"><a xlink:title="→ vm.Quality→ `roselab_imaging`.`__fluorescence__trace`------------------------------kurtosis=null        neuropil_r=null      photons_per_s=null   ">
+<polygon fill="transparent" stroke="transparent" points="831.5,-270 748.5,-270 748.5,-251 831.5,-251 831.5,-270"/>
+<text text-anchor="middle" x="790" y="-258" font-family="arial" font-size="10.00">vm.Quality.Cell</text>
 </a>
 </g>
 </g>
 <!-- vm.Quality&#45;&gt;vm.Quality.Cell -->
-<g id="edge18" class="edge">
-<title>vm.Quality-&gt;vm.Quality.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M986.75,-318.48C986.75,-304.74 986.75,-282.56 986.75,-270.32"/>
-</g>
-<!-- vm.ResponseTask.Readout&#45;&gt;vm.ResponseTask.Tuning -->
-<g id="edge19" class="edge">
-<title>vm.ResponseTask.Readout-&gt;vm.ResponseTask.Tuning</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M569.88,-179.8C570.08,-167.42 570.43,-144.86 570.62,-132.56"/>
-</g>
-<!-- vm.ResponseTask.Readout&#45;&gt;vm.ResponseTask.Zeta -->
 <g id="edge20" class="edge">
-<title>vm.ResponseTask.Readout-&gt;vm.ResponseTask.Zeta</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M599.5,-179.93C642.34,-167.6 720.97,-144.96 763.88,-132.6"/>
+<title>vm.Quality-&gt;vm.Quality.Cell</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M790,-318.48C790,-304.74 790,-282.56 790,-270.32"/>
 </g>
-<!-- vm.ScreenTiming&#45;&gt;vm.ScreenTiming.Onset -->
+<!-- vm.Readout&#45;&gt;vm.DirectionTuning -->
 <g id="edge21" class="edge">
-<title>vm.ScreenTiming-&gt;vm.ScreenTiming.Onset</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M82.88,-172.22C93.77,-159.68 108.4,-142.83 117.17,-132.73"/>
+<title>vm.Readout-&gt;vm.DirectionTuning</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M563.65,-182.55C540.22,-170.26 486.73,-142.21 463.32,-129.94"/>
 </g>
-<!-- vm.DirectionTuning&#45;&gt;vm.DirectionTuning.Cell -->
+<!-- vm.Readout.Cell -->
+<g id="node14" class="node">
+<title>vm.Readout.Cell</title>
+<g id="a_node14"><a xlink:title="→ vm.Readout→ `roselab_imaging`.`__fluorescence__trace`------------------------------trial_resp           trial_base=null      resp=null            effect_d=null        resp_p=null          resp_delta=null      resp_vs_trace=null   cond_kw_p=null       pref_condition=null  pref_resp=null       pref_resp_cv=null    pref_p=null          oracle_r=null        response_snr=null    INDEX (trial_resp)INDEX (trial_base)">
+<polygon fill="transparent" stroke="transparent" points="620,-132.5 530,-132.5 530,-113.5 620,-113.5 620,-132.5"/>
+<text text-anchor="middle" x="575" y="-120.5" font-family="arial" font-size="10.00">vm.Readout.Cell</text>
+</a>
+</g>
+</g>
+<!-- vm.Readout&#45;&gt;vm.Readout.Cell -->
 <g id="edge22" class="edge">
-<title>vm.DirectionTuning-&gt;vm.DirectionTuning.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M318.75,-109.74C318.75,-98.97 318.75,-83.56 318.75,-74.06"/>
+<title>vm.Readout-&gt;vm.Readout.Cell</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M575,-176.37C575,-163.67 575,-144.04 575,-132.77"/>
 </g>
-<!-- vm.ReadoutParamSet -->
-<g id="node20" class="node">
-<title>vm.ReadoutParamSet</title>
-<g id="a_node20"><a xlink:title="readout_idx          ------------------------------readout_desc         readout_hash         time_ref=&quot;display&quot;   window_unit=&quot;s&quot;      resp_start_ref       resp_start           resp_stop_ref        resp_stop            resp_length=&quot;per_onset&quot; base_start_ref=null  base_start=null      base_stop_ref=null   base_stop=null       base_length=&quot;explicit&quot; measure=&quot;mean&quot;       smooth_s=0           correction=&quot;subtract&quot; test=&quot;wilcoxon&quot;      UNIQUE INDEX (readout_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="632.25,-278 519.25,-278 519.25,-243 632.25,-243 632.25,-278"/>
-<text text-anchor="start" x="527.25" y="-259" font-family="arial" text-decoration="underline" font-size="10.00">vm.ReadoutParamSet</text>
-</a>
-</g>
-</g>
-<!-- vm.ReadoutParamSet&#45;&gt;vm.CellRule -->
+<!-- vm.Readout&#45;&gt;vm.Zeta -->
 <g id="edge23" class="edge">
-<title>vm.ReadoutParamSet-&gt;vm.CellRule</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M603.77,-242.97C622.16,-232.13 646.12,-218 664.55,-207.13"/>
+<title>vm.Readout-&gt;vm.Zeta</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M585.31,-181.35C603.18,-168.95 639.74,-143.6 657.65,-131.18"/>
 </g>
-<!-- vm.ReadoutParamSet&#45;&gt;vm.Readout -->
+<!-- vm.Readout.Cell&#45;&gt;vm.DirectionTuning.Cell -->
 <g id="edge24" class="edge">
-<title>vm.ReadoutParamSet-&gt;vm.Readout</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M543.65,-242.97C514.39,-227.9 472.79,-206.48 453.02,-196.3"/>
+<title>vm.Readout.Cell-&gt;vm.DirectionTuning.Cell</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M555.26,-113.42C530.82,-102.8 489.45,-84.82 464.93,-74.16"/>
 </g>
-<!-- vm.ReadoutParamSet&#45;&gt;vm.ResponseTask.Readout -->
-<g id="edge25" class="edge">
-<title>vm.ReadoutParamSet-&gt;vm.ResponseTask.Readout</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M574.3,-242.8C573.1,-229.08 571.46,-210.19 570.51,-199.27"/>
-</g>
-<!-- vm.EventSelector -->
-<g id="node21" class="node">
-<title>vm.EventSelector</title>
-<g id="a_node21"><a xlink:title="event_selector       ------------------------------event_type_like      trial_type_like=&quot;&quot;   condition_source=&quot;event_type&quot; trial_attribute=&quot;&quot;   condition_parser=&quot;none&quot; parser_args=&quot;&quot;       : varchar(64)                  # e.g. bonsai_fields '2,3' → label 'x|y'min_repeats=1        random_seed=null     circular_period=null stim_duration_s=null display_latency_s=0.1 ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="417.25,-349 322.25,-349 322.25,-314 417.25,-314 417.25,-349"/>
-<text text-anchor="start" x="330.25" y="-330" font-family="arial" text-decoration="underline" font-size="10.00">vm.EventSelector</text>
+<!-- vm.Readout.Condition -->
+<g id="node15" class="node">
+<title>vm.Readout.Condition</title>
+<g id="a_node15"><a xlink:title="→ vm.Readout.Cellcondition            ------------------------------n_onsets             resp=null            resp_sem=null        ">
+<polygon fill="transparent" stroke="transparent" points="638,-74 524,-74 524,-55 638,-55 638,-74"/>
+<text text-anchor="start" x="532" y="-63" font-family="arial" text-decoration="underline" font-size="10.00">vm.Readout.Condition</text>
 </a>
 </g>
 </g>
-<!-- vm.EventSelector&#45;&gt;vm.ResponseTask -->
-<g id="edge26" class="edge">
-<title>vm.EventSelector-&gt;vm.ResponseTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M378.22,-313.8C383.73,-302.95 390.87,-288.87 396.36,-278.05"/>
+<!-- vm.Readout.Cell&#45;&gt;vm.Readout.Condition -->
+<g id="edge25" class="edge">
+<title>vm.Readout.Cell-&gt;vm.Readout.Condition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M575.94,-113.17C577.07,-102.5 578.97,-84.65 580.09,-74.08"/>
 </g>
-<!-- vm.EventSelector&#45;&gt;vm.EventSet -->
-<g id="edge27" class="edge">
-<title>vm.EventSelector-&gt;vm.EventSet</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M341.25,-313.97C315.67,-299.14 279.49,-278.16 261.61,-267.8"/>
+<!-- vm.ScanQuality -->
+<g id="node16" class="node">
+<title>vm.ScanQuality</title>
+<g id="a_node16"><a xlink:title="→ `roselab_scan`.`scan`------------------------------gain_method          gain=null            offset=null          gain_r2=null         n_frames             n_dark_frames=0      ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="895" cy="-331.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="895" y="-328.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.ScanQuality</text>
+</a>
+</g>
 </g>
 <!-- vm.TraceQuality.Cell -->
-<g id="node26" class="node">
+<g id="node18" class="node">
 <title>vm.TraceQuality.Cell</title>
-<g id="a_node26"><a xlink:title="→ vm.TraceQuality→ `roselab_imaging`.`__fluorescence__trace`------------------------------snr_s2p=null         noise_nu=null        event_rate=null      mean_level=null      max_value=null       ">
-<polygon fill="transparent" stroke="transparent" points="930.75,-199 822.75,-199 822.75,-180 930.75,-180 930.75,-199"/>
-<text text-anchor="middle" x="876.75" y="-187" font-family="arial" font-size="10.00">vm.TraceQuality.Cell</text>
+<g id="a_node18"><a xlink:title="→ vm.TraceQuality→ `roselab_imaging`.`__fluorescence__trace`------------------------------snr_s2p=null         noise_nu=null        event_rate=null      mean_level=null      max_value=null       ">
+<polygon fill="transparent" stroke="transparent" points="108,-199 0,-199 0,-180 108,-180 108,-199"/>
+<text text-anchor="middle" x="54" y="-187" font-family="arial" font-size="10.00">vm.TraceQuality.Cell</text>
 </a>
 </g>
 </g>
 <!-- vm.TraceQuality&#45;&gt;vm.TraceQuality.Cell -->
-<g id="edge28" class="edge">
+<g id="edge26" class="edge">
 <title>vm.TraceQuality-&gt;vm.TraceQuality.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M875.92,-247.48C876.12,-233.74 876.44,-211.56 876.62,-199.32"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M67.21,-247.48C64.03,-233.74 58.88,-211.56 56.04,-199.32"/>
 </g>
-<!-- vm.EventSet.Onset&#45;&gt;vm.ScreenTiming.Onset -->
-<g id="edge29" class="edge">
-<title>vm.EventSet.Onset-&gt;vm.ScreenTiming.Onset</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M195.69,-179.8C179.95,-167.42 151.27,-144.86 135.63,-132.56"/>
+<!-- vm.Zeta.Cell -->
+<g id="node20" class="node">
+<title>vm.Zeta.Cell</title>
+<g id="a_node20"><a xlink:title="→ vm.Zeta→ `roselab_imaging`.`__fluorescence__trace`------------------------------zeta_p=null          zeta_z=null          latency=null         condition_p=null     source_curation_id=null ">
+<polygon fill="transparent" stroke="transparent" points="729.5,-74 656.5,-74 656.5,-55 729.5,-55 729.5,-74"/>
+<text text-anchor="middle" x="693" y="-62" font-family="arial" font-size="10.00">vm.Zeta.Cell</text>
+</a>
 </g>
-<!-- vm.Readout.Cell&#45;&gt;vm.DirectionTuning.Cell -->
-<g id="edge30" class="edge">
-<title>vm.Readout.Cell-&gt;vm.DirectionTuning.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M423.07,-113.42C399.95,-102.8 360.81,-84.82 337.61,-74.16"/>
-</g>
-<!-- vm.Readout.Cell&#45;&gt;vm.Readout.Condition -->
-<g id="edge31" class="edge">
-<title>vm.Readout.Cell-&gt;vm.Readout.Condition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M443.78,-113.17C446.24,-102.5 450.34,-84.65 452.78,-74.08"/>
 </g>
 <!-- vm.Zeta&#45;&gt;vm.Zeta.Cell -->
-<g id="edge32" class="edge">
+<g id="edge27" class="edge">
 <title>vm.Zeta-&gt;vm.Zeta.Cell</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M684.75,-109.74C684.75,-98.97 684.75,-83.56 684.75,-74.06"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M672.94,-110.84C677.72,-100.03 684.87,-83.88 689.21,-74.06"/>
+</g>
+<!-- vm.Zeta.Condition -->
+<g id="node21" class="node">
+<title>vm.Zeta.Condition</title>
+<g id="a_node21"><a xlink:title="→ vm.Zeta.Cellcondition            ------------------------------zeta_p=null          ">
+<polygon fill="transparent" stroke="transparent" points="741.5,-19 644.5,-19 644.5,0 741.5,0 741.5,-19"/>
+<text text-anchor="start" x="652.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.Zeta.Condition</text>
+</a>
+</g>
+</g>
+<!-- vm.Zeta.Cell&#45;&gt;vm.Zeta.Condition -->
+<g id="edge28" class="edge">
+<title>vm.Zeta.Cell-&gt;vm.Zeta.Condition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M693,-54.75C693,-44.87 693,-28.9 693,-19.09"/>
+</g>
+<!-- vm.ScreenTiming&#45;&gt;vm.ScreenTiming.Onset -->
+<g id="edge29" class="edge">
+<title>vm.ScreenTiming-&gt;vm.ScreenTiming.Onset</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M850.93,-171.89C842.57,-159.35 831.43,-142.64 824.76,-132.64"/>
+</g>
+<!-- vm.ResponseTask&#45;&gt;vm.ResponseTask.Readout -->
+<g id="edge30" class="edge">
+<title>vm.ResponseTask-&gt;vm.ResponseTask.Readout</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M207.88,-242.8C204.5,-229.08 199.85,-210.19 197.16,-199.27"/>
+</g>
+<!-- vm.ResponseTask.Readout&#45;&gt;vm.ResponseTask.Tuning -->
+<g id="edge31" class="edge">
+<title>vm.ResponseTask.Readout-&gt;vm.ResponseTask.Tuning</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M191.49,-179.8C186.5,-167.42 177.41,-144.86 172.45,-132.56"/>
+</g>
+<!-- vm.ResponseTask.Readout&#45;&gt;vm.ResponseTask.Zeta -->
+<g id="edge32" class="edge">
+<title>vm.ResponseTask.Readout-&gt;vm.ResponseTask.Zeta</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M210.91,-179.8C233.56,-167.42 274.83,-144.86 297.34,-132.56"/>
 </g>
 </g>
 </svg>

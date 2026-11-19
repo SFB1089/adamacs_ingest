@@ -15,7 +15,7 @@ Writes, into ``outdir`` (default: ``notebooks/schema_diagrams`` of this checkout
 * ``cell_registration_erd.svg`` / ``cell_registration_workflow.svg``  parsed from
   ``adamacs/schemas/cell_registration.py`` (scripts/draw_cell_registration_diagrams.py)
 * ``responsiveness.svg``        standard view of the piloted schema, from its test schema (``PILOT_SCHEMAS``)
-* ``responsiveness_erd.svg``    parsed from ``adamacs/schemas/responsiveness.py`` (not deployed yet)
+* ``responsiveness_erd.svg``    parsed from ``adamacs/schemas/responsiveness.py``
 * ``responsiveness_v8.svg``  parsed from the ```python blocks of ``docs/RESPONSIVENESS_SCHEMA_PROPOSAL.md``
 """
 from __future__ import annotations
@@ -37,7 +37,7 @@ PREFIX = "roselab_"
 #: Schemas activated by adamacs/pipeline.py (+ the ingest-log schema), in pipeline order.
 PIPELINE_SCHEMAS = ["subject", "surgery", "session", "equipment", "scan", "imaging", "train", "model",
                     "event", "trial", "behavior", "analysis", "pupil_tracking", "denoising", "mocap",
-                    "virtual_markers_optitrack", "disk", "wfield", "cell_registration", "ingest"]
+                    "virtual_markers_optitrack", "disk", "wfield", "cell_registration", "ingest", "responsiveness"]
 
 #: Tables of the dF/F0 -> CASCADE (+ ROI QC) focus diagram (imaging schema).
 DFF0_TABLES = ["Fluorescence", "ActivityExtractionMethod", "ActivityCascadeModel", "ActivityCascadeTask",
@@ -45,7 +45,7 @@ DFF0_TABLES = ["Fluorescence", "ActivityExtractionMethod", "ActivityCascadeModel
 
 
 #: Schemas that are piloted in a test schema but not deployed: standard view drawn from the test schema.
-PILOT_SCHEMAS = {"responsiveness": "tobiasr_responsiveness_v8"}
+PILOT_SCHEMAS = {}   # responsiveness was drawn from tobiasr_responsiveness_v8 until its deployment (2026-11-19)
 
 
 def schema_diagram(name, outdir, database=None):
@@ -210,7 +210,7 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     wf.render(os.path.join(outdir, "cell_registration_workflow"), cleanup=True)
     print("wrote cell_registration_erd.svg, cell_registration_workflow.svg")
     p = parsed_erd("responsiveness.py",
-                   "responsiveness v8 (adamacs/schemas/responsiveness.py, piloted, not deployed); "
+                   "responsiveness v8 (adamacs/schemas/responsiveness.py, live as roselab_responsiveness since 2026-11-19); "
                    "amber dashed = pipeline tables it references", outdir, "responsiveness_erd")
     print("wrote", os.path.relpath(p, REPO))
     p = proposal_diagram(os.path.join(REPO, "docs", "RESPONSIVENESS_SCHEMA_PROPOSAL.md"),
