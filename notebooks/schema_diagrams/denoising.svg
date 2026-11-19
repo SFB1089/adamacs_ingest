@@ -1,56 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="176pt" height="246pt" viewBox="0.00 0.00 176.25 245.60">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 241.6)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-241.6 172.25,-241.6 172.25,4 -4,4"/>
-<!-- vm.DenoisingMethod -->
-<g id="node1" class="node">
-<title>vm.DenoisingMethod</title>
-<g id="a_node1"><a xlink:title="denoising_method     ------------------------------denoising_method_desc ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="138.25,-237.6 30,-237.6 30,-203.04 138.25,-203.04 138.25,-237.6"/>
-<text text-anchor="start" x="38" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.DenoisingMethod</text>
-</a>
-</g>
-</g>
-<!-- vm.DenoisingProcessingParamSet -->
-<g id="node3" class="node">
-<title>vm.DenoisingProcessingParamSet</title>
-<g id="a_node3"><a xlink:title="denoise_paramset_idx ------------------------------→ `roselab_imaging`.`#processing_param_set`→ vm.DenoisingMethoddenoise_paramset_desc denoise_param_set_hash denoise_params       UNIQUE INDEX (denoise_param_set_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="168.25,-167.04 0,-167.04 0,-132.48 168.25,-132.48 168.25,-167.04"/>
-<text text-anchor="start" x="8" y="-147.26" font-family="arial" text-decoration="underline" font-size="10.00">vm.DenoisingProcessingParamSet</text>
-</a>
-</g>
-</g>
-<!-- vm.DenoisingMethod&#45;&gt;vm.DenoisingProcessingParamSet -->
-<g id="edge1" class="edge">
-<title>vm.DenoisingMethod-&gt;vm.DenoisingProcessingParamSet</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M84.12,-203.07C84.12,-192.14 84.12,-177.8 84.12,-166.89"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="177pt" height="247pt" viewBox="0.00 0.00 177.00 247.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 243)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-243 173,-243 173,4 -4,4"/>
 <!-- vm.DenoisingTask -->
-<g id="node2" class="node">
+<g id="node1" class="node">
 <title>vm.DenoisingTask</title>
-<g id="a_node2"><a xlink:title="→ `roselab_scan`.`scan`→ vm.DenoisingProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="141.25,-96.48 27,-96.48 27,-61.92 141.25,-61.92 141.25,-96.48"/>
-<text text-anchor="middle" x="84.12" y="-74.92" font-family="arial" font-size="12.00" fill="darkgreen">vm.DenoisingTask</text>
+<g id="a_node1"><a xlink:title="→ `roselab_scan`.`scan`→ vm.DenoisingProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="142,-97 27,-97 27,-62 142,-62 142,-97"/>
+<text text-anchor="middle" x="84.5" y="-76.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.DenoisingTask</text>
 </a>
 </g>
 </g>
 <!-- vm.Denoising -->
-<g id="node4" class="node">
+<g id="node3" class="node">
 <title>vm.Denoising</title>
-<g id="a_node4"><a xlink:title="→ vm.DenoisingTask------------------------------denoising_time       ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="84.12" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="84.12" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Denoising</text>
+<g id="a_node3"><a xlink:title="→ vm.DenoisingTask------------------------------denoising_time       ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="84.5" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="84.5" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Denoising</text>
 </a>
 </g>
 </g>
 <!-- vm.DenoisingTask&#45;&gt;vm.Denoising -->
-<g id="edge2" class="edge">
+<g id="edge1" class="edge">
 <title>vm.DenoisingTask-&gt;vm.Denoising</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M84.12,-61.66C84.12,-50.36 84.12,-35.66 84.12,-25.58"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M84.5,-61.89C84.5,-50.69 84.5,-36.17 84.5,-26.07"/>
+</g>
+<!-- vm.DenoisingProcessingParamSet -->
+<g id="node2" class="node">
+<title>vm.DenoisingProcessingParamSet</title>
+<g id="a_node2"><a xlink:title="denoise_paramset_idx ------------------------------→ `roselab_imaging`.`#processing_param_set`→ vm.DenoisingMethoddenoise_paramset_desc denoise_param_set_hash denoise_params       UNIQUE INDEX (denoise_param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="169,-168 0,-168 0,-133 169,-133 169,-168"/>
+<text text-anchor="start" x="8" y="-149" font-family="arial" text-decoration="underline" font-size="10.00">vm.DenoisingProcessingParamSet</text>
+</a>
+</g>
 </g>
 <!-- vm.DenoisingProcessingParamSet&#45;&gt;vm.DenoisingTask -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>vm.DenoisingProcessingParamSet-&gt;vm.DenoisingTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M84.12,-132.51C84.12,-121.74 84.12,-107.65 84.12,-96.81"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M84.5,-132.8C84.5,-121.95 84.5,-107.87 84.5,-97.05"/>
+</g>
+<!-- vm.DenoisingMethod -->
+<g id="node4" class="node">
+<title>vm.DenoisingMethod</title>
+<g id="a_node4"><a xlink:title="denoising_method     ------------------------------denoising_method_desc ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="139,-239 30,-239 30,-204 139,-204 139,-239"/>
+<text text-anchor="start" x="38" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.DenoisingMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.DenoisingMethod&#45;&gt;vm.DenoisingProcessingParamSet -->
+<g id="edge3" class="edge">
+<title>vm.DenoisingMethod-&gt;vm.DenoisingProcessingParamSet</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M84.5,-203.8C84.5,-192.95 84.5,-178.87 84.5,-168.05"/>
 </g>
 </g>
 </svg>

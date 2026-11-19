@@ -1,323 +1,324 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1638pt" height="231pt" viewBox="0.00 0.00 1637.62 231.04">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227.04)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-227.04 1633.62,-227.04 1633.62,4 -4,4"/>
-<!-- vm.DISKModel.TrainingAnimal -->
-<g id="node1" class="node">
-<title>vm.DISKModel.TrainingAnimal</title>
-<g id="a_node1"><a xlink:title="→ vm.DISKModel→ `roselab_subject`.`subject`------------------------------split                ">
-<polygon fill="none" stroke="none" points="190.75,-145.2 40.5,-145.2 40.5,-125.2 190.75,-125.2 190.75,-145.2"/>
-<text text-anchor="middle" x="115.62" y="-131.7" font-family="arial" font-size="10.00">vm.DISKModel.TrainingAnimal</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel -->
-<g id="node2" class="node">
-<title>vm.DISKModel</title>
-<g id="a_node2"><a xlink:title="disk_model_name      ------------------------------checkpoint_path      checkpoint_epoch     val_rmse             network_type         seq_length           training_fps         fill_gap             mu_sigma             data_type            likelihood_threshold disk_version         trained_on           model_status=&quot;candidate&quot; keypoint_hash        model_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="640,-223.04 557.25,-223.04 557.25,-188.48 640,-188.48 640,-223.04"/>
-<text text-anchor="start" x="565.25" y="-203.26" font-family="arial" text-decoration="underline" font-size="10.00">vm.DISKModel</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.DISKModel.TrainingAnimal -->
-<g id="edge1" class="edge">
-<title>vm.DISKModel-&gt;vm.DISKModel.TrainingAnimal</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M557.44,-200.2C484.92,-192 329.79,-173.6 199.62,-152.48 186.43,-150.34 172.13,-147.69 159.13,-145.16"/>
-</g>
-<!-- vm.DISKModel.Keypoint -->
-<g id="node5" class="node">
-<title>vm.DISKModel.Keypoint</title>
-<g id="a_node5"><a xlink:title="→ vm.DISKModel→ `roselab_model`.`#body_part`------------------------------keypoint_index       UNIQUE INDEX (disk_model_name, keypoint_index)">
-<polygon fill="none" stroke="none" points="332.62,-145.2 208.62,-145.2 208.62,-125.2 332.62,-125.2 332.62,-145.2"/>
-<text text-anchor="middle" x="270.62" y="-131.7" font-family="arial" font-size="10.00">vm.DISKModel.Keypoint</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.DISKModel.Keypoint -->
-<g id="edge2" class="edge">
-<title>vm.DISKModel-&gt;vm.DISKModel.Keypoint</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M557.61,-196.74C506.83,-186.74 417.72,-168.94 341.62,-152.48 331,-150.18 319.49,-147.59 308.91,-145.16"/>
-</g>
-<!-- vm.MocapImputationTask -->
-<g id="node7" class="node">
-<title>vm.MocapImputationTask</title>
-<g id="a_node7"><a xlink:title="→ `roselab_mocap`.`__motion_capture`→ vm.DISKModel------------------------------task_mode            output_dir=&quot;&quot;        disk_params=null     task_description=&quot;&quot;  ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="502.12,-152.48 351.12,-152.48 351.12,-117.92 502.12,-117.92 502.12,-152.48"/>
-<text text-anchor="middle" x="426.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.MocapImputationTask</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.MocapImputationTask -->
-<g id="edge3" class="edge">
-<title>vm.DISKModel-&gt;vm.MocapImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M557.86,-188.51C530.94,-177.78 495.75,-163.75 468.59,-152.93"/>
-</g>
-<!-- vm.ImputationParamSet.Crossover -->
-<g id="node13" class="node">
-<title>vm.ImputationParamSet.Crossover</title>
-<g id="a_node13"><a xlink:title="→ vm.ImputationParamSet→ vm.DISKModelconsumer_quantity    ------------------------------crossover_frames     use_model=1          : tinyint unsigned             # 0 → never call the model for this quantityevidence=&quot;&quot;          ">
-<polygon fill="none" stroke="none" points="864.5,-145.2 694.75,-145.2 694.75,-125.2 864.5,-125.2 864.5,-145.2"/>
-<text text-anchor="start" x="702.75" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.ImputationParamSet.Crossover</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.ImputationParamSet.Crossover -->
-<g id="edge4" class="edge">
-<title>vm.DISKModel-&gt;vm.ImputationParamSet.Crossover</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M639.7,-189.2C675.58,-175.61 726.41,-156.36 755.9,-145.19"/>
-</g>
-<!-- vm.DLCImputationTask -->
-<g id="node15" class="node">
-<title>vm.DLCImputationTask</title>
-<g id="a_node15"><a xlink:title="→ `roselab_model`.`__pose_estimation_new`→ `roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1210.5,-152.48 1070.75,-152.48 1070.75,-117.92 1210.5,-117.92 1210.5,-152.48"/>
-<text text-anchor="middle" x="1140.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCImputationTask</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.DLCImputationTask -->
-<g id="edge5" class="edge">
-<title>vm.DISKModel-&gt;vm.DLCImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M639.98,-201.36C721.14,-194.41 906.84,-177.11 1061.62,-152.48 1064.53,-152.02 1067.49,-151.52 1070.47,-151"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1702pt" height="231pt" viewBox="0.00 0.00 1701.50 231.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-227 1697.5,-227 1697.5,4 -4,4"/>
 <!-- vm.TopcamImputationTask -->
-<g id="node18" class="node">
+<g id="node1" class="node">
 <title>vm.TopcamImputationTask</title>
-<g id="a_node18"><a xlink:title="→ `roselab_model`.`__pose_estimation_new`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="677.12,-152.48 520.12,-152.48 520.12,-117.92 677.12,-117.92 677.12,-152.48"/>
-<text text-anchor="middle" x="598.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.TopcamImputationTask</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.TopcamImputationTask -->
-<g id="edge6" class="edge">
-<title>vm.DISKModel-&gt;vm.TopcamImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M598.62,-188.51C598.62,-177.74 598.62,-163.65 598.62,-152.81"/>
-</g>
-<!-- vm.HeadfixedImputationTask -->
-<g id="node20" class="node">
-<title>vm.HeadfixedImputationTask</title>
-<g id="a_node20"><a xlink:title="→ `roselab_pupil_tracking`.`#pupil_ellipse_parameter`→ `roselab_model`.`__pose_estimation_new`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1052.5,-152.48 882.75,-152.48 882.75,-117.92 1052.5,-117.92 1052.5,-152.48"/>
-<text text-anchor="middle" x="967.62" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.HeadfixedImputationTask</text>
-</a>
-</g>
-</g>
-<!-- vm.DISKModel&#45;&gt;vm.HeadfixedImputationTask -->
-<g id="edge7" class="edge">
-<title>vm.DISKModel-&gt;vm.HeadfixedImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M639.88,-197.09C698.27,-186.25 806.38,-166.16 882.43,-152.03"/>
-</g>
-<!-- vm.DLCImputation.Gap -->
-<g id="node3" class="node">
-<title>vm.DLCImputation.Gap</title>
-<g id="a_node3"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           uncertainty=null     gap_status           ">
-<polygon fill="none" stroke="none" points="1250.38,-20 1130.88,-20 1130.88,0 1250.38,0 1250.38,-20"/>
-<text text-anchor="start" x="1138.88" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.DLCImputation.Gap</text>
-</a>
-</g>
-</g>
-<!-- vm.TopcamImputation.BodyPart -->
-<g id="node4" class="node">
-<title>vm.TopcamImputation.BodyPart</title>
-<g id="a_node4"><a xlink:title="→ vm.TopcamImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
-<polygon fill="none" stroke="none" points="614.75,-20 458.5,-20 458.5,0 614.75,0 614.75,-20"/>
-<text text-anchor="middle" x="536.62" y="-6.5" font-family="arial" font-size="10.00">vm.TopcamImputation.BodyPart</text>
-</a>
-</g>
-</g>
-<!-- vm.MocapImputation.RigidBodyPositionDISK -->
-<g id="node6" class="node">
-<title>vm.MocapImputation.RigidBodyPositionDISK</title>
-<g id="a_node6"><a xlink:title="→ vm.MocapImputation→ `roselab_mocap`.`mocap__tracking_id`rigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  uncertainty          imputed_mask         ">
-<polygon fill="none" stroke="none" points="440,-20 225.25,-20 225.25,0 440,0 440,-20"/>
-<text text-anchor="start" x="233.25" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.MocapImputation.RigidBodyPositionDISK</text>
-</a>
-</g>
-</g>
-<!-- vm.MocapImputation -->
-<g id="node11" class="node">
-<title>vm.MocapImputation</title>
-<g id="a_node11"><a xlink:title="→ vm.MocapImputationTask------------------------------imputation_time      n_frames_total       n_frames_imputed     n_values_imputed     ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="332.62" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="332.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MocapImputation</text>
-</a>
-</g>
-</g>
-<!-- vm.MocapImputationTask&#45;&gt;vm.MocapImputation -->
-<g id="edge8" class="edge">
-<title>vm.MocapImputationTask-&gt;vm.MocapImputation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M402.42,-117.66C383.05,-104.42 356.87,-86.53 342.72,-76.86"/>
-</g>
-<!-- vm.DLCImputation.BodyPartPositionDISK -->
-<g id="node8" class="node">
-<title>vm.DLCImputation.BodyPartPositionDISK</title>
-<g id="a_node8"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`------------------------------frame_index          x_pos                y_pos                z_pos=null           uncertainty          imputed_mask         original_likelihood  ">
-<polygon fill="none" stroke="none" points="1469.25,-20 1268,-20 1268,0 1469.25,0 1469.25,-20"/>
-<text text-anchor="middle" x="1368.62" y="-6.5" font-family="arial" font-size="10.00">vm.DLCImputation.BodyPartPositionDISK</text>
+<g id="a_node1"><a xlink:title="→ `roselab_model`.`__pose_estimation_new`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1023,-152 865,-152 865,-117 1023,-117 1023,-152"/>
+<text text-anchor="middle" x="944" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.TopcamImputationTask</text>
 </a>
 </g>
 </g>
 <!-- vm.TopcamImputation -->
-<g id="node9" class="node">
+<g id="node12" class="node">
 <title>vm.TopcamImputation</title>
-<g id="a_node9"><a xlink:title="→ vm.TopcamImputationTask------------------------------imputation_time      recording_fps        crossover_hash       n_frames_total       n_frames_observed    n_frames_imputed     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      n_gaps_declined      max_gap_filled       n_centroid_before    n_centroid_after     n_heading_ir_before  n_heading_ir_after   n_heading_ear_before n_heading_ear_after  disk_runtime_s=null  ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="598.62" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="598.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TopcamImputation</text>
+<g id="a_node12"><a xlink:title="→ vm.TopcamImputationTask------------------------------imputation_time      recording_fps        crossover_hash       n_frames_total       n_frames_observed    n_frames_imputed     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      n_gaps_declined      max_gap_filled       n_centroid_before    n_centroid_after     n_heading_ir_before  n_heading_ir_after   n_heading_ear_before n_heading_ear_after  disk_runtime_s=null  ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="946" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="946" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TopcamImputation</text>
 </a>
 </g>
 </g>
-<!-- vm.TopcamImputation&#45;&gt;vm.TopcamImputation.BodyPart -->
-<g id="edge9" class="edge">
-<title>vm.TopcamImputation-&gt;vm.TopcamImputation.BodyPart</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M589.74,-59.8C578.22,-49.22 558.21,-30.83 546.31,-19.9"/>
+<!-- vm.TopcamImputationTask&#45;&gt;vm.TopcamImputation -->
+<g id="edge1" class="edge">
+<title>vm.TopcamImputationTask-&gt;vm.TopcamImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M944.52,-116.89C944.86,-105.69 945.31,-91.17 945.63,-81.07"/>
+</g>
+<!-- vm.MocapImputation.RigidBodyPositionDISK -->
+<g id="node2" class="node">
+<title>vm.MocapImputation.RigidBodyPositionDISK</title>
+<g id="a_node2"><a xlink:title="→ vm.MocapImputation→ `roselab_mocap`.`mocap__tracking_id`rigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  uncertainty          imputed_mask         ">
+<polygon fill="transparent" stroke="transparent" points="1640.5,-19 1425.5,-19 1425.5,0 1640.5,0 1640.5,-19"/>
+<text text-anchor="start" x="1433.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.MocapImputation.RigidBodyPositionDISK</text>
+</a>
+</g>
 </g>
 <!-- vm.TopcamImputation.Gap -->
-<g id="node12" class="node">
+<g id="node3" class="node">
 <title>vm.TopcamImputation.Gap</title>
-<g id="a_node12"><a xlink:title="→ vm.TopcamImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           origin_length        uncertainty=null     gap_status           ">
-<polygon fill="none" stroke="none" points="766.5,-20 632.75,-20 632.75,0 766.5,0 766.5,-20"/>
-<text text-anchor="start" x="640.75" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.TopcamImputation.Gap</text>
+<g id="a_node3"><a xlink:title="→ vm.TopcamImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           origin_length        uncertainty=null     gap_status           ">
+<polygon fill="transparent" stroke="transparent" points="1177,-19 1043,-19 1043,0 1177,0 1177,-19"/>
+<text text-anchor="start" x="1051" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.TopcamImputation.Gap</text>
 </a>
 </g>
 </g>
-<!-- vm.TopcamImputation&#45;&gt;vm.TopcamImputation.Gap -->
-<g id="edge10" class="edge">
-<title>vm.TopcamImputation-&gt;vm.TopcamImputation.Gap</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M609.43,-61.86C627.35,-51.76 663.26,-31.51 683.95,-19.84"/>
+<!-- vm.MocapImputationTask -->
+<g id="node4" class="node">
+<title>vm.MocapImputationTask</title>
+<g id="a_node4"><a xlink:title="→ `roselab_mocap`.`__motion_capture`→ vm.DISKModel------------------------------task_mode            output_dir=&quot;&quot;        disk_params=null     task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1381,-152 1229,-152 1229,-117 1381,-117 1381,-152"/>
+<text text-anchor="middle" x="1305" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.MocapImputationTask</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapImputation -->
+<g id="node18" class="node">
+<title>vm.MocapImputation</title>
+<g id="a_node18"><a xlink:title="→ vm.MocapImputationTask------------------------------imputation_time      n_frames_total       n_frames_imputed     n_values_imputed     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1305" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="1305" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MocapImputation</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapImputationTask&#45;&gt;vm.MocapImputation -->
+<g id="edge2" class="edge">
+<title>vm.MocapImputationTask-&gt;vm.MocapImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1305,-116.89C1305,-105.69 1305,-91.17 1305,-81.07"/>
 </g>
 <!-- vm.ImputationParamSet -->
-<g id="node10" class="node">
+<g id="node5" class="node">
 <title>vm.ImputationParamSet</title>
-<g id="a_node10"><a xlink:title="imputation_paramset_id ------------------------------refuse_no_reflection=1 refuse_tracking_lost=1 keep_dlc_low_conf=0  split_gaps_at_refused=0 max_gap_frames       paramset_hash        paramset_description=&quot;&quot; UNIQUE INDEX (paramset_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="934.5,-223.04 812.75,-223.04 812.75,-188.48 934.5,-188.48 934.5,-223.04"/>
-<text text-anchor="start" x="820.75" y="-203.26" font-family="arial" text-decoration="underline" font-size="10.00">vm.ImputationParamSet</text>
+<g id="a_node5"><a xlink:title="imputation_paramset_id ------------------------------refuse_no_reflection=1 refuse_tracking_lost=1 keep_dlc_low_conf=0  split_gaps_at_refused=0 max_gap_frames       paramset_hash        paramset_description=&quot;&quot; UNIQUE INDEX (paramset_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="914,-223 792,-223 792,-188 914,-188 914,-223"/>
+<text text-anchor="start" x="800" y="-204" font-family="arial" text-decoration="underline" font-size="10.00">vm.ImputationParamSet</text>
+</a>
+</g>
+</g>
+<!-- vm.ImputationParamSet&#45;&gt;vm.TopcamImputationTask -->
+<g id="edge3" class="edge">
+<title>vm.ImputationParamSet-&gt;vm.TopcamImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M875.03,-187.8C889.34,-176.95 907.91,-162.87 922.17,-152.05"/>
+</g>
+<!-- vm.HeadfixedImputationTask -->
+<g id="node13" class="node">
+<title>vm.HeadfixedImputationTask</title>
+<g id="a_node13"><a xlink:title="→ `roselab_pupil_tracking`.`#pupil_ellipse_parameter`→ `roselab_model`.`__pose_estimation_new`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="847,-152 677,-152 677,-117 847,-117 847,-152"/>
+<text text-anchor="middle" x="762" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.HeadfixedImputationTask</text>
+</a>
+</g>
+</g>
+<!-- vm.ImputationParamSet&#45;&gt;vm.HeadfixedImputationTask -->
+<g id="edge4" class="edge">
+<title>vm.ImputationParamSet-&gt;vm.HeadfixedImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M830.97,-187.8C816.66,-176.95 798.09,-162.87 783.83,-152.05"/>
+</g>
+<!-- vm.ImputationParamSet.Crossover -->
+<g id="node19" class="node">
+<title>vm.ImputationParamSet.Crossover</title>
+<g id="a_node19"><a xlink:title="→ vm.ImputationParamSet→ vm.DISKModelconsumer_quantity    ------------------------------crossover_frames     use_model=1          : tinyint unsigned             # 0 → never call the model for this quantityevidence=&quot;&quot;          ">
+<polygon fill="transparent" stroke="transparent" points="1211,-144 1041,-144 1041,-125 1211,-125 1211,-144"/>
+<text text-anchor="start" x="1049" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.ImputationParamSet.Crossover</text>
 </a>
 </g>
 </g>
 <!-- vm.ImputationParamSet&#45;&gt;vm.ImputationParamSet.Crossover -->
-<g id="edge11" class="edge">
+<g id="edge5" class="edge">
 <title>vm.ImputationParamSet-&gt;vm.ImputationParamSet.Crossover</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M851.35,-188.51C832.78,-174.97 807.02,-156.18 791.95,-145.19"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M914.27,-189.02C969.29,-175.11 1048.03,-155.21 1092.35,-144.01"/>
+</g>
+<!-- vm.DLCImputationTask -->
+<g id="node21" class="node">
+<title>vm.DLCImputationTask</title>
+<g id="a_node21"><a xlink:title="→ `roselab_model`.`__pose_estimation_new`→ `roselab_pupil_tracking`.`#pupil_ellipse_parameter_free_moving`→ vm.DISKModel→ vm.ImputationParamSet------------------------------task_mode=&quot;trigger&quot;  output_dir=&quot;&quot;        task_description=&quot;&quot;  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="659,-152 519,-152 519,-117 659,-117 659,-152"/>
+<text text-anchor="middle" x="589" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCImputationTask</text>
+</a>
+</g>
 </g>
 <!-- vm.ImputationParamSet&#45;&gt;vm.DLCImputationTask -->
-<g id="edge12" class="edge">
+<g id="edge6" class="edge">
 <title>vm.ImputationParamSet-&gt;vm.DLCImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M934.21,-189.2C976.37,-178.38 1032.52,-163.96 1075.61,-152.89"/>
-</g>
-<!-- vm.ImputationParamSet&#45;&gt;vm.TopcamImputationTask -->
-<g id="edge13" class="edge">
-<title>vm.ImputationParamSet-&gt;vm.TopcamImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M812.93,-189.63C769.44,-178.79 710.84,-164.18 665.91,-152.98"/>
-</g>
-<!-- vm.ImputationParamSet&#45;&gt;vm.HeadfixedImputationTask -->
-<g id="edge14" class="edge">
-<title>vm.ImputationParamSet-&gt;vm.HeadfixedImputationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M895.9,-188.51C910.67,-177.74 929.99,-163.65 944.86,-152.81"/>
-</g>
-<!-- vm.MocapImputation&#45;&gt;vm.MocapImputation.RigidBodyPositionDISK -->
-<g id="edge15" class="edge">
-<title>vm.MocapImputation-&gt;vm.MocapImputation.RigidBodyPositionDISK</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M332.62,-56.16C332.62,-45.34 332.62,-29.56 332.62,-19.81"/>
-</g>
-<!-- vm.MocapImputation.TrackingPositionDISK -->
-<g id="node16" class="node">
-<title>vm.MocapImputation.TrackingPositionDISK</title>
-<g id="a_node16"><a xlink:title="→ vm.MocapImputation→ `roselab_mocap`.`mocap__tracking_id`------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                uncertainty          imputed_mask         ">
-<polygon fill="none" stroke="none" points="207.25,-20 0,-20 0,0 207.25,0 207.25,-20"/>
-<text text-anchor="middle" x="103.62" y="-6.5" font-family="arial" font-size="10.00">vm.MocapImputation.TrackingPositionDISK</text>
-</a>
-</g>
-</g>
-<!-- vm.MocapImputation&#45;&gt;vm.MocapImputation.TrackingPositionDISK -->
-<g id="edge16" class="edge">
-<title>vm.MocapImputation-&gt;vm.MocapImputation.TrackingPositionDISK</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M320.64,-64.98C287.23,-56.67 192.11,-33.01 139.58,-19.94"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M791.77,-188.5C749.88,-177.55 694.49,-163.07 652.19,-152.02"/>
 </g>
 <!-- vm.DLCImputation.BodyPart -->
-<g id="node14" class="node">
+<g id="node6" class="node">
 <title>vm.DLCImputation.BodyPart</title>
-<g id="a_node14"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
-<polygon fill="none" stroke="none" points="1629.62,-20 1487.62,-20 1487.62,0 1629.62,0 1629.62,-20"/>
-<text text-anchor="middle" x="1558.62" y="-6.5" font-family="arial" font-size="10.00">vm.DLCImputation.BodyPart</text>
+<g id="a_node6"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
+<polygon fill="transparent" stroke="transparent" points="501.5,-19 358.5,-19 358.5,0 501.5,0 501.5,-19"/>
+<text text-anchor="middle" x="430" y="-7" font-family="arial" font-size="10.00">vm.DLCImputation.BodyPart</text>
 </a>
 </g>
 </g>
-<!-- vm.DLCImputation -->
-<g id="node17" class="node">
-<title>vm.DLCImputation</title>
-<g id="a_node17"><a xlink:title="→ vm.DLCImputationTask------------------------------imputation_time      recording_fps        production_fit_hash  n_frames_total       n_frames_observed    n_frames_imputed     n_frames_refused     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      max_gap_filled       n_angle_before       n_angle_after        disk_runtime_s=null  ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1279.62" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1279.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DLCImputation</text>
+<!-- vm.DLCImputation.BodyPartPositionDISK -->
+<g id="node7" class="node">
+<title>vm.DLCImputation.BodyPartPositionDISK</title>
+<g id="a_node7"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`------------------------------frame_index          x_pos                y_pos                z_pos=null           uncertainty          imputed_mask         original_likelihood  ">
+<polygon fill="transparent" stroke="transparent" points="202,-19 0,-19 0,0 202,0 202,-19"/>
+<text text-anchor="middle" x="101" y="-7" font-family="arial" font-size="10.00">vm.DLCImputation.BodyPartPositionDISK</text>
 </a>
 </g>
-</g>
-<!-- vm.DLCImputationTask&#45;&gt;vm.DLCImputation -->
-<g id="edge17" class="edge">
-<title>vm.DLCImputationTask-&gt;vm.DLCImputation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1176.78,-117.49C1207.19,-103.44 1248.75,-84.23 1268.43,-75.14"/>
-</g>
-<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.Gap -->
-<g id="edge18" class="edge">
-<title>vm.DLCImputation-&gt;vm.DLCImputation.Gap</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1269.42,-61.43C1253.43,-51.2 1222.48,-31.39 1204.5,-19.88"/>
-</g>
-<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.BodyPartPositionDISK -->
-<g id="edge19" class="edge">
-<title>vm.DLCImputation-&gt;vm.DLCImputation.BodyPartPositionDISK</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1289.83,-61.43C1305.82,-51.2 1336.77,-31.39 1354.75,-19.88"/>
-</g>
-<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.BodyPart -->
-<g id="edge20" class="edge">
-<title>vm.DLCImputation-&gt;vm.DLCImputation.BodyPart</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1291.97,-65.44C1330.41,-57.59 1449.27,-33.33 1514.56,-20"/>
-</g>
-<!-- vm.TopcamImputationTask&#45;&gt;vm.TopcamImputation -->
-<g id="edge21" class="edge">
-<title>vm.TopcamImputationTask-&gt;vm.TopcamImputation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M598.62,-117.66C598.62,-106.36 598.62,-91.66 598.62,-81.58"/>
-</g>
-<!-- vm.HeadfixedImputation -->
-<g id="node19" class="node">
-<title>vm.HeadfixedImputation</title>
-<g id="a_node19"><a xlink:title="→ vm.HeadfixedImputationTask------------------------------imputation_time      recording_fps        production_fit_hash  n_frames_total       n_frames_observed    n_frames_imputed     n_frames_refused     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      max_gap_filled       n_angle_before       n_angle_after        disk_runtime_s=null  ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="967.62" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="967.62" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.HeadfixedImputation</text>
-</a>
-</g>
-</g>
-<!-- vm.HeadfixedImputation.Gap -->
-<g id="node21" class="node">
-<title>vm.HeadfixedImputation.Gap</title>
-<g id="a_node21"><a xlink:title="→ vm.HeadfixedImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           uncertainty=null     gap_status           ">
-<polygon fill="none" stroke="none" points="928.38,-20 784.88,-20 784.88,0 928.38,0 928.38,-20"/>
-<text text-anchor="start" x="792.88" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.HeadfixedImputation.Gap</text>
-</a>
-</g>
-</g>
-<!-- vm.HeadfixedImputation&#45;&gt;vm.HeadfixedImputation.Gap -->
-<g id="edge22" class="edge">
-<title>vm.HeadfixedImputation-&gt;vm.HeadfixedImputation.Gap</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M956.58,-62.29C937.27,-52.39 897.27,-31.86 874.15,-19.99"/>
 </g>
 <!-- vm.HeadfixedImputation.BodyPart -->
-<g id="node22" class="node">
+<g id="node8" class="node">
 <title>vm.HeadfixedImputation.BodyPart</title>
-<g id="a_node22"><a xlink:title="→ vm.HeadfixedImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
-<polygon fill="none" stroke="none" points="1112.62,-20 946.62,-20 946.62,0 1112.62,0 1112.62,-20"/>
-<text text-anchor="middle" x="1029.62" y="-6.5" font-family="arial" font-size="10.00">vm.HeadfixedImputation.BodyPart</text>
+<g id="a_node8"><a xlink:title="→ vm.HeadfixedImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
+<polygon fill="transparent" stroke="transparent" points="686.5,-19 519.5,-19 519.5,0 686.5,0 686.5,-19"/>
+<text text-anchor="middle" x="603" y="-7" font-family="arial" font-size="10.00">vm.HeadfixedImputation.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- vm.DISKModel.TrainingAnimal -->
+<g id="node9" class="node">
+<title>vm.DISKModel.TrainingAnimal</title>
+<g id="a_node9"><a xlink:title="→ vm.DISKModel→ `roselab_subject`.`subject`------------------------------split                ">
+<polygon fill="transparent" stroke="transparent" points="1550.5,-144 1399.5,-144 1399.5,-125 1550.5,-125 1550.5,-144"/>
+<text text-anchor="middle" x="1475" y="-132" font-family="arial" font-size="10.00">vm.DISKModel.TrainingAnimal</text>
+</a>
+</g>
+</g>
+<!-- vm.HeadfixedImputation -->
+<g id="node10" class="node">
+<title>vm.HeadfixedImputation</title>
+<g id="a_node10"><a xlink:title="→ vm.HeadfixedImputationTask------------------------------imputation_time      recording_fps        production_fit_hash  n_frames_total       n_frames_observed    n_frames_imputed     n_frames_refused     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      max_gap_filled       n_angle_before       n_angle_after        disk_runtime_s=null  ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="762" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="762" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.HeadfixedImputation</text>
 </a>
 </g>
 </g>
 <!-- vm.HeadfixedImputation&#45;&gt;vm.HeadfixedImputation.BodyPart -->
-<g id="edge23" class="edge">
+<g id="edge7" class="edge">
 <title>vm.HeadfixedImputation-&gt;vm.HeadfixedImputation.BodyPart</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M976.51,-59.8C988.03,-49.22 1008.04,-30.83 1019.94,-19.9"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M750.05,-62.75C723.98,-53.49 661.57,-31.31 627.02,-19.04"/>
+</g>
+<!-- vm.HeadfixedImputation.Gap -->
+<g id="node17" class="node">
+<title>vm.HeadfixedImputation.Gap</title>
+<g id="a_node17"><a xlink:title="→ vm.HeadfixedImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           uncertainty=null     gap_status           ">
+<polygon fill="transparent" stroke="transparent" points="849,-19 705,-19 705,0 849,0 849,-19"/>
+<text text-anchor="start" x="713" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.HeadfixedImputation.Gap</text>
+</a>
+</g>
+</g>
+<!-- vm.HeadfixedImputation&#45;&gt;vm.HeadfixedImputation.Gap -->
+<g id="edge8" class="edge">
+<title>vm.HeadfixedImputation-&gt;vm.HeadfixedImputation.Gap</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M765.11,-55.29C767.96,-44.56 772.11,-28.91 774.68,-19.24"/>
+</g>
+<!-- vm.DLCImputation.Gap -->
+<g id="node11" class="node">
+<title>vm.DLCImputation.Gap</title>
+<g id="a_node11"><a xlink:title="→ vm.DLCImputation→ `roselab_model`.`model__body_part`gap_start            ------------------------------gap_length           uncertainty=null     gap_status           ">
+<polygon fill="transparent" stroke="transparent" points="340,-19 220,-19 220,0 340,0 340,-19"/>
+<text text-anchor="start" x="228" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.DLCImputation.Gap</text>
+</a>
+</g>
+</g>
+<!-- vm.TopcamImputation&#45;&gt;vm.TopcamImputation.Gap -->
+<g id="edge9" class="edge">
+<title>vm.TopcamImputation-&gt;vm.TopcamImputation.Gap</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M958.06,-62.85C984.76,-53.65 1049.35,-31.4 1085.12,-19.07"/>
+</g>
+<!-- vm.TopcamImputation.BodyPart -->
+<g id="node14" class="node">
+<title>vm.TopcamImputation.BodyPart</title>
+<g id="a_node14"><a xlink:title="→ vm.TopcamImputation→ `roselab_model`.`model__body_part`------------------------------x_pos                y_pos                likelihood           sample_source        INDEX (x_pos)INDEX (y_pos)INDEX (likelihood)INDEX (sample_source)">
+<polygon fill="transparent" stroke="transparent" points="1024.5,-19 867.5,-19 867.5,0 1024.5,0 1024.5,-19"/>
+<text text-anchor="middle" x="946" y="-7" font-family="arial" font-size="10.00">vm.TopcamImputation.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- vm.TopcamImputation&#45;&gt;vm.TopcamImputation.BodyPart -->
+<g id="edge10" class="edge">
+<title>vm.TopcamImputation-&gt;vm.TopcamImputation.BodyPart</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M946,-54.74C946,-43.97 946,-28.56 946,-19.06"/>
 </g>
 <!-- vm.HeadfixedImputationTask&#45;&gt;vm.HeadfixedImputation -->
-<g id="edge24" class="edge">
+<g id="edge11" class="edge">
 <title>vm.HeadfixedImputationTask-&gt;vm.HeadfixedImputation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M967.62,-117.66C967.62,-106.36 967.62,-91.66 967.62,-81.58"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M762,-116.89C762,-105.69 762,-91.17 762,-81.07"/>
+</g>
+<!-- vm.MocapImputation.TrackingPositionDISK -->
+<g id="node15" class="node">
+<title>vm.MocapImputation.TrackingPositionDISK</title>
+<g id="a_node15"><a xlink:title="→ vm.MocapImputation→ `roselab_mocap`.`mocap__tracking_id`------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                uncertainty          imputed_mask         ">
+<polygon fill="transparent" stroke="transparent" points="1407,-19 1199,-19 1199,0 1407,0 1407,-19"/>
+<text text-anchor="middle" x="1303" y="-7" font-family="arial" font-size="10.00">vm.MocapImputation.TrackingPositionDISK</text>
+</a>
+</g>
+</g>
+<!-- vm.DISKModel.Keypoint -->
+<g id="node16" class="node">
+<title>vm.DISKModel.Keypoint</title>
+<g id="a_node16"><a xlink:title="→ vm.DISKModel→ `roselab_model`.`#body_part`------------------------------keypoint_index       UNIQUE INDEX (disk_model_name, keypoint_index)">
+<polygon fill="transparent" stroke="transparent" points="1693.5,-144 1568.5,-144 1568.5,-125 1693.5,-125 1693.5,-144"/>
+<text text-anchor="middle" x="1631" y="-132" font-family="arial" font-size="10.00">vm.DISKModel.Keypoint</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapImputation&#45;&gt;vm.MocapImputation.RigidBodyPositionDISK -->
+<g id="edge12" class="edge">
+<title>vm.MocapImputation-&gt;vm.MocapImputation.RigidBodyPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1317.58,-63.88C1351.66,-55.44 1446.63,-31.9 1498.35,-19.09"/>
+</g>
+<!-- vm.MocapImputation&#45;&gt;vm.MocapImputation.TrackingPositionDISK -->
+<g id="edge13" class="edge">
+<title>vm.MocapImputation-&gt;vm.MocapImputation.TrackingPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1304.57,-54.74C1304.18,-43.97 1303.64,-28.56 1303.3,-19.06"/>
+</g>
+<!-- vm.DLCImputation -->
+<g id="node20" class="node">
+<title>vm.DLCImputation</title>
+<g id="a_node20"><a xlink:title="→ vm.DLCImputationTask------------------------------imputation_time      recording_fps        production_fit_hash  n_frames_total       n_frames_observed    n_frames_imputed     n_frames_refused     n_frames_unfilled    n_gaps_attempted     n_gaps_too_long      max_gap_filled       n_angle_before       n_angle_after        disk_runtime_s=null  ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="355" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="355" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DLCImputation</text>
+</a>
+</g>
+</g>
+<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.BodyPart -->
+<g id="edge14" class="edge">
+<title>vm.DLCImputation-&gt;vm.DLCImputation.BodyPart</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M365.11,-59.38C379.03,-48.9 404,-30.08 418.58,-19.11"/>
+</g>
+<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.BodyPartPositionDISK -->
+<g id="edge15" class="edge">
+<title>vm.DLCImputation-&gt;vm.DLCImputation.BodyPartPositionDISK</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M342.4,-64.2C305.67,-56.03 197.56,-31.98 139.28,-19.01"/>
+</g>
+<!-- vm.DLCImputation&#45;&gt;vm.DLCImputation.Gap -->
+<g id="edge16" class="edge">
+<title>vm.DLCImputation-&gt;vm.DLCImputation.Gap</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M344.89,-59.38C330.97,-48.9 306,-30.08 291.42,-19.11"/>
+</g>
+<!-- vm.DLCImputationTask&#45;&gt;vm.DLCImputation -->
+<g id="edge17" class="edge">
+<title>vm.DLCImputationTask-&gt;vm.DLCImputation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M529.04,-116.97C474.34,-101.89 397.6,-80.74 367.66,-72.49"/>
+</g>
+<!-- vm.DISKModel -->
+<g id="node22" class="node">
+<title>vm.DISKModel</title>
+<g id="a_node22"><a xlink:title="disk_model_name      ------------------------------checkpoint_path      checkpoint_epoch     val_rmse             network_type         seq_length           training_fps         fill_gap             mu_sigma             data_type            likelihood_threshold disk_version         trained_on           model_status=&quot;candidate&quot; keypoint_hash        model_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1167.5,-223 1084.5,-223 1084.5,-188 1167.5,-188 1167.5,-223"/>
+<text text-anchor="start" x="1092.5" y="-204" font-family="arial" text-decoration="underline" font-size="10.00">vm.DISKModel</text>
+</a>
+</g>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.TopcamImputationTask -->
+<g id="edge18" class="edge">
+<title>vm.DISKModel-&gt;vm.TopcamImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1084.25,-188.67C1055.39,-177.73 1017.07,-163.2 987.78,-152.1"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.MocapImputationTask -->
+<g id="edge19" class="edge">
+<title>vm.DISKModel-&gt;vm.MocapImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1167.52,-188.5C1195.92,-177.55 1233.47,-163.07 1262.15,-152.02"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.DISKModel.TrainingAnimal -->
+<g id="edge20" class="edge">
+<title>vm.DISKModel-&gt;vm.DISKModel.TrainingAnimal</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1167.75,-196.25C1234.42,-183.06 1364.28,-157.39 1431.83,-144.03"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.HeadfixedImputationTask -->
+<g id="edge21" class="edge">
+<title>vm.DISKModel-&gt;vm.HeadfixedImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1084.24,-196.58C1026.73,-185.68 921.8,-165.79 847.31,-151.67"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.DISKModel.Keypoint -->
+<g id="edge22" class="edge">
+<title>vm.DISKModel-&gt;vm.DISKModel.Keypoint</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1167.51,-200.98C1245.02,-194.08 1416.86,-177.21 1560,-152 1572.34,-149.83 1585.75,-146.87 1597.56,-144.05"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.ImputationParamSet.Crossover -->
+<g id="edge23" class="edge">
+<title>vm.DISKModel-&gt;vm.ImputationParamSet.Crossover</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1126,-187.8C1126,-174.08 1126,-155.19 1126,-144.27"/>
+</g>
+<!-- vm.DISKModel&#45;&gt;vm.DLCImputationTask -->
+<g id="edge24" class="edge">
+<title>vm.DISKModel-&gt;vm.DLCImputationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1084.46,-201.03C1003.84,-194 820.69,-176.64 668,-152 665.1,-151.53 662.14,-151.03 659.15,-150.5"/>
 </g>
 </g>
 </svg>

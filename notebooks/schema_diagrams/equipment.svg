@@ -1,12 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="322pt" height="43pt" viewBox="0.00 0.00 322.25 42.56">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 38.56)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-38.56 318.25,-38.56 318.25,4 -4,4"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="325pt" height="43pt" viewBox="0.00 0.00 325.00 43.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 39)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-39 321,-39 321,4 -4,4"/>
 <!-- vm.Device -->
 <g id="node1" class="node">
 <title>vm.Device</title>
 <g id="a_node1"><a xlink:title="camera               ------------------------------camera_description=&quot;&quot; ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="72.25,-34.56 0,-34.56 0,0 72.25,0 72.25,-34.56"/>
-<text text-anchor="start" x="8" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Device</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="73,-35 0,-35 0,0 73,0 73,-35"/>
+<text text-anchor="start" x="8" y="-15.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Device</text>
 </a>
 </g>
 </g>
@@ -14,8 +15,8 @@
 <g id="node2" class="node">
 <title>vm.Equipment</title>
 <g id="a_node2"><a xlink:title="scanner              ------------------------------scanner_description=&quot;&quot; ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="182.38,-34.56 89.88,-34.56 89.88,0 182.38,0 182.38,-34.56"/>
-<text text-anchor="start" x="97.88" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Equipment</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="184,-35 91,-35 91,0 184,0 184,-35"/>
+<text text-anchor="start" x="99" y="-15.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Equipment</text>
 </a>
 </g>
 </g>
@@ -23,8 +24,8 @@
 <g id="node3" class="node">
 <title>vm.SetupRestraint</title>
 <g id="a_node3"><a xlink:title="setup_restraint      ------------------------------setup_restraint_description=&quot;&quot; ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="314.25,-34.56 200,-34.56 200,0 314.25,0 314.25,-34.56"/>
-<text text-anchor="start" x="208" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.SetupRestraint</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="317,-35 202,-35 202,0 317,0 317,-35"/>
+<text text-anchor="start" x="210" y="-15.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.SetupRestraint</text>
 </a>
 </g>
 </g>

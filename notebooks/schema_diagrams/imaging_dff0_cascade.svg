@@ -1,265 +1,265 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="814pt" height="169pt" viewBox="0.00 0.00 813.50 169.00">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="813pt" height="169pt" viewBox="0.00 0.00 812.50 169.00">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 165)">
 <title>%3</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-165 809.5,-165 809.5,4 -4,4"/>
-<!-- im.RoiQC.Rejected -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-165 808.5,-165 808.5,4 -4,4"/>
+<!-- im.ActivityExtractionMethod -->
 <g id="node1" class="node">
-<title>im.RoiQC.Rejected</title>
-<g id="a_node1"><a xlink:title="→ im.RoiQC→ im.Fluorescence.Trace">
-<polygon fill="transparent" stroke="transparent" points="115.5,-19 13.5,-19 13.5,0 115.5,0 115.5,-19"/>
-<text text-anchor="middle" x="64.5" y="-7" font-family="arial" font-size="10.00">im.RoiQC.Rejected</text>
+<title>im.ActivityExtractionMethod</title>
+<g id="a_node1"><a xlink:title="extraction_method    ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="330,-161 190,-161 190,-126 330,-126 330,-161"/>
+<text text-anchor="start" x="198" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.ActivityExtractionMethod</text>
 </a>
 </g>
-</g>
-<!-- im.ActivityCascadeModel -->
-<g id="node2" class="node">
-<title>im.ActivityCascadeModel</title>
-<g id="a_node2"><a xlink:title="model_name           ------------------------------model_path           model_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="805.5,-161 677.5,-161 677.5,-126 805.5,-126 805.5,-161"/>
-<text text-anchor="start" x="685.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.ActivityCascadeModel</text>
-</a>
-</g>
-</g>
-<!-- im.Activity.CascadeInput -->
-<g id="node5" class="node">
-<title>im.Activity.CascadeInput</title>
-<g id="a_node5"><a xlink:title="→ im.Activity------------------------------→ im.Dff0→ im.ActivityCascadeModelcascade_commit       element_version      computed_at          ">
-<polygon fill="transparent" stroke="transparent" points="504.5,-19 378.5,-19 378.5,0 504.5,0 504.5,-19"/>
-<text text-anchor="middle" x="441.5" y="-7" font-family="arial" font-size="10.00">im.Activity.CascadeInput</text>
-</a>
-</g>
-</g>
-<!-- im.ActivityCascadeModel&#45;&gt;im.Activity.CascadeInput -->
-<g id="edge1" class="edge">
-<title>im.ActivityCascadeModel-&gt;im.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M754.52,-125.68C767.73,-106.43 783.95,-75 766.5,-55 733.23,-16.86 589.48,-10.23 504.71,-9.74"/>
 </g>
 <!-- im.ActivityCascadeTask -->
-<g id="node13" class="node">
+<g id="node2" class="node">
 <title>im.ActivityCascadeTask</title>
-<g id="a_node13"><a xlink:title="→ im.Fluorescence→ im.ActivityExtractionMethod------------------------------→ im.ActivityCascadeModel">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="757,-90 614,-90 614,-55 757,-55 757,-90"/>
-<text text-anchor="middle" x="685.5" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">im.ActivityCascadeTask</text>
+<g id="a_node2"><a xlink:title="→ im.Fluorescence→ im.ActivityExtractionMethod------------------------------→ im.ActivityCascadeModel">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="191.5,-90 48.5,-90 48.5,-55 191.5,-55 191.5,-90"/>
+<text text-anchor="middle" x="120" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">im.ActivityCascadeTask</text>
 </a>
 </g>
 </g>
-<!-- im.ActivityCascadeModel&#45;&gt;im.ActivityCascadeTask -->
+<!-- im.ActivityExtractionMethod&#45;&gt;im.ActivityCascadeTask -->
+<g id="edge1" class="edge">
+<title>im.ActivityExtractionMethod-&gt;im.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M226.47,-125.97C204.46,-115.13 175.79,-101 153.75,-90.13"/>
+</g>
+<!-- im.CascadeRecipe -->
+<g id="node8" class="node">
+<title>im.CascadeRecipe</title>
+<g id="a_node8"><a xlink:title="→ im.ActivityExtractionMethod------------------------------→ im.DffParamSet">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="310,-90 210,-90 210,-55 310,-55 310,-90"/>
+<text text-anchor="middle" x="260" y="-70" font-family="arial" font-size="10.00">im.CascadeRecipe</text>
+</a>
+</g>
+</g>
+<!-- im.ActivityExtractionMethod&#45;&gt;im.CascadeRecipe -->
 <g id="edge2" class="edge">
-<title>im.ActivityCascadeModel-&gt;im.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M727.94,-125.8C719.14,-114.95 707.71,-100.87 698.93,-90.05"/>
+<title>im.ActivityExtractionMethod-&gt;im.CascadeRecipe</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M260,-125.8C260,-114.95 260,-100.87 260,-90.05"/>
 </g>
 <!-- im.Activity -->
-<g id="node3" class="node">
+<g id="node11" class="node">
 <title>im.Activity</title>
-<g id="a_node3"><a xlink:title="→ im.Fluorescence→ im.ActivityExtractionMethod">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="441.5" cy="-72.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="441.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Activity</text>
+<g id="a_node11"><a xlink:title="→ im.Fluorescence→ im.ActivityExtractionMethod">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="364" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="364" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Activity</text>
 </a>
 </g>
 </g>
-<!-- im.Activity&#45;&gt;im.Activity.CascadeInput -->
+<!-- im.ActivityExtractionMethod&#45;&gt;im.Activity -->
 <g id="edge3" class="edge">
-<title>im.Activity-&gt;im.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M441.5,-59.45C441.5,-47.64 441.5,-29.93 441.5,-19.36"/>
+<title>im.ActivityExtractionMethod-&gt;im.Activity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M284.91,-125.97C306.78,-111.46 337.53,-91.06 353.48,-80.48"/>
 </g>
-<!-- im.Activity.Trace -->
-<g id="node9" class="node">
-<title>im.Activity.Trace</title>
-<g id="a_node9"><a xlink:title="→ im.Activity→ im.Fluorescence.Trace------------------------------activity_trace       INDEX (activity_trace)">
-<polygon fill="transparent" stroke="transparent" points="333.5,-19 243.5,-19 243.5,0 333.5,0 333.5,-19"/>
-<text text-anchor="middle" x="288.5" y="-7" font-family="arial" font-size="10.00">im.Activity.Trace</text>
+<!-- im.Dff0Task -->
+<g id="node3" class="node">
+<title>im.Dff0Task</title>
+<g id="a_node3"><a xlink:title="→ im.Fluorescence→ im.DffParamSet------------------------------task_owner           task_note=&quot;&quot;         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="569.5,-90 490.5,-90 490.5,-55 569.5,-55 569.5,-90"/>
+<text text-anchor="middle" x="530" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">im.Dff0Task</text>
 </a>
 </g>
 </g>
-<!-- im.Activity&#45;&gt;im.Activity.Trace -->
+<!-- im.RoiQC -->
+<g id="node4" class="node">
+<title>im.RoiQC</title>
+<g id="a_node4"><a xlink:title="→ im.Fluorescence→ im.RoiQCCriterion------------------------------n_rois               n_rejected           ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="756" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="756" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.RoiQC</text>
+</a>
+</g>
+</g>
+<!-- im.RoiQC.Rejected -->
+<g id="node9" class="node">
+<title>im.RoiQC.Rejected</title>
+<g id="a_node9"><a xlink:title="→ im.RoiQC→ im.Fluorescence.Trace">
+<polygon fill="transparent" stroke="transparent" points="798,-19 696,-19 696,0 798,0 798,-19"/>
+<text text-anchor="middle" x="747" y="-7" font-family="arial" font-size="10.00">im.RoiQC.Rejected</text>
+</a>
+</g>
+</g>
+<!-- im.RoiQC&#45;&gt;im.RoiQC.Rejected -->
 <g id="edge4" class="edge">
-<title>im.Activity-&gt;im.Activity.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M429.49,-66.71C403.71,-56.43 342.74,-32.13 310.07,-19.1"/>
+<title>im.RoiQC-&gt;im.RoiQC.Rejected</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M754.22,-59.45C752.48,-47.64 749.87,-29.93 748.31,-19.36"/>
 </g>
 <!-- im.Fluorescence.Trace -->
-<g id="node4" class="node">
+<g id="node5" class="node">
 <title>im.Fluorescence.Trace</title>
-<g id="a_node4"><a xlink:title="→ im.Fluorescence→ im.Segmentation.Mask→ `roselab_scan`.`#channel`.proj(fluo_channel=&quot;channel&quot;)------------------------------fluorescence         neuropil_fluorescence=null INDEX (fluorescence)INDEX (neuropil_fluorescence)">
-<polygon fill="transparent" stroke="transparent" points="217.5,-82 101.5,-82 101.5,-63 217.5,-63 217.5,-82"/>
-<text text-anchor="middle" x="159.5" y="-70" font-family="arial" font-size="10.00">im.Fluorescence.Trace</text>
+<g id="a_node5"><a xlink:title="→ im.Fluorescence→ im.Segmentation.Mask→ `roselab_scan`.`#channel`.proj(fluo_channel=&quot;channel&quot;)------------------------------fluorescence         neuropil_fluorescence=null INDEX (fluorescence)INDEX (neuropil_fluorescence)">
+<polygon fill="transparent" stroke="transparent" points="703,-82 587,-82 587,-63 703,-63 703,-82"/>
+<text text-anchor="middle" x="645" y="-70" font-family="arial" font-size="10.00">im.Fluorescence.Trace</text>
 </a>
 </g>
 </g>
 <!-- im.Fluorescence.Trace&#45;&gt;im.RoiQC.Rejected -->
 <g id="edge5" class="edge">
 <title>im.Fluorescence.Trace-&gt;im.RoiQC.Rejected</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M145.89,-62.76C127.73,-51.1 95.77,-30.58 77.78,-19.03"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M659.61,-62.76C679.11,-51.1 713.42,-30.58 732.74,-19.03"/>
+</g>
+<!-- im.Activity.Trace -->
+<g id="node14" class="node">
+<title>im.Activity.Trace</title>
+<g id="a_node14"><a xlink:title="→ im.Activity→ im.Fluorescence.Trace------------------------------activity_trace       INDEX (activity_trace)">
+<polygon fill="transparent" stroke="transparent" points="562,-19 472,-19 472,0 562,0 562,-19"/>
+<text text-anchor="middle" x="517" y="-7" font-family="arial" font-size="10.00">im.Activity.Trace</text>
+</a>
+</g>
 </g>
 <!-- im.Fluorescence.Trace&#45;&gt;im.Activity.Trace -->
 <g id="edge6" class="edge">
 <title>im.Fluorescence.Trace-&gt;im.Activity.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M177.71,-62.89C202.29,-51.26 245.85,-30.67 270.38,-19.07"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M626.93,-62.89C602.54,-51.26 559.32,-30.67 534.98,-19.07"/>
 </g>
 <!-- im.Dff0.Trace -->
-<g id="node12" class="node">
+<g id="node16" class="node">
 <title>im.Dff0.Trace</title>
-<g id="a_node12"><a xlink:title="→ im.Dff0→ im.Fluorescence.Trace------------------------------dff                  f0_median            f0_min               f0_nonpositive       INDEX (dff)">
-<polygon fill="transparent" stroke="transparent" points="211.5,-19 135.5,-19 135.5,0 211.5,0 211.5,-19"/>
-<text text-anchor="middle" x="173.5" y="-7" font-family="arial" font-size="10.00">im.Dff0.Trace</text>
+<g id="a_node16"><a xlink:title="→ im.Dff0→ im.Fluorescence.Trace------------------------------dff                  f0_median            f0_min               f0_nonpositive       INDEX (dff)">
+<polygon fill="transparent" stroke="transparent" points="669,-19 593,-19 593,0 669,0 669,-19"/>
+<text text-anchor="middle" x="631" y="-7" font-family="arial" font-size="10.00">im.Dff0.Trace</text>
 </a>
 </g>
 </g>
 <!-- im.Fluorescence.Trace&#45;&gt;im.Dff0.Trace -->
 <g id="edge7" class="edge">
 <title>im.Fluorescence.Trace-&gt;im.Dff0.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M161.51,-62.76C164.17,-51.16 168.84,-30.81 171.5,-19.22"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M642.99,-62.76C640.33,-51.16 635.66,-30.81 633,-19.22"/>
 </g>
-<!-- im.CascadeRecipe -->
+<!-- im.Activity.CascadeInput -->
 <g id="node6" class="node">
-<title>im.CascadeRecipe</title>
-<g id="a_node6"><a xlink:title="→ im.ActivityExtractionMethod------------------------------→ im.DffParamSet">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="595.5,-90 495.5,-90 495.5,-55 595.5,-55 595.5,-90"/>
-<text text-anchor="middle" x="545.5" y="-70" font-family="arial" font-size="10.00">im.CascadeRecipe</text>
+<title>im.Activity.CascadeInput</title>
+<g id="a_node6"><a xlink:title="→ im.Activity------------------------------→ im.Dff0→ im.ActivityCascadeModelcascade_commit       element_version      computed_at          ">
+<polygon fill="transparent" stroke="transparent" points="427,-19 301,-19 301,0 427,0 427,-19"/>
+<text text-anchor="middle" x="364" y="-7" font-family="arial" font-size="10.00">im.Activity.CascadeInput</text>
 </a>
 </g>
-</g>
-<!-- im.DffParamSet -->
-<g id="node7" class="node">
-<title>im.DffParamSet</title>
-<g id="a_node7"><a xlink:title="dff_paramset_idx     ------------------------------dff_desc             dff_hash             dark_method          dark_frame_start=null dark_frame_stop=null dark_margin_s=null   neuropil_factor      neuropil_offset      detrend_method       detrend_window_s=null baseline_method      baseline_percentile=null baseline_window_s=null baseline_smooth_s=null baseline_step=1      f0_floor_method      f0_floor_value=null  extra=null           UNIQUE INDEX (dff_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="432.5,-161 346.5,-161 346.5,-126 432.5,-126 432.5,-161"/>
-<text text-anchor="start" x="354.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.DffParamSet</text>
-</a>
-</g>
-</g>
-<!-- im.DffParamSet&#45;&gt;im.CascadeRecipe -->
-<g id="edge8" class="edge">
-<title>im.DffParamSet-&gt;im.CascadeRecipe</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M426.87,-125.97C451.47,-115.09 483.57,-100.89 508.17,-90.01"/>
 </g>
 <!-- im.Dff0 -->
-<g id="node11" class="node">
+<g id="node7" class="node">
 <title>im.Dff0</title>
-<g id="a_node11"><a xlink:title="→ im.Fluorescence→ im.DffParamSet------------------------------fps                  n_masks              n_frames             dark_signal          dark_frame_start=null dark_frame_stop=null dark_source          n_f0_nonpositive     element_version      compute_seconds      ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="360.5" cy="-72.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="360.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Dff0</text>
+<g id="a_node7"><a xlink:title="→ im.Fluorescence→ im.DffParamSet------------------------------fps                  n_masks              n_frames             dark_signal          dark_frame_start=null dark_frame_stop=null dark_source          n_f0_nonpositive     element_version      compute_seconds      ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="445" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="445" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Dff0</text>
 </a>
 </g>
 </g>
-<!-- im.DffParamSet&#45;&gt;im.Dff0 -->
+<!-- im.Dff0&#45;&gt;im.Activity.CascadeInput -->
+<g id="edge8" class="edge">
+<title>im.Dff0-&gt;im.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M435.07,-64.02C419.94,-52.63 391.22,-31 375.32,-19.02"/>
+</g>
+<!-- im.Dff0&#45;&gt;im.Dff0.Trace -->
 <g id="edge9" class="edge">
-<title>im.DffParamSet-&gt;im.Dff0</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M382.48,-125.8C377.12,-113.03 369.87,-95.8 365.19,-84.66"/>
-</g>
-<!-- im.Dff0Task -->
-<g id="node14" class="node">
-<title>im.Dff0Task</title>
-<g id="a_node14"><a xlink:title="→ im.Fluorescence→ im.DffParamSet------------------------------task_owner           task_note=&quot;&quot;         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="315,-90 236,-90 236,-55 315,-55 315,-90"/>
-<text text-anchor="middle" x="275.5" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">im.Dff0Task</text>
-</a>
-</g>
-</g>
-<!-- im.DffParamSet&#45;&gt;im.Dff0Task -->
-<g id="edge10" class="edge">
-<title>im.DffParamSet-&gt;im.Dff0Task</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M362.19,-125.97C344.28,-115.13 320.93,-101 302.98,-90.13"/>
+<title>im.Dff0-&gt;im.Dff0.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M456.51,-65.91C463.73,-62.51 473.29,-58.23 482,-55 521.24,-40.46 567.58,-27.21 598.05,-19.03"/>
 </g>
 <!-- im.RoiQCCriterion -->
-<g id="node8" class="node">
+<g id="node10" class="node">
 <title>im.RoiQCCriterion</title>
-<g id="a_node8"><a xlink:title="roi_qc_criterion     ------------------------------criterion_desc       ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="97,-161 0,-161 0,-126 97,-126 97,-161"/>
-<text text-anchor="start" x="8" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.RoiQCCriterion</text>
-</a>
-</g>
-</g>
-<!-- im.RoiQC -->
-<g id="node15" class="node">
-<title>im.RoiQC</title>
-<g id="a_node15"><a xlink:title="→ im.Fluorescence→ im.RoiQCCriterion------------------------------n_rois               n_rejected           ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="48.5" cy="-72.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="48.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.RoiQC</text>
+<g id="a_node10"><a xlink:title="roi_qc_criterion     ------------------------------criterion_desc       ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="804.5,-161 707.5,-161 707.5,-126 804.5,-126 804.5,-161"/>
+<text text-anchor="start" x="715.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.RoiQCCriterion</text>
 </a>
 </g>
 </g>
 <!-- im.RoiQCCriterion&#45;&gt;im.RoiQC -->
-<g id="edge11" class="edge">
+<g id="edge10" class="edge">
 <title>im.RoiQCCriterion-&gt;im.RoiQC</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M48.5,-125.8C48.5,-113.35 48.5,-96.66 48.5,-85.51"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M756,-125.8C756,-113.35 756,-96.66 756,-85.51"/>
 </g>
-<!-- im.ActivityExtractionMethod -->
-<g id="node10" class="node">
-<title>im.ActivityExtractionMethod</title>
-<g id="a_node10"><a xlink:title="extraction_method    ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="615.5,-161 475.5,-161 475.5,-126 615.5,-126 615.5,-161"/>
-<text text-anchor="start" x="483.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.ActivityExtractionMethod</text>
+<!-- im.Activity&#45;&gt;im.Activity.CascadeInput -->
+<g id="edge11" class="edge">
+<title>im.Activity-&gt;im.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M364,-59.45C364,-47.64 364,-29.93 364,-19.36"/>
+</g>
+<!-- im.Activity&#45;&gt;im.Activity.Trace -->
+<g id="edge12" class="edge">
+<title>im.Activity-&gt;im.Activity.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M376.01,-66.71C401.79,-56.43 462.76,-32.13 495.43,-19.1"/>
+</g>
+<!-- im.DffParamSet -->
+<g id="node12" class="node">
+<title>im.DffParamSet</title>
+<g id="a_node12"><a xlink:title="dff_paramset_idx     ------------------------------dff_desc             dff_hash             dark_method          dark_frame_start=null dark_frame_stop=null dark_margin_s=null   neuropil_factor      neuropil_offset      detrend_method       detrend_window_s=null baseline_method      baseline_percentile=null baseline_window_s=null baseline_smooth_s=null baseline_step=1      f0_floor_method      f0_floor_value=null  extra=null           UNIQUE INDEX (dff_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="459,-161 373,-161 373,-126 459,-126 459,-161"/>
+<text text-anchor="start" x="381" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.DffParamSet</text>
 </a>
 </g>
 </g>
-<!-- im.ActivityExtractionMethod&#45;&gt;im.Activity -->
-<g id="edge12" class="edge">
-<title>im.ActivityExtractionMethod-&gt;im.Activity</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M520.59,-125.97C498.72,-111.46 467.97,-91.06 452.02,-80.48"/>
-</g>
-<!-- im.ActivityExtractionMethod&#45;&gt;im.CascadeRecipe -->
+<!-- im.DffParamSet&#45;&gt;im.Dff0Task -->
 <g id="edge13" class="edge">
-<title>im.ActivityExtractionMethod-&gt;im.CascadeRecipe</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M545.5,-125.8C545.5,-114.95 545.5,-100.87 545.5,-90.05"/>
+<title>im.DffParamSet-&gt;im.Dff0Task</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M443.31,-125.97C461.22,-115.13 484.57,-101 502.52,-90.13"/>
 </g>
-<!-- im.ActivityExtractionMethod&#45;&gt;im.ActivityCascadeTask -->
+<!-- im.DffParamSet&#45;&gt;im.Dff0 -->
 <g id="edge14" class="edge">
-<title>im.ActivityExtractionMethod-&gt;im.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M579.03,-125.97C601.04,-115.13 629.71,-101 651.75,-90.13"/>
+<title>im.DffParamSet-&gt;im.Dff0</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M423.02,-125.8C428.38,-113.03 435.63,-95.8 440.31,-84.66"/>
 </g>
-<!-- im.Dff0&#45;&gt;im.Activity.CascadeInput -->
+<!-- im.DffParamSet&#45;&gt;im.CascadeRecipe -->
 <g id="edge15" class="edge">
-<title>im.Dff0-&gt;im.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M370.43,-64.02C385.56,-52.63 414.28,-31 430.18,-19.02"/>
-</g>
-<!-- im.Dff0&#45;&gt;im.Dff0.Trace -->
-<g id="edge16" class="edge">
-<title>im.Dff0-&gt;im.Dff0.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M349.01,-65.72C342.02,-62.34 332.87,-58.13 324.5,-55 285.08,-40.25 238.45,-27.14 207.54,-19.04"/>
-</g>
-<!-- im.RoiQC&#45;&gt;im.RoiQC.Rejected -->
-<g id="edge17" class="edge">
-<title>im.RoiQC-&gt;im.RoiQC.Rejected</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M51.58,-59.74C54.71,-47.83 59.47,-29.7 62.25,-19.08"/>
+<title>im.DffParamSet-&gt;im.CascadeRecipe</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M378.63,-125.97C354.03,-115.09 321.93,-100.89 297.33,-90.01"/>
 </g>
 <!-- im.Fluorescence -->
-<g id="node16" class="node">
+<g id="node13" class="node">
 <title>im.Fluorescence</title>
-<g id="a_node16"><a xlink:title="→ im.Segmentation">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="275.5" cy="-143.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="275.5" y="-140.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Fluorescence</text>
+<g id="a_node13"><a xlink:title="→ im.Segmentation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="530" cy="-143.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="530" y="-140.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">im.Fluorescence</text>
 </a>
 </g>
 </g>
-<!-- im.Fluorescence&#45;&gt;im.Activity -->
+<!-- im.Fluorescence&#45;&gt;im.ActivityCascadeTask -->
+<g id="edge16" class="edge">
+<title>im.Fluorescence-&gt;im.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M517.76,-138.75C505.33,-135.06 485.48,-129.49 468,-126 350.58,-102.56 319.06,-109.96 201,-90 197.89,-89.47 194.71,-88.92 191.51,-88.34"/>
+</g>
+<!-- im.Fluorescence&#45;&gt;im.Dff0Task -->
+<g id="edge17" class="edge">
+<title>im.Fluorescence-&gt;im.Dff0Task</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M530,-130.48C530,-119.28 530,-102.49 530,-90.03"/>
+</g>
+<!-- im.Fluorescence&#45;&gt;im.RoiQC -->
 <g id="edge18" class="edge">
-<title>im.Fluorescence-&gt;im.Activity</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M287.17,-137.65C317.58,-125.01 398.98,-91.17 429.62,-78.44"/>
+<title>im.Fluorescence-&gt;im.RoiQC</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M542.46,-139.27C572.08,-131.5 648.94,-110.88 712,-90 723,-86.36 735.33,-81.68 744.14,-78.24"/>
 </g>
 <!-- im.Fluorescence&#45;&gt;im.Fluorescence.Trace -->
 <g id="edge19" class="edge">
 <title>im.Fluorescence-&gt;im.Fluorescence.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M264.38,-135.88C243.28,-123.34 197.48,-96.09 174,-82.13"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M541.03,-135.88C561.94,-123.34 607.35,-96.09 630.62,-82.13"/>
 </g>
 <!-- im.Fluorescence&#45;&gt;im.Dff0 -->
 <g id="edge20" class="edge">
 <title>im.Fluorescence-&gt;im.Dff0</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M285.25,-134.58C301.65,-121.27 334.54,-94.57 350.86,-81.32"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M520.25,-134.58C503.85,-121.27 470.96,-94.57 454.64,-81.32"/>
 </g>
-<!-- im.Fluorescence&#45;&gt;im.ActivityCascadeTask -->
+<!-- im.Fluorescence&#45;&gt;im.Activity -->
 <g id="edge21" class="edge">
-<title>im.Fluorescence-&gt;im.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M287.74,-138.75C300.17,-135.06 320.02,-129.49 337.5,-126 454.92,-102.56 486.44,-109.96 604.5,-90 607.61,-89.47 610.79,-88.92 613.99,-88.34"/>
+<title>im.Fluorescence-&gt;im.Activity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M518.33,-137.65C487.92,-125.01 406.52,-91.17 375.88,-78.44"/>
 </g>
-<!-- im.Fluorescence&#45;&gt;im.Dff0Task -->
+<!-- im.ActivityCascadeModel -->
+<g id="node15" class="node">
+<title>im.ActivityCascadeModel</title>
+<g id="a_node15"><a xlink:title="model_name           ------------------------------model_path           model_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="128,-161 0,-161 0,-126 128,-126 128,-161"/>
+<text text-anchor="start" x="8" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">im.ActivityCascadeModel</text>
+</a>
+</g>
+</g>
+<!-- im.ActivityCascadeModel&#45;&gt;im.ActivityCascadeTask -->
 <g id="edge22" class="edge">
-<title>im.Fluorescence-&gt;im.Dff0Task</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M275.5,-130.48C275.5,-119.28 275.5,-102.49 275.5,-90.03"/>
+<title>im.ActivityCascadeModel-&gt;im.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M77.56,-125.8C86.36,-114.95 97.79,-100.87 106.57,-90.05"/>
 </g>
-<!-- im.Fluorescence&#45;&gt;im.RoiQC -->
+<!-- im.ActivityCascadeModel&#45;&gt;im.Activity.CascadeInput -->
 <g id="edge23" class="edge">
-<title>im.Fluorescence-&gt;im.RoiQC</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M262.97,-139.27C233.18,-131.52 155.9,-110.94 92.5,-90 81.5,-86.37 69.17,-81.69 60.36,-78.24"/>
+<title>im.ActivityCascadeModel-&gt;im.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M50.98,-125.68C37.77,-106.43 21.55,-75 39,-55 72.27,-16.86 216.02,-10.23 300.79,-9.74"/>
 </g>
 </g>
 </svg>

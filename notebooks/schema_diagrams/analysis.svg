@@ -1,39 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="646pt" height="34pt" viewBox="0.00 0.00 645.88 33.92">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 29.92)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-29.92 641.88,-29.92 641.88,4 -4,4"/>
-<!-- vm.TargetToCorrectPortLatency -->
-<g id="node1" class="node">
-<title>vm.TargetToCorrectPortLatency</title>
-<g id="a_node1"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------target_latency       port_latency         target_to_correct_port_latency ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="91.62" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="91.62" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TargetToCorrectPortLatency</text>
-</a>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="648pt" height="34pt" viewBox="0.00 0.00 648.00 34.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 30)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-30 644,-30 644,4 -4,4"/>
 <!-- vm.TrialDuration -->
-<g id="node2" class="node">
+<g id="node1" class="node">
 <title>vm.TrialDuration</title>
-<g id="a_node2"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------duration             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="253.62" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="253.62" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TrialDuration</text>
+<g id="a_node1"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------duration             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="52" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="52" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TrialDuration</text>
 </a>
 </g>
 </g>
-<!-- vm.LatencyDifference -->
-<g id="node3" class="node">
-<title>vm.LatencyDifference</title>
-<g id="a_node3"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------latency_difference   ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="389.62" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="389.62" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.LatencyDifference</text>
+<!-- vm.TargetToCorrectPortLatency -->
+<g id="node2" class="node">
+<title>vm.TargetToCorrectPortLatency</title>
+<g id="a_node2"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------target_latency       port_latency         target_to_correct_port_latency ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="214" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="214" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TargetToCorrectPortLatency</text>
 </a>
 </g>
 </g>
 <!-- vm.TimeToOrientationTarget -->
-<g id="node4" class="node">
+<g id="node3" class="node">
 <title>vm.TimeToOrientationTarget</title>
-<g id="a_node4"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------event_start_time     orientation_subtarget_latency ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="555.62" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="555.62" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TimeToOrientationTarget</text>
+<g id="a_node3"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------event_start_time     orientation_subtarget_latency ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="407" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="407" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.TimeToOrientationTarget</text>
+</a>
+</g>
+</g>
+<!-- vm.LatencyDifference -->
+<g id="node4" class="node">
+<title>vm.LatencyDifference</title>
+<g id="a_node4"><a xlink:title="→ `roselab_trial`.`_trial`------------------------------latency_difference   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="574" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="574" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.LatencyDifference</text>
 </a>
 </g>
 </g>

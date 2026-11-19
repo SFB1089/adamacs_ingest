@@ -1,130 +1,131 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="798pt" height="113pt" viewBox="0.00 0.00 798.12 113.12">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 109.12)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-109.12 794.12,-109.12 794.12,4 -4,4"/>
-<!-- vm.Session -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="886pt" height="114pt" viewBox="0.00 0.00 885.50 114.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 110)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-110 881.5,-110 881.5,4 -4,4"/>
+<!-- vm.Equipment -->
 <g id="node1" class="node">
-<title>vm.Session</title>
-<g id="a_node1"><a xlink:title="session_id           ------------------------------→ `roselab_subject`.`subject`session_datetime     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="434.5,-105.12 356.25,-105.12 356.25,-70.56 434.5,-70.56 434.5,-105.12"/>
-<text text-anchor="start" x="364.25" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Session</text>
+<title>vm.Equipment</title>
+<g id="a_node1"><a xlink:title="scanner              ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="329.5,-106 236.5,-106 236.5,-71 329.5,-71 329.5,-106"/>
+<text text-anchor="start" x="244.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Equipment</text>
 </a>
 </g>
-</g>
-<!-- vm.SessionSameSite -->
-<g id="node2" class="node">
-<title>vm.SessionSameSite</title>
-<g id="a_node2"><a xlink:title="→ vm.Session------------------------------→ vm.SessionSite">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="130.75,-34.56 0,-34.56 0,0 130.75,0 130.75,-34.56"/>
-<text text-anchor="middle" x="65.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionSameSite</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.SessionSameSite -->
-<g id="edge1" class="edge">
-<title>vm.Session-&gt;vm.SessionSameSite</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M355.87,-78.96C305.54,-68.89 215.92,-50.8 139.38,-34.56 136.67,-33.99 133.92,-33.4 131.13,-32.8"/>
-</g>
-<!-- vm.ProjectSession -->
-<g id="node3" class="node">
-<title>vm.ProjectSession</title>
-<g id="a_node3"><a xlink:title="→ `roselab_subject`.`#project`→ vm.Session">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="264.25,-34.56 148.5,-34.56 148.5,0 264.25,0 264.25,-34.56"/>
-<text text-anchor="middle" x="206.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.ProjectSession</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.ProjectSession -->
-<g id="edge2" class="edge">
-<title>vm.Session-&gt;vm.ProjectSession</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M355.75,-72.47C325.66,-61.55 284.21,-46.51 252.6,-35.05"/>
 </g>
 <!-- vm.SessionUser -->
-<g id="node4" class="node">
+<g id="node2" class="node">
 <title>vm.SessionUser</title>
-<g id="a_node4"><a xlink:title="→ vm.Session→ `roselab_subject`.`#user`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="386.25,-34.56 282.5,-34.56 282.5,0 386.25,0 386.25,-34.56"/>
-<text text-anchor="middle" x="334.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionUser</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.SessionUser -->
-<g id="edge3" class="edge">
-<title>vm.Session-&gt;vm.SessionUser</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M380.61,-70.24C371.02,-59.46 358.57,-45.47 349.01,-34.72"/>
-</g>
-<!-- vm.SessionNote -->
-<g id="node6" class="node">
-<title>vm.SessionNote</title>
-<g id="a_node6"><a xlink:title="→ vm.Session------------------------------session_note         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="508.25,-34.56 404.5,-34.56 404.5,0 508.25,0 508.25,-34.56"/>
-<text text-anchor="middle" x="456.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionNote</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.SessionNote -->
-<g id="edge4" class="edge">
-<title>vm.Session-&gt;vm.SessionNote</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M410.14,-70.24C419.73,-59.46 432.18,-45.47 441.74,-34.72"/>
-</g>
-<!-- vm.SessionDirectory -->
-<g id="node8" class="node">
-<title>vm.SessionDirectory</title>
-<g id="a_node8"><a xlink:title="→ vm.Session------------------------------session_dir          → `roselab_subject`.`#user`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="652.5,-34.56 526.25,-34.56 526.25,0 652.5,0 652.5,-34.56"/>
-<text text-anchor="middle" x="589.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionDirectory</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.SessionDirectory -->
-<g id="edge5" class="edge">
-<title>vm.Session-&gt;vm.SessionDirectory</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M434.63,-72.97C465.63,-62.01 509.01,-46.68 541.95,-35.04"/>
-</g>
-<!-- vm.SessionRspace -->
-<g id="node10" class="node">
-<title>vm.SessionRspace</title>
-<g id="a_node10"><a xlink:title="→ vm.Session------------------------------rspace_id            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="790.12,-34.56 670.62,-34.56 670.62,0 790.12,0 790.12,-34.56"/>
-<text text-anchor="middle" x="730.38" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionRspace</text>
-</a>
-</g>
-</g>
-<!-- vm.Session&#45;&gt;vm.SessionRspace -->
-<g id="edge6" class="edge">
-<title>vm.Session-&gt;vm.SessionRspace</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M434.78,-72.91C437.67,-72.06 440.56,-71.27 443.38,-70.56 538.64,-46.71 565.09,-53.85 661.38,-34.56 664.27,-33.98 667.23,-33.37 670.22,-32.73"/>
-</g>
-<!-- vm.Equipment -->
-<g id="node5" class="node">
-<title>vm.Equipment</title>
-<g id="a_node5"><a xlink:title="scanner              ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="544.62,-105.12 452.12,-105.12 452.12,-70.56 544.62,-70.56 544.62,-105.12"/>
-<text text-anchor="start" x="460.12" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Equipment</text>
-</a>
-</g>
-</g>
-<!-- vm.Location -->
-<g id="node7" class="node">
-<title>vm.Location</title>
-<g id="a_node7"><a xlink:title="location             ------------------------------location_full=&quot;&quot;     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="643.62,-105.12 563.12,-105.12 563.12,-70.56 643.62,-70.56 643.62,-105.12"/>
-<text text-anchor="start" x="571.12" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Location</text>
+<g id="a_node2"><a xlink:title="→ vm.Session→ `roselab_subject`.`#user`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="104,-35 0,-35 0,0 104,0 104,-35"/>
+<text text-anchor="middle" x="52" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionUser</text>
 </a>
 </g>
 </g>
 <!-- vm.SessionSite -->
-<g id="node9" class="node">
+<g id="node3" class="node">
 <title>vm.SessionSite</title>
-<g id="a_node9"><a xlink:title="same_site_id         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="115,-105.12 15.75,-105.12 15.75,-70.56 115,-70.56 115,-105.12"/>
-<text text-anchor="start" x="23.75" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.SessionSite</text>
+<g id="a_node3"><a xlink:title="same_site_id         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="778,-106 678,-106 678,-71 778,-71 778,-106"/>
+<text text-anchor="start" x="686" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.SessionSite</text>
+</a>
+</g>
+</g>
+<!-- vm.SessionSameSite -->
+<g id="node6" class="node">
+<title>vm.SessionSameSite</title>
+<g id="a_node6"><a xlink:title="→ vm.Session------------------------------→ vm.SessionSite">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="793.5,-35 662.5,-35 662.5,0 793.5,0 793.5,-35"/>
+<text text-anchor="middle" x="728" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionSameSite</text>
 </a>
 </g>
 </g>
 <!-- vm.SessionSite&#45;&gt;vm.SessionSameSite -->
-<g id="edge7" class="edge">
+<g id="edge1" class="edge">
 <title>vm.SessionSite-&gt;vm.SessionSameSite</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M65.38,-70.24C65.38,-59.46 65.38,-45.47 65.38,-34.72"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M728,-70.8C728,-59.95 728,-45.87 728,-35.05"/>
+</g>
+<!-- vm.ProjectSession -->
+<g id="node4" class="node">
+<title>vm.ProjectSession</title>
+<g id="a_node4"><a xlink:title="→ `roselab_subject`.`#project`→ vm.Session">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="238,-35 122,-35 122,0 238,0 238,-35"/>
+<text text-anchor="middle" x="180" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ProjectSession</text>
+</a>
+</g>
+</g>
+<!-- vm.SessionRspace -->
+<g id="node5" class="node">
+<title>vm.SessionRspace</title>
+<g id="a_node5"><a xlink:title="→ vm.Session------------------------------rspace_id            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="376,-35 256,-35 256,0 376,0 376,-35"/>
+<text text-anchor="middle" x="316" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionRspace</text>
+</a>
+</g>
+</g>
+<!-- vm.SessionDirectory -->
+<g id="node7" class="node">
+<title>vm.SessionDirectory</title>
+<g id="a_node7"><a xlink:title="→ vm.Session------------------------------session_dir          → `roselab_subject`.`#user`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="521.5,-35 394.5,-35 394.5,0 521.5,0 521.5,-35"/>
+<text text-anchor="middle" x="458" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionDirectory</text>
+</a>
+</g>
+</g>
+<!-- vm.Location -->
+<g id="node8" class="node">
+<title>vm.Location</title>
+<g id="a_node8"><a xlink:title="location             ------------------------------location_full=&quot;&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="877.5,-106 796.5,-106 796.5,-71 877.5,-71 877.5,-106"/>
+<text text-anchor="start" x="804.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Location</text>
+</a>
+</g>
+</g>
+<!-- vm.SessionNote -->
+<g id="node9" class="node">
+<title>vm.SessionNote</title>
+<g id="a_node9"><a xlink:title="→ vm.Session------------------------------session_note         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="644,-35 540,-35 540,0 644,0 644,-35"/>
+<text text-anchor="middle" x="592" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SessionNote</text>
+</a>
+</g>
+</g>
+<!-- vm.Session -->
+<g id="node10" class="node">
+<title>vm.Session</title>
+<g id="a_node10"><a xlink:title="session_id           ------------------------------→ `roselab_subject`.`subject`session_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="426.5,-106 347.5,-106 347.5,-71 426.5,-71 426.5,-106"/>
+<text text-anchor="start" x="355.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Session</text>
+</a>
+</g>
+</g>
+<!-- vm.Session&#45;&gt;vm.SessionUser -->
+<g id="edge2" class="edge">
+<title>vm.Session-&gt;vm.SessionUser</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M347.32,-73.52C344.18,-72.61 341.05,-71.75 338,-71 239.67,-46.76 212.02,-56.25 113,-35 110.1,-34.38 107.14,-33.7 104.16,-33"/>
+</g>
+<!-- vm.Session&#45;&gt;vm.ProjectSession -->
+<g id="edge3" class="edge">
+<title>vm.Session-&gt;vm.ProjectSession</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M347.42,-74.16C344.24,-73.09 341.06,-72.03 338,-71 301.82,-58.9 260.94,-45.32 229.83,-35"/>
+</g>
+<!-- vm.Session&#45;&gt;vm.SessionRspace -->
+<g id="edge4" class="edge">
+<title>vm.Session-&gt;vm.SessionRspace</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M369.81,-70.8C358.65,-59.95 344.16,-45.87 333.03,-35.05"/>
+</g>
+<!-- vm.Session&#45;&gt;vm.SessionSameSite -->
+<g id="edge5" class="edge">
+<title>vm.Session-&gt;vm.SessionSameSite</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M426.71,-79.94C478.75,-69.97 572.82,-51.73 653,-35 656,-34.37 659.07,-33.73 662.17,-33.07"/>
+</g>
+<!-- vm.Session&#45;&gt;vm.SessionDirectory -->
+<g id="edge6" class="edge">
+<title>vm.Session-&gt;vm.SessionDirectory</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M404.19,-70.8C415.35,-59.95 429.84,-45.87 440.97,-35.05"/>
+</g>
+<!-- vm.Session&#45;&gt;vm.SessionNote -->
+<g id="edge7" class="edge">
+<title>vm.Session-&gt;vm.SessionNote</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M426.53,-74.2C459.69,-63.04 507.2,-47.04 542.82,-35.05"/>
 </g>
 </g>
 </svg>

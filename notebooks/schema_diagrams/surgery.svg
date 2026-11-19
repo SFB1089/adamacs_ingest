@@ -1,149 +1,150 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="597pt" height="184pt" viewBox="0.00 0.00 596.50 183.68">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 179.68)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-179.68 592.5,-179.68 592.5,4 -4,4"/>
-<!-- vm.SurgeryNote -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="612pt" height="185pt" viewBox="0.00 0.00 611.50 185.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 181)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-181 607.5,-181 607.5,4 -4,4"/>
+<!-- vm.CranialWindow -->
 <g id="node1" class="node">
-<title>vm.SurgeryNote</title>
-<g id="a_node1"><a xlink:title="→ vm.Surgery------------------------------note                 ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="294,-34.56 191.75,-34.56 191.75,0 294,0 294,-34.56"/>
-<text text-anchor="middle" x="242.88" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.SurgeryNote</text>
+<title>vm.CranialWindow</title>
+<g id="a_node1"><a xlink:title="→ vm.Surgery------------------------------time                 → vm.AnatomicalLocation">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="129.5,-35 11.5,-35 11.5,0 129.5,0 129.5,-35"/>
+<text text-anchor="middle" x="70.5" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.CranialWindow</text>
 </a>
 </g>
 </g>
-<!-- vm.Analgesia -->
+<!-- vm.Coordinates -->
 <g id="node2" class="node">
-<title>vm.Analgesia</title>
-<g id="a_node2"><a xlink:title="analgesia            ------------------------------long_name            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="568.25,-175.68 479.5,-175.68 479.5,-141.12 568.25,-141.12 568.25,-175.68"/>
-<text text-anchor="start" x="487.5" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Analgesia</text>
-</a>
-</g>
-</g>
-<!-- vm.AnalgesiaSubject -->
-<g id="node11" class="node">
-<title>vm.AnalgesiaSubject</title>
-<g id="a_node11"><a xlink:title="→ vm.Analgesia→ `roselab_subject`.`subject`datetime             ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="588.5,-105.12 459.25,-105.12 459.25,-70.56 588.5,-70.56 588.5,-105.12"/>
-<text text-anchor="start" x="467.25" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AnalgesiaSubject</text>
-</a>
-</g>
-</g>
-<!-- vm.Analgesia&#45;&gt;vm.AnalgesiaSubject -->
-<g id="edge1" class="edge">
-<title>vm.Analgesia-&gt;vm.AnalgesiaSubject</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M523.88,-140.8C523.88,-130.02 523.88,-116.03 523.88,-105.28"/>
-</g>
-<!-- vm.Virus -->
-<g id="node3" class="node">
-<title>vm.Virus</title>
-<g id="a_node3"><a xlink:title="name                 serotype             ------------------------------long_name            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="61.75,-105.12 0,-105.12 0,-70.56 61.75,-70.56 61.75,-105.12"/>
-<text text-anchor="start" x="8" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Virus</text>
+<title>vm.Coordinates</title>
+<g id="a_node2"><a xlink:title="injection_location   ------------------------------ap_coordinate        ml_coordinate        dv_coordinate        description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="455,-106 354,-106 354,-71 455,-71 455,-106"/>
+<text text-anchor="start" x="362" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Coordinates</text>
 </a>
 </g>
 </g>
 <!-- vm.ViralInjection -->
-<g id="node5" class="node">
+<g id="node10" class="node">
 <title>vm.ViralInjection</title>
-<g id="a_node5"><a xlink:title="→ vm.Surgery→ vm.Virus→ vm.Coordinates------------------------------datetime             volume               ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="173.75,-34.56 70,-34.56 70,0 173.75,0 173.75,-34.56"/>
-<text text-anchor="middle" x="121.88" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.ViralInjection</text>
-</a>
-</g>
-</g>
-<!-- vm.Virus&#45;&gt;vm.ViralInjection -->
-<g id="edge2" class="edge">
-<title>vm.Virus-&gt;vm.ViralInjection</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M52.9,-70.24C67.11,-59.54 85.51,-45.68 99.73,-34.96"/>
-</g>
-<!-- vm.Anesthesia -->
-<g id="node4" class="node">
-<title>vm.Anesthesia</title>
-<g id="a_node4"><a xlink:title="anesthesia           ------------------------------long_name            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="235.25,-175.68 140.5,-175.68 140.5,-141.12 235.25,-141.12 235.25,-175.68"/>
-<text text-anchor="start" x="148.5" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Anesthesia</text>
-</a>
-</g>
-</g>
-<!-- vm.Surgery -->
-<g id="node6" class="node">
-<title>vm.Surgery</title>
-<g id="a_node6"><a xlink:title="→ `roselab_subject`.`subject`date                 ------------------------------weight               → `roselab_subject`.`#user`→ vm.Anesthesiaanesthesia_time      anesthesis_volume    → vm.Antagonistantagonist_time      antagonist_volume    ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="281.25,-105.12 204.5,-105.12 204.5,-70.56 281.25,-70.56 281.25,-105.12"/>
-<text text-anchor="start" x="212.5" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Surgery</text>
-</a>
-</g>
-</g>
-<!-- vm.Anesthesia&#45;&gt;vm.Surgery -->
-<g id="edge3" class="edge">
-<title>vm.Anesthesia-&gt;vm.Surgery</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M201.19,-140.8C209.84,-130.02 221.06,-116.03 229.68,-105.28"/>
-</g>
-<!-- vm.Surgery&#45;&gt;vm.SurgeryNote -->
-<g id="edge4" class="edge">
-<title>vm.Surgery-&gt;vm.SurgeryNote</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M242.88,-70.24C242.88,-59.46 242.88,-45.47 242.88,-34.72"/>
-</g>
-<!-- vm.Surgery&#45;&gt;vm.ViralInjection -->
-<g id="edge5" class="edge">
-<title>vm.Surgery-&gt;vm.ViralInjection</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M213.28,-70.07C194.38,-59.36 170,-45.55 151.17,-34.88"/>
-</g>
-<!-- vm.CranialWindow -->
-<g id="node8" class="node">
-<title>vm.CranialWindow</title>
-<g id="a_node8"><a xlink:title="→ vm.Surgery------------------------------time                 → vm.AnatomicalLocation">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="429.5,-34.56 312.25,-34.56 312.25,0 429.5,0 429.5,-34.56"/>
-<text text-anchor="middle" x="370.88" y="-13.01" font-family="arial" font-size="12.00" fill="darkgreen">vm.CranialWindow</text>
-</a>
-</g>
-</g>
-<!-- vm.Surgery&#45;&gt;vm.CranialWindow -->
-<g id="edge6" class="edge">
-<title>vm.Surgery-&gt;vm.CranialWindow</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M274.19,-70.07C294.17,-59.36 319.97,-45.55 339.89,-34.88"/>
-</g>
-<!-- vm.AnatomicalLocation -->
-<g id="node7" class="node">
-<title>vm.AnatomicalLocation</title>
-<g id="a_node7"><a xlink:title="anatomical_location  ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="441.12,-105.12 300.62,-105.12 300.62,-70.56 441.12,-70.56 441.12,-105.12"/>
-<text text-anchor="start" x="308.62" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AnatomicalLocation</text>
-</a>
-</g>
-</g>
-<!-- vm.AnatomicalLocation&#45;&gt;vm.CranialWindow -->
-<g id="edge7" class="edge">
-<title>vm.AnatomicalLocation-&gt;vm.CranialWindow</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M370.88,-70.24C370.88,-59.46 370.88,-45.47 370.88,-34.72"/>
-</g>
-<!-- vm.Coordinates -->
-<g id="node9" class="node">
-<title>vm.Coordinates</title>
-<g id="a_node9"><a xlink:title="injection_location   ------------------------------ap_coordinate        ml_coordinate        dv_coordinate        description=&quot;&quot;       ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="179.88,-105.12 79.88,-105.12 79.88,-70.56 179.88,-70.56 179.88,-105.12"/>
-<text text-anchor="start" x="87.88" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Coordinates</text>
+<g id="a_node10"><a xlink:title="→ vm.Surgery→ vm.Virus→ vm.Coordinates------------------------------datetime             volume               ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="373.5,-35 269.5,-35 269.5,0 373.5,0 373.5,-35"/>
+<text text-anchor="middle" x="321.5" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ViralInjection</text>
 </a>
 </g>
 </g>
 <!-- vm.Coordinates&#45;&gt;vm.ViralInjection -->
-<g id="edge8" class="edge">
+<g id="edge1" class="edge">
 <title>vm.Coordinates-&gt;vm.ViralInjection</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M127.94,-70.24C126.68,-59.46 125.05,-45.47 123.79,-34.72"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M384.41,-70.8C371.36,-59.95 354.42,-45.87 341.41,-35.05"/>
+</g>
+<!-- vm.Analgesia -->
+<g id="node3" class="node">
+<title>vm.Analgesia</title>
+<g id="a_node3"><a xlink:title="analgesia            ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="583,-177 494,-177 494,-142 583,-142 583,-177"/>
+<text text-anchor="start" x="502" y="-157.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Analgesia</text>
+</a>
+</g>
+</g>
+<!-- vm.AnalgesiaSubject -->
+<g id="node9" class="node">
+<title>vm.AnalgesiaSubject</title>
+<g id="a_node9"><a xlink:title="→ vm.Analgesia→ `roselab_subject`.`subject`datetime             ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="603.5,-106 473.5,-106 473.5,-71 603.5,-71 603.5,-106"/>
+<text text-anchor="start" x="481.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AnalgesiaSubject</text>
+</a>
+</g>
+</g>
+<!-- vm.Analgesia&#45;&gt;vm.AnalgesiaSubject -->
+<g id="edge2" class="edge">
+<title>vm.Analgesia-&gt;vm.AnalgesiaSubject</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M538.5,-141.8C538.5,-130.95 538.5,-116.87 538.5,-106.05"/>
+</g>
+<!-- vm.Virus -->
+<g id="node4" class="node">
+<title>vm.Virus</title>
+<g id="a_node4"><a xlink:title="name                 serotype             ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="335.5,-106 273.5,-106 273.5,-71 335.5,-71 335.5,-106"/>
+<text text-anchor="start" x="281.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Virus</text>
+</a>
+</g>
+</g>
+<!-- vm.Virus&#45;&gt;vm.ViralInjection -->
+<g id="edge3" class="edge">
+<title>vm.Virus-&gt;vm.ViralInjection</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M308.62,-70.8C311.29,-59.95 314.76,-45.87 317.42,-35.05"/>
+</g>
+<!-- vm.AnatomicalLocation -->
+<g id="node5" class="node">
+<title>vm.AnatomicalLocation</title>
+<g id="a_node5"><a xlink:title="anatomical_location  ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="141,-106 0,-106 0,-71 141,-71 141,-106"/>
+<text text-anchor="start" x="8" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AnatomicalLocation</text>
+</a>
+</g>
+</g>
+<!-- vm.AnatomicalLocation&#45;&gt;vm.CranialWindow -->
+<g id="edge4" class="edge">
+<title>vm.AnatomicalLocation-&gt;vm.CranialWindow</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M70.5,-70.8C70.5,-59.95 70.5,-45.87 70.5,-35.05"/>
+</g>
+<!-- vm.Anesthesia -->
+<g id="node6" class="node">
+<title>vm.Anesthesia</title>
+<g id="a_node6"><a xlink:title="anesthesia           ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="191,-177 96,-177 96,-142 191,-142 191,-177"/>
+<text text-anchor="start" x="104" y="-157.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Anesthesia</text>
+</a>
+</g>
+</g>
+<!-- vm.Surgery -->
+<g id="node11" class="node">
+<title>vm.Surgery</title>
+<g id="a_node11"><a xlink:title="→ `roselab_subject`.`subject`date                 ------------------------------weight               → `roselab_subject`.`#user`→ vm.Anesthesiaanesthesia_time      anesthesis_volume    → vm.Antagonistantagonist_time      antagonist_volume    ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="238,-106 161,-106 161,-71 238,-71 238,-106"/>
+<text text-anchor="start" x="169" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Surgery</text>
+</a>
+</g>
+</g>
+<!-- vm.Anesthesia&#45;&gt;vm.Surgery -->
+<g id="edge5" class="edge">
+<title>vm.Anesthesia-&gt;vm.Surgery</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M157.06,-141.8C165.86,-130.95 177.29,-116.87 186.07,-106.05"/>
 </g>
 <!-- vm.Antagonist -->
-<g id="node10" class="node">
+<g id="node7" class="node">
 <title>vm.Antagonist</title>
-<g id="a_node10"><a xlink:title="antagonist           ------------------------------long_name            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="344.75,-175.68 253,-175.68 253,-141.12 344.75,-141.12 344.75,-175.68"/>
-<text text-anchor="start" x="261" y="-155.12" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Antagonist</text>
+<g id="a_node7"><a xlink:title="antagonist           ------------------------------long_name            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="301.5,-177 209.5,-177 209.5,-142 301.5,-142 301.5,-177"/>
+<text text-anchor="start" x="217.5" y="-157.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Antagonist</text>
 </a>
 </g>
 </g>
 <!-- vm.Antagonist&#45;&gt;vm.Surgery -->
-<g id="edge9" class="edge">
+<g id="edge6" class="edge">
 <title>vm.Antagonist-&gt;vm.Surgery</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M285.32,-140.8C276.51,-130.02 265.09,-116.03 256.31,-105.28"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M241.94,-141.8C233.14,-130.95 221.71,-116.87 212.93,-106.05"/>
+</g>
+<!-- vm.SurgeryNote -->
+<g id="node8" class="node">
+<title>vm.SurgeryNote</title>
+<g id="a_node8"><a xlink:title="→ vm.Surgery------------------------------note                 ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="251,-35 148,-35 148,0 251,0 251,-35"/>
+<text text-anchor="middle" x="199.5" y="-14.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.SurgeryNote</text>
+</a>
+</g>
+</g>
+<!-- vm.Surgery&#45;&gt;vm.CranialWindow -->
+<g id="edge7" class="edge">
+<title>vm.Surgery-&gt;vm.CranialWindow</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M168.6,-70.97C148.33,-60.13 121.91,-46 101.59,-35.13"/>
+</g>
+<!-- vm.Surgery&#45;&gt;vm.SurgeryNote -->
+<g id="edge8" class="edge">
+<title>vm.Surgery-&gt;vm.SurgeryNote</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M199.5,-70.8C199.5,-59.95 199.5,-45.87 199.5,-35.05"/>
+</g>
+<!-- vm.Surgery&#45;&gt;vm.ViralInjection -->
+<g id="edge9" class="edge">
+<title>vm.Surgery-&gt;vm.ViralInjection</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M228.72,-70.97C247.9,-60.13 272.88,-46 292.09,-35.13"/>
 </g>
 </g>
 </svg>

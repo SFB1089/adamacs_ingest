@@ -151,8 +151,11 @@ notebook's parameter cell:
 ## Schemas
 
 All production schemas use the prefix `roselab_`.
-* The diagrams below are generated from the **live database**, read-only, by `scripts/draw_schema_diagrams.py`.
-  `cell_registration` and `responsiveness` also have diagrams parsed from their source files.
+* Every schema is shown in the **standard DataJoint view**, generated from the **live database**, read-only, by
+  `scripts/draw_schema_diagrams.py`. `responsiveness` is not deployed; its standard view comes from its pilot schema
+  `tobiasr_responsiveness_v8`. `cell_registration` and `responsiveness` also have diagrams parsed from their source.
+* `notebooks/21_schema_dependency_diagrams.ipynb` shows the same schemas with one level of neighbouring tables and a
+  description of each.
 * In the per-schema diagrams:
   * grey = Lookup, green = Manual, blue = Imported, red = Computed, plain text = Part;
   * solid lines = foreign key in the primary key, dashed = secondary foreign key;
@@ -180,7 +183,7 @@ subject.Subject ─► session.Session (session_id) ─► scan.Scan (scan_id) �
 | `session` | `element_session` (`session_with_id`) | sessions, users, directories, notes, **same-site groups** (`SessionSite`, `SessionSameSite`) |
 | `equipment` | `adamacs/schemas/equipment.py` | rigs and devices |
 | `scan` | `element_calcium_imaging.scan` (fork) | scans, scan metadata, paths, channels |
-| `imaging` | `element_calcium_imaging.imaging` (fork) | suite2p/CaImAn processing, curation, segmentation, fluorescence, activity, **stored dF/F0**, CASCADE |
+| `imaging` | `element_calcium_imaging.imaging` (fork) | suite2p/CaImAn processing, curation, segmentation, fluorescence, activity, **stored dF/F0**, CASCADE, **ROI QC** |
 | `train`, `model` | `element_deeplabcut` | DLC model training and pose estimation (`*New` chain is scan-keyed and worker-populated) |
 | `event`, `trial` | `element_event` (fork) | behaviour recordings, events (≈ 1 billion rows), trials, trial attributes |
 | `behavior` | `adamacs/schemas/behavior.py` | HARP, treadmill, synchronised behaviour streams |
@@ -192,7 +195,7 @@ subject.Subject ─► session.Session (session_id) ─► scan.Scan (scan_id) �
 | `wfield` | `adamacs/schemas/wfield.py` | widefield imaging: registration, SVD, CCF alignment, region activity |
 | `cell_registration` | `adamacs/schemas/cell_registration.py` | **cross-session cell identity (CellReg)**, live since 2026-10-20 |
 | `ingest` | `adamacs/schemas/ingest.py` | ingest run log |
-| `responsiveness` | `adamacs/schemas/responsiveness.py` | QC, stimulus responsiveness (ZETA, PSTH read-outs), grating tuning, cell rules. **Piloted, not deployed.** |
+| `responsiveness` | `adamacs/schemas/responsiveness.py` | QC, stimulus timing, PSTH read-outs, ZETA per read-out epoch, grating tuning, cell rules. **Piloted (`tobiasr_responsiveness_v8`), not deployed.** |
 
 Project schemas that live elsewhere (for example `roselab_leondrift`, the drift project) are not documented here.
 Several empty `roselab_*` schemas with truncated names (`roselab_imagin`, `roselab_imaging__activit`, …) are
@@ -460,7 +463,13 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
   0.955–0.991), read-out 2 and `DirectionTuning` reproduce the audit's grating export and tuning.
 * **`activate()` refuses** an `imaging` schema that lacks `Dff0`.
 
-![responsiveness](notebooks/schema_diagrams/responsiveness_v8.svg)
+Standard view, from the pilot schema `tobiasr_responsiveness_v8`:
+
+![responsiveness](notebooks/schema_diagrams/responsiveness.svg)
+
+Diagram parsed from the design document, with the production tables it references:
+
+![responsiveness design](notebooks/schema_diagrams/responsiveness_v8.svg)
 
 ### `ingest`
 `IngestRun`: one row per ingest run (who, where, from which commit, how it ended).
@@ -476,7 +485,7 @@ python ~/adamacs_ingest/scripts/draw_schema_diagrams.py
 ```
 
 The script is read-only: it sets `transaction_read_only` and uses virtual modules, and it never imports
-`adamacs.pipeline`. Only `notebooks/schema_diagrams/*.svg` is tracked; other `*.svg` / `*.png` are git-ignored.
+`adamacs.pipeline`. Piloted schemas are drawn from their test schema (`PILOT_SCHEMAS` in the script). Only `notebooks/schema_diagrams/*.svg` is tracked; other `*.svg` / `*.png` are git-ignored.
 Troubleshooting: `docs/DIAGRAM_SETUP.md`.
 
 ---

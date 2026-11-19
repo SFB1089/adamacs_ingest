@@ -1,123 +1,124 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="631pt" height="169pt" viewBox="0.00 0.00 631.28 169.12">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 165.12)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-165.12 627.28,-165.12 627.28,4 -4,4"/>
-<!-- vm.CamSyncDevice -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="616pt" height="169pt" viewBox="0.00 0.00 616.00 169.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 165)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-165 612,-165 612,4 -4,4"/>
+<!-- vm.TreadmillDevice -->
 <g id="node1" class="node">
-<title>vm.CamSyncDevice</title>
-<g id="a_node1"><a xlink:title="camsync_device_id    ------------------------------camsync_device_name  camsync_device_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="146.65,-161.12 39.9,-161.12 39.9,-126.56 146.65,-126.56 146.65,-161.12"/>
-<text text-anchor="start" x="47.9" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.CamSyncDevice</text>
+<title>vm.TreadmillDevice</title>
+<g id="a_node1"><a xlink:title="treadmill_device_id  ------------------------------treadmill_device_name treadmill_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="139.5,-161 35.5,-161 35.5,-126 139.5,-126 139.5,-161"/>
+<text text-anchor="start" x="43.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.TreadmillDevice</text>
 </a>
 </g>
 </g>
-<!-- vm.CamSyncRecording -->
-<g id="node6" class="node">
-<title>vm.CamSyncRecording</title>
-<g id="a_node6"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.CamSyncDevice">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="93.28" cy="-73.28" rx="93.28" ry="17.28"/>
-<text text-anchor="middle" x="93.28" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.CamSyncRecording</text>
+<!-- vm.TreadmillRecording -->
+<g id="node4" class="node">
+<title>vm.TreadmillRecording</title>
+<g id="a_node4"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.TreadmillDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="87.5" cy="-72.5" rx="87.5" ry="17.5"/>
+<text text-anchor="middle" x="87.5" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.TreadmillRecording</text>
 </a>
 </g>
 </g>
-<!-- vm.CamSyncDevice&#45;&gt;vm.CamSyncRecording -->
+<!-- vm.TreadmillDevice&#45;&gt;vm.TreadmillRecording -->
 <g id="edge1" class="edge">
-<title>vm.CamSyncDevice-&gt;vm.CamSyncRecording</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M93.28,-126.59C93.28,-115.82 93.28,-101.73 93.28,-90.89"/>
-</g>
-<!-- vm.HarpRecording.Channel -->
-<g id="node2" class="node">
-<title>vm.HarpRecording.Channel</title>
-<g id="a_node2"><a xlink:title="→ vm.HarpRecordingchannel_name         ------------------------------data=null            time=null            ">
-<polygon fill="none" stroke="none" points="348.65,-20 211.9,-20 211.9,0 348.65,0 348.65,-20"/>
-<text text-anchor="start" x="219.9" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.HarpRecording.Channel</text>
-</a>
-</g>
-</g>
-<!-- vm.TreadmillRecording.Channel -->
-<g id="node3" class="node">
-<title>vm.TreadmillRecording.Channel</title>
-<g id="a_node3"><a xlink:title="→ vm.TreadmillRecordingchannel_name         ------------------------------data=null            time=null            ">
-<polygon fill="none" stroke="none" points="543.03,-20 387.53,-20 387.53,0 543.03,0 543.03,-20"/>
-<text text-anchor="start" x="395.53" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.TreadmillRecording.Channel</text>
-</a>
-</g>
+<title>vm.TreadmillDevice-&gt;vm.TreadmillRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M87.5,-125.8C87.5,-114.95 87.5,-100.87 87.5,-90.05"/>
 </g>
 <!-- vm.HarpDevice -->
-<g id="node4" class="node">
+<g id="node2" class="node">
 <title>vm.HarpDevice</title>
-<g id="a_node4"><a xlink:title="harp_device_id       ------------------------------harp_device_name     harp_device_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="322.4,-161.12 238.15,-161.12 238.15,-126.56 322.4,-126.56 322.4,-161.12"/>
-<text text-anchor="start" x="246.15" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.HarpDevice</text>
+<g id="a_node2"><a xlink:title="harp_device_id       ------------------------------harp_device_name     harp_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="309,-161 224,-161 224,-126 309,-126 309,-161"/>
+<text text-anchor="start" x="232" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.HarpDevice</text>
 </a>
 </g>
 </g>
 <!-- vm.HarpRecording -->
-<g id="node7" class="node">
+<g id="node3" class="node">
 <title>vm.HarpRecording</title>
-<g id="a_node7"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.HarpDevice">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="280.28" cy="-73.28" rx="76.13" ry="17.28"/>
-<text text-anchor="middle" x="280.28" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.HarpRecording</text>
+<g id="a_node3"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.HarpDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="266.5" cy="-72.5" rx="73.25" ry="17.5"/>
+<text text-anchor="middle" x="266.5" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.HarpRecording</text>
 </a>
 </g>
 </g>
 <!-- vm.HarpDevice&#45;&gt;vm.HarpRecording -->
 <g id="edge2" class="edge">
 <title>vm.HarpDevice-&gt;vm.HarpRecording</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M280.28,-126.59C280.28,-115.82 280.28,-101.73 280.28,-90.89"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M266.5,-125.8C266.5,-114.95 266.5,-100.87 266.5,-90.05"/>
 </g>
-<!-- vm.CamSyncRecording.Channel -->
-<g id="node5" class="node">
-<title>vm.CamSyncRecording.Channel</title>
-<g id="a_node5"><a xlink:title="→ vm.CamSyncRecordingchannel_name         ------------------------------data=null            time=null            ">
-<polygon fill="none" stroke="none" points="172.9,-20 13.65,-20 13.65,0 172.9,0 172.9,-20"/>
-<text text-anchor="start" x="21.65" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.CamSyncRecording.Channel</text>
+<!-- vm.HarpRecording.Channel -->
+<g id="node6" class="node">
+<title>vm.HarpRecording.Channel</title>
+<g id="a_node6"><a xlink:title="→ vm.HarpRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="transparent" stroke="transparent" points="335,-19 198,-19 198,0 335,0 335,-19"/>
+<text text-anchor="start" x="206" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.HarpRecording.Channel</text>
 </a>
 </g>
 </g>
-<!-- vm.CamSyncRecording&#45;&gt;vm.CamSyncRecording.Channel -->
-<g id="edge3" class="edge">
-<title>vm.CamSyncRecording-&gt;vm.CamSyncRecording.Channel</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M93.28,-55.53C93.28,-44.05 93.28,-29.27 93.28,-19.96"/>
-</g>
 <!-- vm.HarpRecording&#45;&gt;vm.HarpRecording.Channel -->
-<g id="edge4" class="edge">
+<g id="edge3" class="edge">
 <title>vm.HarpRecording-&gt;vm.HarpRecording.Channel</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M280.28,-55.53C280.28,-44.05 280.28,-29.27 280.28,-19.96"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M266.5,-54.83C266.5,-43.26 266.5,-28.32 266.5,-19.08"/>
 </g>
-<!-- vm.TreadmillRecording -->
-<g id="node8" class="node">
-<title>vm.TreadmillRecording</title>
-<g id="a_node8"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.TreadmillDevice">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="465.28" cy="-73.28" rx="91.32" ry="17.28"/>
-<text text-anchor="middle" x="465.28" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.TreadmillRecording</text>
+<!-- vm.TreadmillRecording.Channel -->
+<g id="node10" class="node">
+<title>vm.TreadmillRecording.Channel</title>
+<g id="a_node10"><a xlink:title="→ vm.TreadmillRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="transparent" stroke="transparent" points="165.5,-19 9.5,-19 9.5,0 165.5,0 165.5,-19"/>
+<text text-anchor="start" x="17.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.TreadmillRecording.Channel</text>
 </a>
 </g>
 </g>
 <!-- vm.TreadmillRecording&#45;&gt;vm.TreadmillRecording.Channel -->
-<g id="edge5" class="edge">
+<g id="edge4" class="edge">
 <title>vm.TreadmillRecording-&gt;vm.TreadmillRecording.Channel</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M465.28,-55.53C465.28,-44.05 465.28,-29.27 465.28,-19.96"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M87.5,-54.83C87.5,-43.26 87.5,-28.32 87.5,-19.08"/>
 </g>
-<!-- vm.TreadmillDevice -->
-<g id="node9" class="node">
-<title>vm.TreadmillDevice</title>
-<g id="a_node9"><a xlink:title="treadmill_device_id  ------------------------------treadmill_device_name treadmill_device_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="516.78,-161.12 413.78,-161.12 413.78,-126.56 516.78,-126.56 516.78,-161.12"/>
-<text text-anchor="start" x="421.78" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.TreadmillDevice</text>
+<!-- vm.CamSyncDevice -->
+<g id="node5" class="node">
+<title>vm.CamSyncDevice</title>
+<g id="a_node5"><a xlink:title="camsync_device_id    ------------------------------camsync_device_name  camsync_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="501,-161 394,-161 394,-126 501,-126 501,-161"/>
+<text text-anchor="start" x="402" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.CamSyncDevice</text>
 </a>
 </g>
 </g>
-<!-- vm.TreadmillDevice&#45;&gt;vm.TreadmillRecording -->
+<!-- vm.CamSyncRecording -->
+<g id="node8" class="node">
+<title>vm.CamSyncRecording</title>
+<g id="a_node8"><a xlink:title="→ `roselab_event`.`behavior_recording`→ vm.CamSyncDevice">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="447.5" cy="-72.5" rx="89.25" ry="17.5"/>
+<text text-anchor="middle" x="447.5" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.CamSyncRecording</text>
+</a>
+</g>
+</g>
+<!-- vm.CamSyncDevice&#45;&gt;vm.CamSyncRecording -->
+<g id="edge5" class="edge">
+<title>vm.CamSyncDevice-&gt;vm.CamSyncRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M447.5,-125.8C447.5,-114.95 447.5,-100.87 447.5,-90.05"/>
+</g>
+<!-- vm.CamSyncRecording.Channel -->
+<g id="node7" class="node">
+<title>vm.CamSyncRecording.Channel</title>
+<g id="a_node7"><a xlink:title="→ vm.CamSyncRecordingchannel_name         ------------------------------data=null            time=null            ">
+<polygon fill="transparent" stroke="transparent" points="527.5,-19 367.5,-19 367.5,0 527.5,0 527.5,-19"/>
+<text text-anchor="start" x="375.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.CamSyncRecording.Channel</text>
+</a>
+</g>
+</g>
+<!-- vm.CamSyncRecording&#45;&gt;vm.CamSyncRecording.Channel -->
 <g id="edge6" class="edge">
-<title>vm.TreadmillDevice-&gt;vm.TreadmillRecording</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M465.28,-126.59C465.28,-115.82 465.28,-101.73 465.28,-90.89"/>
+<title>vm.CamSyncRecording-&gt;vm.CamSyncRecording.Channel</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M447.5,-54.83C447.5,-43.26 447.5,-28.32 447.5,-19.08"/>
 </g>
 <!-- vm.AudioDevice -->
-<g id="node10" class="node">
+<g id="node9" class="node">
 <title>vm.AudioDevice</title>
-<g id="a_node10"><a xlink:title="audio_device_id      ------------------------------audio_device_name    harp_device_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="623.28,-161.12 535.28,-161.12 535.28,-126.56 623.28,-126.56 623.28,-161.12"/>
-<text text-anchor="start" x="543.28" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.AudioDevice</text>
+<g id="a_node9"><a xlink:title="audio_device_id      ------------------------------audio_device_name    harp_device_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="608,-161 519,-161 519,-126 608,-126 608,-161"/>
+<text text-anchor="start" x="527" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.AudioDevice</text>
 </a>
 </g>
 </g>
