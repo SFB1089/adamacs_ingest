@@ -459,7 +459,7 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
 * **Thresholds are rows** (`CellRule`) applied by query (`cells(rule)`). Standard rules: `gratings_cascade25`,
   `gratings_oasis` (read-out 16 p < 0.05, oracle >= 0.18) and `images_cascade25`, `images_oasis` (ZETA p < 0.05,
   oracle >= 0.08); oracle thresholds = 95th percentile of a label-shuffle null.
-* **Pilot:** `tobiasr_responsiveness_v7` and `_v8`, 10 recordings of 8 animals; ZETA agrees with the v1-drift-audit (rank r
+* **Pilot:** `tobiasr_responsiveness_v8` (v7 dropped 2026-11-19), 10 recordings of 8 animals; ZETA agrees with the v1-drift-audit (rank r
   0.955–0.991), read-out 2 and `DirectionTuning` reproduce the audit's grating export and tuning.
 * **`activate()` refuses** an `imaging` schema that lacks `Dff0`.
 
