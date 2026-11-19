@@ -1,88 +1,89 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="753pt" height="104pt" viewBox="0.00 0.00 753.00 104.48">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 100.48)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-100.48 749,-100.48 749,4 -4,4"/>
-<!-- vm.PseudoHeadRigidBodyTracking -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="758pt" height="105pt" viewBox="0.00 0.00 758.00 105.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 101)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-101 754,-101 754,4 -4,4"/>
+<!-- vm.PseudoHeadMarkerSet -->
 <g id="node1" class="node">
-<title>vm.PseudoHeadRigidBodyTracking</title>
-<g id="a_node1"><a xlink:title="→ `roselab_scan`.`scan`→ vm.PseudoHeadRigidBodyCalibration→ `roselab_mocap`.`motion_capture_task`------------------------------frame_index          timestamps           head_center_global   nose_global          left_ear_global      right_ear_global     yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  valid_mask           nose_local           left_ear_local       right_ear_local      calibration_valid_frames ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="110" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="110" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PseudoHeadRigidBodyTracking</text>
+<title>vm.PseudoHeadMarkerSet</title>
+<g id="a_node1"><a xlink:title="→ `roselab_mocap`.`motion_capture_task`reference_name       ------------------------------nose_marker          left_ear_marker      right_ear_marker     description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="161,-97 0,-97 0,-62 161,-62 161,-97"/>
+<text text-anchor="start" x="8" y="-77.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.PseudoHeadMarkerSet</text>
 </a>
 </g>
-</g>
-<!-- vm.EyeNoseCamPosCalib -->
-<g id="node2" class="node">
-<title>vm.EyeNoseCamPosCalib</title>
-<g id="a_node2"><a xlink:title="→ `roselab_subject`.`subject`------------------------------eye_left             eye_right            nose                 world_cam            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="502.62,-96.48 343.38,-96.48 343.38,-61.92 502.62,-61.92 502.62,-96.48"/>
-<text text-anchor="middle" x="423" y="-74.92" font-family="arial" font-size="12.00" fill="darkgreen">vm.EyeNoseCamPosCalib</text>
-</a>
-</g>
-</g>
-<!-- vm.RigidMouseTracking -->
-<g id="node5" class="node">
-<title>vm.RigidMouseTracking</title>
-<g id="a_node5"><a xlink:title="→ `roselab_scan`.`scan`→ vm.EyeNoseCamPosCalib→ `roselab_mocap`.`motion_capture_task`------------------------------pivot_eye_center_global yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_global      eye_right_global     nose_global          world_cam_global     ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="304" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="304" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.RigidMouseTracking</text>
-</a>
-</g>
-</g>
-<!-- vm.EyeNoseCamPosCalib&#45;&gt;vm.RigidMouseTracking -->
-<g id="edge1" class="edge">
-<title>vm.EyeNoseCamPosCalib-&gt;vm.RigidMouseTracking</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M392.04,-61.49C366.56,-47.73 331.93,-29.04 314.68,-19.73"/>
-</g>
-<!-- vm.RigidBodyTracking -->
-<g id="node7" class="node">
-<title>vm.RigidBodyTracking</title>
-<g id="a_node7"><a xlink:title="→ `roselab_mocap`.`__motion_capture__tracking_position`→ vm.EyeNoseCamPosCalib------------------------------pivot_eye_center_pos yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_pos         eye_right_pos        nose_pos             world_cam_pos        ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="463" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="463" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.RigidBodyTracking</text>
-</a>
-</g>
-</g>
-<!-- vm.EyeNoseCamPosCalib&#45;&gt;vm.RigidBodyTracking -->
-<g id="edge2" class="edge">
-<title>vm.EyeNoseCamPosCalib-&gt;vm.RigidBodyTracking</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M433.3,-61.66C440.71,-49.76 450.46,-34.1 456.73,-24.03"/>
-</g>
-<!-- vm.PseudoHeadRigidBodyCalibration -->
-<g id="node3" class="node">
-<title>vm.PseudoHeadRigidBodyCalibration</title>
-<g id="a_node3"><a xlink:title="calibration_name     ------------------------------calibration_session_id calibration_scan_id  rigid_marker_001=&quot;Rigid Shanrigid_marker_002=&quot;Rigid Shanrigid_marker_003=&quot;Rigid Shannose_marker          left_ear_marker      right_ear_marker     description=&quot;&quot;       ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="220,-96.48 0,-96.48 0,-61.92 220,-61.92 220,-96.48"/>
-<text text-anchor="start" x="8" y="-75.92" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.PseudoHeadRigidBodyCalibration</text>
-</a>
-</g>
-</g>
-<!-- vm.PseudoHeadRigidBodyCalibration&#45;&gt;vm.PseudoHeadRigidBodyTracking -->
-<g id="edge3" class="edge">
-<title>vm.PseudoHeadRigidBodyCalibration-&gt;vm.PseudoHeadRigidBodyTracking</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M110,-61.66C110,-50.36 110,-35.66 110,-25.58"/>
 </g>
 <!-- vm.PseudoHeadTracking -->
-<g id="node4" class="node">
+<g id="node5" class="node">
 <title>vm.PseudoHeadTracking</title>
-<g id="a_node4"><a xlink:title="→ vm.PseudoHeadMarkerSet------------------------------frame_index          timestamps           head_center_global   nose_global          left_ear_global      right_ear_global     yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  valid_mask           ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="665" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="665" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PseudoHeadTracking</text>
-</a>
-</g>
-</g>
-<!-- vm.PseudoHeadMarkerSet -->
-<g id="node6" class="node">
-<title>vm.PseudoHeadMarkerSet</title>
-<g id="a_node6"><a xlink:title="→ `roselab_mocap`.`motion_capture_task`reference_name       ------------------------------nose_marker          left_ear_marker      right_ear_marker     description=&quot;&quot;       ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="745,-96.48 585,-96.48 585,-61.92 745,-61.92 745,-96.48"/>
-<text text-anchor="start" x="593" y="-75.92" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.PseudoHeadMarkerSet</text>
+<g id="a_node5"><a xlink:title="→ vm.PseudoHeadMarkerSet------------------------------frame_index          timestamps           head_center_global   nose_global          left_ear_global      right_ear_global     yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  valid_mask           ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="80.5" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="80.5" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PseudoHeadTracking</text>
 </a>
 </g>
 </g>
 <!-- vm.PseudoHeadMarkerSet&#45;&gt;vm.PseudoHeadTracking -->
-<g id="edge4" class="edge">
+<g id="edge1" class="edge">
 <title>vm.PseudoHeadMarkerSet-&gt;vm.PseudoHeadTracking</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M665,-61.66C665,-50.36 665,-35.66 665,-25.58"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M80.5,-61.89C80.5,-50.69 80.5,-36.17 80.5,-26.07"/>
+</g>
+<!-- vm.RigidMouseTracking -->
+<g id="node2" class="node">
+<title>vm.RigidMouseTracking</title>
+<g id="a_node2"><a xlink:title="→ `roselab_scan`.`scan`→ vm.EyeNoseCamPosCalib→ `roselab_mocap`.`motion_capture_task`------------------------------pivot_eye_center_global yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_global      eye_right_global     nose_global          world_cam_global     ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="247.5" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="247.5" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.RigidMouseTracking</text>
+</a>
+</g>
+</g>
+<!-- vm.RigidBodyTracking -->
+<g id="node3" class="node">
+<title>vm.RigidBodyTracking</title>
+<g id="a_node3"><a xlink:title="→ `roselab_mocap`.`__motion_capture__tracking_position`→ vm.EyeNoseCamPosCalib------------------------------pivot_eye_center_pos yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  eye_left_pos         eye_right_pos        nose_pos             world_cam_pos        ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="407.5" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="407.5" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.RigidBodyTracking</text>
+</a>
+</g>
+</g>
+<!-- vm.PseudoHeadRigidBodyCalibration -->
+<g id="node4" class="node">
+<title>vm.PseudoHeadRigidBodyCalibration</title>
+<g id="a_node4"><a xlink:title="calibration_name     ------------------------------calibration_session_id calibration_scan_id  rigid_marker_001=&quot;Rigid Shanrigid_marker_002=&quot;Rigid Shanrigid_marker_003=&quot;Rigid Shannose_marker          left_ear_marker      right_ear_marker     description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="750,-97 529,-97 529,-62 750,-62 750,-97"/>
+<text text-anchor="start" x="537" y="-77.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.PseudoHeadRigidBodyCalibration</text>
+</a>
+</g>
+</g>
+<!-- vm.PseudoHeadRigidBodyTracking -->
+<g id="node6" class="node">
+<title>vm.PseudoHeadRigidBodyTracking</title>
+<g id="a_node6"><a xlink:title="→ `roselab_scan`.`scan`→ vm.PseudoHeadRigidBodyCalibration→ `roselab_mocap`.`motion_capture_task`------------------------------frame_index          timestamps           head_center_global   nose_global          left_ear_global      right_ear_global     yaw                  pitch                roll                 q_x                  q_y                  q_z                  q_w                  valid_mask           nose_local           left_ear_local       right_ear_local      calibration_valid_frames ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="639.5" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="639.5" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PseudoHeadRigidBodyTracking</text>
+</a>
+</g>
+</g>
+<!-- vm.PseudoHeadRigidBodyCalibration&#45;&gt;vm.PseudoHeadRigidBodyTracking -->
+<g id="edge2" class="edge">
+<title>vm.PseudoHeadRigidBodyCalibration-&gt;vm.PseudoHeadRigidBodyTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M639.5,-61.89C639.5,-50.69 639.5,-36.17 639.5,-26.07"/>
+</g>
+<!-- vm.EyeNoseCamPosCalib -->
+<g id="node7" class="node">
+<title>vm.EyeNoseCamPosCalib</title>
+<g id="a_node7"><a xlink:title="→ `roselab_subject`.`subject`------------------------------eye_left             eye_right            nose                 world_cam            ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="445.5,-97 285.5,-97 285.5,-62 445.5,-62 445.5,-97"/>
+<text text-anchor="middle" x="365.5" y="-76.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.EyeNoseCamPosCalib</text>
+</a>
+</g>
+</g>
+<!-- vm.EyeNoseCamPosCalib&#45;&gt;vm.RigidMouseTracking -->
+<g id="edge3" class="edge">
+<title>vm.EyeNoseCamPosCalib-&gt;vm.RigidMouseTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M335.11,-61.89C310.12,-48.23 276.09,-29.63 258.71,-20.13"/>
+</g>
+<!-- vm.EyeNoseCamPosCalib&#45;&gt;vm.RigidBodyTracking -->
+<g id="edge4" class="edge">
+<title>vm.EyeNoseCamPosCalib-&gt;vm.RigidBodyTracking</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M376.32,-61.89C384,-50.09 394.08,-34.62 400.67,-24.5"/>
 </g>
 </g>
 </svg>

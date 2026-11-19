@@ -1,150 +1,151 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="696pt" height="231pt" viewBox="0.00 0.00 696.12 231.04">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227.04)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-227.04 692.12,-227.04 692.12,4 -4,4"/>
-<!-- vm.Mocap -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="687pt" height="231pt" viewBox="0.00 0.00 687.00 231.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-227 683,-227 683,4 -4,4"/>
+<!-- vm.MotionCapture.TrackingPosition -->
 <g id="node1" class="node">
-<title>vm.Mocap</title>
-<g id="a_node1"><a xlink:title="mocap_name           ------------------------------description=&quot;&quot;       ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="255.12,-223.04 184.38,-223.04 184.38,-188.48 255.12,-188.48 255.12,-223.04"/>
-<text text-anchor="start" x="192.38" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Mocap</text>
+<title>vm.MotionCapture.TrackingPosition</title>
+<g id="a_node1"><a xlink:title="→ vm.MotionCapture→ vm.Mocap.TrackingId------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)">
+<polygon fill="transparent" stroke="transparent" points="173,-19 0,-19 0,0 173,0 173,-19"/>
+<text text-anchor="middle" x="86.5" y="-7" font-family="arial" font-size="10.00">vm.MotionCapture.TrackingPosition</text>
+</a>
+</g>
+</g>
+<!-- vm.TrackingId -->
+<g id="node2" class="node">
+<title>vm.TrackingId</title>
+<g id="a_node2"><a xlink:title="tracking_id          ------------------------------uid=&quot;&quot;               description=&quot;&quot;       ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="139,-152 60,-152 60,-117 139,-117 139,-152"/>
+<text text-anchor="start" x="68" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.TrackingId</text>
 </a>
 </g>
 </g>
 <!-- vm.Mocap.TrackingId -->
-<g id="node3" class="node">
-<title>vm.Mocap.TrackingId</title>
-<g id="a_node3"><a xlink:title="→ vm.Mocap→ vm.TrackingId">
-<polygon fill="none" stroke="none" points="177,-78.96 66.5,-78.96 66.5,-58.96 177,-58.96 177,-78.96"/>
-<text text-anchor="middle" x="121.75" y="-65.46" font-family="arial" font-size="10.00">vm.Mocap.TrackingId</text>
-</a>
-</g>
-</g>
-<!-- vm.Mocap&#45;&gt;vm.Mocap.TrackingId -->
-<g id="edge1" class="edge">
-<title>vm.Mocap-&gt;vm.Mocap.TrackingId</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M207.73,-188.23C186.78,-159.41 144.25,-100.9 128.13,-78.74"/>
-</g>
-<!-- vm.MotionCaptureTask -->
-<g id="node5" class="node">
-<title>vm.MotionCaptureTask</title>
-<g id="a_node5"><a xlink:title="→ vm.MocapRecording→ vm.Mocap------------------------------csv_path=&quot;&quot;          ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="336.88,-152.48 198.62,-152.48 198.62,-117.92 336.88,-117.92 336.88,-152.48"/>
-<text text-anchor="middle" x="267.75" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.MotionCaptureTask</text>
-</a>
-</g>
-</g>
-<!-- vm.Mocap&#45;&gt;vm.MotionCaptureTask -->
-<g id="edge2" class="edge">
-<title>vm.Mocap-&gt;vm.MotionCaptureTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M231.37,-188.16C238.92,-177.38 248.71,-163.39 256.24,-152.64"/>
-</g>
-<!-- vm.MocapRecording.File -->
-<g id="node2" class="node">
-<title>vm.MocapRecording.File</title>
-<g id="a_node2"><a xlink:title="→ vm.MocapRecordingfile_id              ------------------------------file_path            ">
-<polygon fill="none" stroke="none" points="688.12,-145.2 563.38,-145.2 563.38,-125.2 688.12,-125.2 688.12,-145.2"/>
-<text text-anchor="start" x="571.38" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.MocapRecording.File</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCapture.RigidBodyPosition -->
-<g id="node7" class="node">
-<title>vm.MotionCapture.RigidBodyPosition</title>
-<g id="a_node7"><a xlink:title="→ vm.MotionCapture→ vm.Mocap.TrackingIdrigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)INDEX (qw)INDEX (qx)INDEX (qy)INDEX (qz)INDEX (roll)INDEX (pitch)INDEX (yaw)">
-<polygon fill="none" stroke="none" points="179.5,-20 0,-20 0,0 179.5,0 179.5,-20"/>
-<text text-anchor="start" x="8" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.MotionCapture.RigidBodyPosition</text>
-</a>
-</g>
-</g>
-<!-- vm.Mocap.TrackingId&#45;&gt;vm.MotionCapture.RigidBodyPosition -->
-<g id="edge3" class="edge">
-<title>vm.Mocap.TrackingId-&gt;vm.MotionCapture.RigidBodyPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M116.75,-59.06C110.7,-48.3 100.59,-30.3 94.61,-19.65"/>
-</g>
-<!-- vm.MotionCapture.TrackingPosition -->
-<g id="node9" class="node">
-<title>vm.MotionCapture.TrackingPosition</title>
-<g id="a_node9"><a xlink:title="→ vm.MotionCapture→ vm.Mocap.TrackingId------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)">
-<polygon fill="none" stroke="none" points="369.75,-20 197.75,-20 197.75,0 369.75,0 369.75,-20"/>
-<text text-anchor="middle" x="283.75" y="-6.5" font-family="arial" font-size="10.00">vm.MotionCapture.TrackingPosition</text>
-</a>
-</g>
-</g>
-<!-- vm.Mocap.TrackingId&#45;&gt;vm.MotionCapture.TrackingPosition -->
-<g id="edge4" class="edge">
-<title>vm.Mocap.TrackingId-&gt;vm.MotionCapture.TrackingPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M147.06,-59.06C177.41,-48.39 227.96,-30.61 258.35,-19.93"/>
-</g>
-<!-- vm.MocapRecordingInfo -->
-<g id="node4" class="node">
-<title>vm.MocapRecordingInfo</title>
-<g id="a_node4"><a xlink:title="→ vm.MocapRecording------------------------------nframes              sampling_rate_hz     duration_s           metadata             ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="449.75" cy="-135.2" rx="95.24" ry="17.28"/>
-<text text-anchor="middle" x="449.75" y="-130.93" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.MocapRecordingInfo</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCapture -->
-<g id="node6" class="node">
-<title>vm.MotionCapture</title>
-<g id="a_node6"><a xlink:title="→ vm.MotionCaptureTask------------------------------import_time          ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="267.75" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="267.75" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MotionCapture</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCaptureTask&#45;&gt;vm.MotionCapture -->
-<g id="edge5" class="edge">
-<title>vm.MotionCaptureTask-&gt;vm.MotionCapture</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M267.75,-117.66C267.75,-106.36 267.75,-91.66 267.75,-81.58"/>
-</g>
-<!-- vm.MotionCapture&#45;&gt;vm.MotionCapture.RigidBodyPosition -->
-<g id="edge6" class="edge">
-<title>vm.MotionCapture-&gt;vm.MotionCapture.RigidBodyPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M255.79,-64.13C227.81,-55.18 157.44,-32.66 117.87,-20"/>
-</g>
-<!-- vm.MotionCapture&#45;&gt;vm.MotionCapture.TrackingPosition -->
-<g id="edge7" class="edge">
-<title>vm.MotionCapture-&gt;vm.MotionCapture.TrackingPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M270.99,-56.43C274.02,-45.64 278.49,-29.74 281.25,-19.9"/>
-</g>
-<!-- vm.MocapRecording -->
-<g id="node8" class="node">
-<title>vm.MocapRecording</title>
-<g id="a_node8"><a xlink:title="→ `roselab_scan`.`scan`------------------------------→ `roselab_equipment`.`device`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="512.88,-223.04 386.62,-223.04 386.62,-188.48 512.88,-188.48 512.88,-223.04"/>
-<text text-anchor="middle" x="449.75" y="-201.49" font-family="arial" font-size="12.00" fill="darkgreen">vm.MocapRecording</text>
-</a>
-</g>
-</g>
-<!-- vm.MocapRecording&#45;&gt;vm.MocapRecording.File -->
-<g id="edge8" class="edge">
-<title>vm.MocapRecording-&gt;vm.MocapRecording.File</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M492.8,-187.99C527.61,-174.43 575.23,-155.88 603.02,-145.05"/>
-</g>
-<!-- vm.MocapRecording&#45;&gt;vm.MocapRecordingInfo -->
-<g id="edge9" class="edge">
-<title>vm.MocapRecording-&gt;vm.MocapRecordingInfo</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M449.75,-188.16C449.75,-177.38 449.75,-163.39 449.75,-152.64"/>
-</g>
-<!-- vm.MocapRecording&#45;&gt;vm.MotionCaptureTask -->
-<g id="edge10" class="edge">
-<title>vm.MocapRecording-&gt;vm.MotionCaptureTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M405.23,-187.99C376.92,-177.32 340.41,-163.57 312.13,-152.92"/>
-</g>
-<!-- vm.TrackingId -->
 <g id="node10" class="node">
-<title>vm.TrackingId</title>
-<g id="a_node10"><a xlink:title="tracking_id          ------------------------------uid=&quot;&quot;               description=&quot;&quot;       ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="142.88,-152.48 64.62,-152.48 64.62,-117.92 142.88,-117.92 142.88,-152.48"/>
-<text text-anchor="start" x="72.62" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.TrackingId</text>
+<title>vm.Mocap.TrackingId</title>
+<g id="a_node10"><a xlink:title="→ vm.Mocap→ vm.TrackingId">
+<polygon fill="transparent" stroke="transparent" points="174,-77.5 63,-77.5 63,-58.5 174,-58.5 174,-77.5"/>
+<text text-anchor="middle" x="118.5" y="-65.5" font-family="arial" font-size="10.00">vm.Mocap.TrackingId</text>
 </a>
 </g>
 </g>
 <!-- vm.TrackingId&#45;&gt;vm.Mocap.TrackingId -->
-<g id="edge11" class="edge">
+<g id="edge1" class="edge">
 <title>vm.TrackingId-&gt;vm.Mocap.TrackingId</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M108.29,-117.99C111.79,-105.5 116.49,-88.72 119.31,-78.66"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M104.39,-116.89C108.09,-104.35 113.01,-87.64 115.95,-77.64"/>
+</g>
+<!-- vm.MocapRecording.File -->
+<g id="node3" class="node">
+<title>vm.MocapRecording.File</title>
+<g id="a_node3"><a xlink:title="→ vm.MocapRecordingfile_id              ------------------------------file_path            ">
+<polygon fill="transparent" stroke="transparent" points="679,-144 554,-144 554,-125 679,-125 679,-144"/>
+<text text-anchor="start" x="562" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.MocapRecording.File</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapRecording -->
+<g id="node4" class="node">
+<title>vm.MocapRecording</title>
+<g id="a_node4"><a xlink:title="→ `roselab_scan`.`scan`------------------------------→ `roselab_equipment`.`device`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="508,-223 381,-223 381,-188 508,-188 508,-223"/>
+<text text-anchor="middle" x="444.5" y="-202.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.MocapRecording</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapRecording&#45;&gt;vm.MocapRecording.File -->
+<g id="edge2" class="edge">
+<title>vm.MocapRecording-&gt;vm.MocapRecording.File</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M485.7,-187.97C520.09,-174.18 567.73,-155.06 595.01,-144.12"/>
+</g>
+<!-- vm.MotionCaptureTask -->
+<g id="node7" class="node">
+<title>vm.MotionCaptureTask</title>
+<g id="a_node7"><a xlink:title="→ vm.MocapRecording→ vm.Mocap------------------------------csv_path=&quot;&quot;          ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="335,-152 196,-152 196,-117 335,-117 335,-152"/>
+<text text-anchor="middle" x="265.5" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.MotionCaptureTask</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapRecording&#45;&gt;vm.MotionCaptureTask -->
+<g id="edge3" class="edge">
+<title>vm.MocapRecording-&gt;vm.MotionCaptureTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M401.63,-187.97C373.39,-177.09 336.56,-162.89 308.33,-152.01"/>
+</g>
+<!-- vm.MocapRecordingInfo -->
+<g id="node9" class="node">
+<title>vm.MocapRecordingInfo</title>
+<g id="a_node9"><a xlink:title="→ vm.MocapRecording------------------------------nframes              sampling_rate_hz     duration_s           metadata             ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="444.5" cy="-134.5" rx="91.5" ry="17.5"/>
+<text text-anchor="middle" x="444.5" y="-131.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.MocapRecordingInfo</text>
+</a>
+</g>
+</g>
+<!-- vm.MocapRecording&#45;&gt;vm.MocapRecordingInfo -->
+<g id="edge4" class="edge">
+<title>vm.MocapRecording-&gt;vm.MocapRecordingInfo</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M444.5,-187.8C444.5,-176.95 444.5,-162.87 444.5,-152.05"/>
+</g>
+<!-- vm.MotionCapture -->
+<g id="node5" class="node">
+<title>vm.MotionCapture</title>
+<g id="a_node5"><a xlink:title="→ vm.MotionCaptureTask------------------------------import_time          ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="265.5" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="265.5" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MotionCapture</text>
+</a>
+</g>
+</g>
+<!-- vm.MotionCapture&#45;&gt;vm.MotionCapture.TrackingPosition -->
+<g id="edge5" class="edge">
+<title>vm.MotionCapture-&gt;vm.MotionCapture.TrackingPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M253.2,-63.12C224.6,-54.09 153.11,-31.53 113.68,-19.08"/>
+</g>
+<!-- vm.MotionCapture.RigidBodyPosition -->
+<g id="node8" class="node">
+<title>vm.MotionCapture.RigidBodyPosition</title>
+<g id="a_node8"><a xlink:title="→ vm.MotionCapture→ vm.Mocap.TrackingIdrigid_body           ------------------------------frame_index          timestamps           x_pos                y_pos                z_pos                qw                   qx                   qy                   qz                   roll                 pitch                yaw                  INDEX (frame_index)INDEX (timestamps)INDEX (x_pos)INDEX (y_pos)INDEX (z_pos)INDEX (qw)INDEX (qx)INDEX (qy)INDEX (qz)INDEX (roll)INDEX (pitch)INDEX (yaw)">
+<polygon fill="transparent" stroke="transparent" points="371.5,-19 191.5,-19 191.5,0 371.5,0 371.5,-19"/>
+<text text-anchor="start" x="199.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.MotionCapture.RigidBodyPosition</text>
+</a>
+</g>
+</g>
+<!-- vm.MotionCapture&#45;&gt;vm.MotionCapture.RigidBodyPosition -->
+<g id="edge6" class="edge">
+<title>vm.MotionCapture-&gt;vm.MotionCapture.RigidBodyPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M268.82,-55.29C271.85,-44.56 276.29,-28.91 279.03,-19.24"/>
+</g>
+<!-- vm.Mocap -->
+<g id="node6" class="node">
+<title>vm.Mocap</title>
+<g id="a_node6"><a xlink:title="mocap_name           ------------------------------description=&quot;&quot;       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="252,-223 181,-223 181,-188 252,-188 252,-223"/>
+<text text-anchor="start" x="189" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Mocap</text>
+</a>
+</g>
+</g>
+<!-- vm.Mocap&#45;&gt;vm.MotionCaptureTask -->
+<g id="edge7" class="edge">
+<title>vm.Mocap-&gt;vm.MotionCaptureTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M228.36,-187.8C236.07,-176.95 246.07,-162.87 253.75,-152.05"/>
+</g>
+<!-- vm.Mocap&#45;&gt;vm.Mocap.TrackingId -->
+<g id="edge8" class="edge">
+<title>vm.Mocap-&gt;vm.Mocap.TrackingId</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M204.48,-187.89C183.43,-158.77 140.58,-99.53 124.65,-77.5"/>
+</g>
+<!-- vm.MotionCaptureTask&#45;&gt;vm.MotionCapture -->
+<g id="edge9" class="edge">
+<title>vm.MotionCaptureTask-&gt;vm.MotionCapture</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M265.5,-116.89C265.5,-105.69 265.5,-91.17 265.5,-81.07"/>
+</g>
+<!-- vm.Mocap.TrackingId&#45;&gt;vm.MotionCapture.TrackingPosition -->
+<g id="edge10" class="edge">
+<title>vm.Mocap.TrackingId-&gt;vm.MotionCapture.TrackingPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M113.5,-58.17C107.45,-47.5 97.34,-29.65 91.36,-19.08"/>
+</g>
+<!-- vm.Mocap.TrackingId&#45;&gt;vm.MotionCapture.RigidBodyPosition -->
+<g id="edge11" class="edge">
+<title>vm.Mocap.TrackingId-&gt;vm.MotionCapture.RigidBodyPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M143.26,-58.42C173.98,-47.77 226.07,-29.71 256.78,-19.07"/>
 </g>
 </g>
 </svg>

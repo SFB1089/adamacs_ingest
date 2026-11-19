@@ -255,7 +255,7 @@ The 2026-09-03 in-place edit on BUGPU is why one method holds two code versions.
 4. **Pin the fork tag in all envs on TATCHU3 and BUGPU, and restart the CASCADE worker** with the populate order
    `Dff0` → `Activity`. **Needs your OK** (it touches the running worker).
 5. **Watch the first new tasks.** Check that `Activity.CascadeInput` is filled and that the spikes equal a recompute.
-6. **Optional:** drop the test schema `tobiasr_responsiveness` and `~/dj_stores/responsiveness_test`. *Needs your OK
+6. **Done 2026-11-19:** the test schema `tobiasr_responsiveness` was dropped (its store folder `~/dj_stores/responsiveness_test` was left on disk). *Needed your OK
    (delete).*
 7. **Optional:** recompute the legacy CASCADE rows (§5). **Needs your OK** (delete plus recompute).
 

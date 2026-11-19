@@ -1,21 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1934pt" height="246pt" viewBox="0.00 0.00 1934.38 245.60">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 241.6)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-241.6 1930.38,-241.6 1930.38,4 -4,4"/>
-<!-- vm.PupilEllipseParametersFreeMoving -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2199pt" height="247pt" viewBox="0.00 0.00 2198.50 247.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 243)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-243 2194.5,-243 2194.5,4 -4,4"/>
+<!-- vm.GazeReconstruction3DImputed -->
 <g id="node1" class="node">
-<title>vm.PupilEllipseParametersFreeMoving</title>
-<g id="a_node1"><a xlink:title="parameter_id         ------------------------------thres_llh_pupil      thres_llh_ir         thres_llh_corner     pupil_min_dots       exclude_ir_std       thres_ellipticity    description          ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="184.75,-237.6 0,-237.6 0,-203.04 184.75,-203.04 184.75,-237.6"/>
-<text text-anchor="start" x="8" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParametersFreeMoving</text>
+<title>vm.GazeReconstruction3DImputed</title>
+<g id="a_node1"><a xlink:title="→ vm.PupilRotationOptiTrackImputed→ vm.TorsionCalibManual→ `roselab_virtual_markers_optitrack`.`__rigid_mouse_tracking`→ vm.EyeModel------------------------------gaze_in_head         gaze_in_space        torsion              ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="232" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="232" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.GazeReconstruction3DImputed</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilEllipseFittingHeadfixedImputed -->
+<!-- vm.PupilEllipseFitting.ImageFit -->
 <g id="node2" class="node">
-<title>vm.PupilEllipseFittingHeadfixedImputed</title>
-<g id="a_node2"><a xlink:title="→ `roselab_disk`.`__headfixed_imputation`------------------------------theta                phi                  diameter             pupil_center         x0_in                y0_in                long_axis            short_axis           angle_from_x         cam_center           eye_center           scale                horizontal_offset    vertical_offset      n_nice_frames        n_imputed_markers    n_angle              calibration_source   INDEX (theta)INDEX (phi)INDEX (diameter)INDEX (pupil_center)INDEX (x0_in)INDEX (y0_in)INDEX (long_axis)INDEX (short_axis)INDEX (angle_from_x)INDEX (cam_center)INDEX (eye_center)INDEX (n_imputed_markers)">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="317.38" cy="-220.32" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="317.38" y="-216.04" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingHeadfixedImputed</text>
+<title>vm.PupilEllipseFitting.ImageFit</title>
+<g id="a_node2"><a xlink:title="→ vm.PupilEllipseFitting------------------------------guide_used           fit_origin           cache_file=&quot;&quot;        video_file           n_frames_markers     n_frames_video       n_frames_fitted      fps                  r0                   rim_step_median      axis_median          frac_accepted_v2     frac_accepted        n_brief_jumps        n_nice_frames        angle_estimator      e3d_cx=null          e3d_cy=null          e3d_r=null           fissure_px=null      fissure_source=&quot;none&quot; theta_offset=null    phi_offset=null      n_frames_eye_model=null code_version         fissure_session_px=null fissure_session_source=null fissure_n_sessions=null n_frames_rejected_spatial=null gate_px=null         e3d_objective=null   e3d_objective_single=null e3d_objective_far=null e3d_n_starts=null    ">
+<polygon fill="transparent" stroke="transparent" points="1346,-89 1194,-89 1194,-70 1346,-70 1346,-89"/>
+<text text-anchor="middle" x="1270" y="-77" font-family="arial" font-size="10.00">vm.PupilEllipseFitting.ImageFit</text>
 </a>
 </g>
 </g>
@@ -23,275 +24,275 @@
 <g id="node3" class="node">
 <title>vm.EyeSideNote</title>
 <g id="a_node3"><a xlink:title="→ `roselab_subject`.`subject`note_date            ------------------------------sides_swapped        affected_scope       reported_by          verified             note                 ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="556.38,-237.6 450.38,-237.6 450.38,-203.04 556.38,-203.04 556.38,-237.6"/>
-<text text-anchor="start" x="458.38" y="-217.04" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EyeSideNote</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilRotationOptiTrack -->
-<g id="node4" class="node">
-<title>vm.PupilRotationOptiTrack</title>
-<g id="a_node4"><a xlink:title="→ vm.PupilEllipseFittingFreeMoving→ vm.EyeCamTimeSource------------------------------theta_opt            phi_opt              diameter_opt         ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="323.38" cy="-79.2" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="323.38" y="-74.92" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilRotationOptiTrack</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1308.5,-239 1201.5,-239 1201.5,-204 1308.5,-204 1308.5,-239"/>
+<text text-anchor="start" x="1209.5" y="-219.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EyeSideNote</text>
 </a>
 </g>
 </g>
 <!-- vm.GazeReconstruction3D -->
-<g id="node21" class="node">
+<g id="node4" class="node">
 <title>vm.GazeReconstruction3D</title>
-<g id="a_node21"><a xlink:title="→ vm.PupilRotationOptiTrack→ vm.TorsionCalibManual→ `roselab_virtual_markers_optitrack`.`__rigid_mouse_tracking`→ vm.EyeModel------------------------------gaze_in_head         gaze_in_space        torsion              ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="458.38" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="458.38" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.GazeReconstruction3D</text>
+<g id="a_node4"><a xlink:title="→ vm.PupilRotationOptiTrack→ vm.TorsionCalibManual→ `roselab_virtual_markers_optitrack`.`__rigid_mouse_tracking`→ vm.EyeModel------------------------------gaze_in_head         gaze_in_space        torsion              ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="432" cy="-13" rx="13" ry="13"/>
+<text text-anchor="middle" x="432" y="-9.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.GazeReconstruction3D</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilRotationOptiTrack&#45;&gt;vm.GazeReconstruction3D -->
+<!-- vm.PupilEllipseFittingFreeMoving -->
+<g id="node5" class="node">
+<title>vm.PupilEllipseFittingFreeMoving</title>
+<g id="a_node5"><a xlink:title="→ vm.PupilEllipseParameterFreeMoving→ `roselab_model`.`__pose_estimation_new`------------------------------ellipse_dict         cam_center           eye_center           pupil_center         scale                theta                phi                  diameter             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="568" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="568" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingFreeMoving</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilRotationOptiTrack -->
+<g id="node13" class="node">
+<title>vm.PupilRotationOptiTrack</title>
+<g id="a_node13"><a xlink:title="→ vm.PupilEllipseFittingFreeMoving→ vm.EyeCamTimeSource------------------------------theta_opt            phi_opt              diameter_opt         ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="568" cy="-79.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="568" y="-76.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilRotationOptiTrack</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilEllipseFittingFreeMoving&#45;&gt;vm.PupilRotationOptiTrack -->
 <g id="edge1" class="edge">
-<title>vm.PupilRotationOptiTrack-&gt;vm.GazeReconstruction3D</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M334.42,-72.94C359.74,-60.9 421.71,-31.41 447.17,-19.29"/>
+<title>vm.PupilEllipseFittingFreeMoving-&gt;vm.PupilRotationOptiTrack</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M568,-137.48C568,-124.97 568,-105.48 568,-92.85"/>
+</g>
+<!-- vm.CorrectedGlint -->
+<g id="node6" class="node">
+<title>vm.CorrectedGlint</title>
+<g id="a_node6"><a xlink:title="→ vm.GlintDetectionParameter→ `roselab_model`.`__pose_estimation_new`------------------------------glint_x              glint_y              glint_source         n_frames             n_dlc_frames         frac_image           frac_fallback        frac_none            n_rejected_temporal  n_rejected_contrast  n_rejected_dlc_inconsistent n_bad_blocks         frac_bad_block_frames dlc_offset_dx        dlc_offset_dy        dlc_offset_block_range=null code_version         ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1411" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="1411" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.CorrectedGlint</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilEllipseImageFitParameter -->
+<g id="node7" class="node">
+<title>vm.PupilEllipseImageFitParameter</title>
+<g id="a_node7"><a xlink:title="→ vm.PupilEllipseParameter------------------------------fit_source           guide_source         disk_model_name=&quot;&quot;   disk_parameter_id=null disk_imputation_paramset_id=null n_rays               r_min                r_max                r_step               blur_sigma           ransac_draws         inlier_tol           min_inlier_frac      min_rim_step_rel     axis_min             axis_max             tc_dist_px           tc_window_s          tc_max_brief_s       nice_min_inlier_frac angle_estimator      e3d_k0=null          e3d_k_sd=null        e3d_prior_weight=null e3d_huber_k=null     e3d_irls_iter=null   e3d_n_frames=null    corner_llh=null      corner_min_frac=null static_corner_llh=null static_min_frames=null seed                 code_version         gate_min_px=null     gate_r0_mult=null    fissure_prior=null   fissure_min_px=null  fissure_max_px=null  e3d_ms_deg=null      e3d_ms_n=null        ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1004.5,-168 837.5,-168 837.5,-133 1004.5,-133 1004.5,-168"/>
+<text text-anchor="middle" x="921" y="-148" font-family="arial" font-size="10.00">vm.PupilEllipseImageFitParameter</text>
+</a>
+</g>
 </g>
 <!-- vm.PupilEllipseParameter -->
-<g id="node5" class="node">
-<title>vm.PupilEllipseParameter</title>
-<g id="a_node5"><a xlink:title="parameter_id         ------------------------------likelihood_thres     exclude_ir_std       ellipticity_thres    description          ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1325.62,-237.6 1197.12,-237.6 1197.12,-203.04 1325.62,-203.04 1325.62,-237.6"/>
-<text text-anchor="start" x="1205.12" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParameter</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilEllipseFitting -->
 <g id="node8" class="node">
-<title>vm.PupilEllipseFitting</title>
-<g id="a_node8"><a xlink:title="→ vm.PupilEllipseParameter→ `roselab_model`.`__pose_estimation_new`------------------------------ellipse_dict         cam_center           eye_center           scale                theta                phi                  diameter             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1096.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1096.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFitting</text>
+<title>vm.PupilEllipseParameter</title>
+<g id="a_node8"><a xlink:title="parameter_id         ------------------------------likelihood_thres     exclude_ir_std       ellipticity_thres    description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1168.5,-239 1039.5,-239 1039.5,-204 1168.5,-204 1168.5,-239"/>
+<text text-anchor="start" x="1047.5" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParameter</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilEllipseParameter&#45;&gt;vm.PupilEllipseFitting -->
+<!-- vm.PupilEllipseParameter&#45;&gt;vm.PupilEllipseImageFitParameter -->
 <g id="edge2" class="edge">
-<title>vm.PupilEllipseParameter-&gt;vm.PupilEllipseFitting</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1222.27,-203.07C1184.92,-187.55 1130.96,-165.13 1107.72,-155.48"/>
+<title>vm.PupilEllipseParameter-&gt;vm.PupilEllipseImageFitParameter</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1060.17,-203.97C1031.3,-193.09 993.65,-178.89 964.79,-168.01"/>
 </g>
 <!-- vm.HeadfixedFrameQuality -->
-<g id="node10" class="node">
+<g id="node17" class="node">
 <title>vm.HeadfixedFrameQuality</title>
-<g id="a_node10"><a xlink:title="→ vm.PupilEllipseParameter→ `roselab_model`.`__pose_estimation_new`------------------------------frame_class          n_frames             frac_ok              frac_partial         frac_no_reflection   frac_tracking_lost   INDEX (frame_class)">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1261.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1261.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.HeadfixedFrameQuality</text>
+<g id="a_node17"><a xlink:title="→ vm.PupilEllipseParameter→ `roselab_model`.`__pose_estimation_new`------------------------------frame_class          n_frames             frac_ok              frac_partial         frac_no_reflection   frac_tracking_lost   INDEX (frame_class)">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1104" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="1104" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.HeadfixedFrameQuality</text>
 </a>
 </g>
 </g>
 <!-- vm.PupilEllipseParameter&#45;&gt;vm.HeadfixedFrameQuality -->
 <g id="edge3" class="edge">
 <title>vm.PupilEllipseParameter-&gt;vm.HeadfixedFrameQuality</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1261.38,-203.07C1261.38,-190.56 1261.38,-173.57 1261.38,-162.39"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1104,-203.8C1104,-191.35 1104,-174.66 1104,-163.51"/>
 </g>
-<!-- vm.PupilEllipseImageFitParameter -->
-<g id="node13" class="node">
-<title>vm.PupilEllipseImageFitParameter</title>
-<g id="a_node13"><a xlink:title="→ vm.PupilEllipseParameter------------------------------fit_source           guide_source         disk_model_name=&quot;&quot;   disk_parameter_id=null disk_imputation_paramset_id=null n_rays               r_min                r_max                r_step               blur_sigma           ransac_draws         inlier_tol           min_inlier_frac      min_rim_step_rel     axis_min             axis_max             tc_dist_px           tc_window_s          tc_max_brief_s       nice_min_inlier_frac angle_estimator      e3d_k0=null          e3d_k_sd=null        e3d_prior_weight=null e3d_huber_k=null     e3d_irls_iter=null   e3d_n_frames=null    corner_llh=null      corner_min_frac=null static_corner_llh=null static_min_frames=null seed                 code_version         gate_min_px=null     gate_r0_mult=null    fissure_prior=null   fissure_min_px=null  fissure_max_px=null  e3d_ms_deg=null      e3d_ms_n=null        ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1526.75,-167.04 1360,-167.04 1360,-132.48 1526.75,-132.48 1526.75,-167.04"/>
-<text text-anchor="middle" x="1443.38" y="-146.26" font-family="arial" font-size="10.00">vm.PupilEllipseImageFitParameter</text>
+<!-- vm.PupilEllipseFitting -->
+<g id="node19" class="node">
+<title>vm.PupilEllipseFitting</title>
+<g id="a_node19"><a xlink:title="→ vm.PupilEllipseParameter→ `roselab_model`.`__pose_estimation_new`------------------------------ellipse_dict         cam_center           eye_center           scale                theta                phi                  diameter             ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1270" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="1270" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFitting</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilEllipseParameter&#45;&gt;vm.PupilEllipseImageFitParameter -->
+<!-- vm.PupilEllipseParameter&#45;&gt;vm.PupilEllipseFitting -->
 <g id="edge4" class="edge">
-<title>vm.PupilEllipseParameter-&gt;vm.PupilEllipseImageFitParameter</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1304.51,-203.07C1333.41,-192.18 1371.33,-177.9 1400.24,-167.01"/>
+<title>vm.PupilEllipseParameter-&gt;vm.PupilEllipseFitting</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1143.76,-203.97C1181.17,-188.42 1234.83,-166.12 1258.28,-156.37"/>
 </g>
-<!-- vm.GazeReconstruction3DImputed -->
-<g id="node6" class="node">
-<title>vm.GazeReconstruction3DImputed</title>
-<g id="a_node6"><a xlink:title="→ vm.PupilRotationOptiTrackImputed→ vm.TorsionCalibManual→ `roselab_virtual_markers_optitrack`.`__rigid_mouse_tracking`→ vm.EyeModel------------------------------gaze_in_head         gaze_in_space        torsion              ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="657.38" cy="-12.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="657.38" y="-8.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.GazeReconstruction3DImputed</text>
+<!-- vm.PupilEllipseParametersFreeMoving -->
+<g id="node9" class="node">
+<title>vm.PupilEllipseParametersFreeMoving</title>
+<g id="a_node9"><a xlink:title="parameter_id         ------------------------------thres_llh_pupil      thres_llh_ir         thres_llh_corner     pupil_min_dots       exclude_ir_std       thres_ellipticity    description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1684.5,-239 1499.5,-239 1499.5,-204 1684.5,-204 1684.5,-239"/>
+<text text-anchor="start" x="1507.5" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParametersFreeMoving</text>
 </a>
 </g>
-</g>
-<!-- vm.PupilEllipseFitting.ImageFit -->
-<g id="node7" class="node">
-<title>vm.PupilEllipseFitting.ImageFit</title>
-<g id="a_node7"><a xlink:title="→ vm.PupilEllipseFitting------------------------------guide_used           fit_origin           cache_file=&quot;&quot;        video_file           n_frames_markers     n_frames_video       n_frames_fitted      fps                  r0                   rim_step_median      axis_median          frac_accepted_v2     frac_accepted        n_brief_jumps        n_nice_frames        angle_estimator      e3d_cx=null          e3d_cy=null          e3d_r=null           fissure_px=null      fissure_source=&quot;none&quot; theta_offset=null    phi_offset=null      n_frames_eye_model=null code_version         fissure_session_px=null fissure_session_source=null fissure_n_sessions=null n_frames_rejected_spatial=null gate_px=null         e3d_objective=null   e3d_objective_single=null e3d_objective_far=null e3d_n_starts=null    ">
-<polygon fill="none" stroke="none" points="1172.25,-89.2 1020.5,-89.2 1020.5,-69.2 1172.25,-69.2 1172.25,-89.2"/>
-<text text-anchor="middle" x="1096.38" y="-75.7" font-family="arial" font-size="10.00">vm.PupilEllipseFitting.ImageFit</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilEllipseFitting&#45;&gt;vm.PupilEllipseFitting.ImageFit -->
-<g id="edge5" class="edge">
-<title>vm.PupilEllipseFitting-&gt;vm.PupilEllipseFitting.ImageFit</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1096.38,-136.82C1096.38,-123.16 1096.38,-101.12 1096.38,-88.96"/>
 </g>
 <!-- vm.PupilRotationOptiTrackImputed -->
-<g id="node9" class="node">
+<g id="node10" class="node">
 <title>vm.PupilRotationOptiTrackImputed</title>
-<g id="a_node9"><a xlink:title="→ vm.PupilEllipseFittingImputed→ vm.EyeCamTimeSource------------------------------theta_opt            phi_opt              diameter_opt         ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="787.38" cy="-79.2" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="787.38" y="-74.92" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilRotationOptiTrackImputed</text>
+<g id="a_node10"><a xlink:title="→ vm.PupilEllipseFittingImputed→ vm.EyeCamTimeSource------------------------------theta_opt            phi_opt              diameter_opt         ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="101" cy="-79.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="101" y="-76.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilRotationOptiTrackImputed</text>
 </a>
 </g>
 </g>
 <!-- vm.PupilRotationOptiTrackImputed&#45;&gt;vm.GazeReconstruction3DImputed -->
-<g id="edge6" class="edge">
+<g id="edge5" class="edge">
 <title>vm.PupilRotationOptiTrackImputed-&gt;vm.GazeReconstruction3DImputed</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M776.29,-72.72C751.73,-60.59 692.97,-31.55 668.43,-19.42"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112.63,-72.78C137.55,-60.51 195.86,-31.8 220.59,-19.62"/>
 </g>
-<!-- vm.PupilEllipseParameterFreeMoving -->
+<!-- vm.PupilEllipseFittingHeadfixedImputed -->
 <g id="node11" class="node">
-<title>vm.PupilEllipseParameterFreeMoving</title>
-<g id="a_node11"><a xlink:title="parameter_id         ------------------------------llh_thres_pupil      llh_thres_ir         llh_thres_corner     pupil_min_dots       exclude_ir_std       ellipticity_thres    description          ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="754.12,-237.6 574.62,-237.6 574.62,-203.04 754.12,-203.04 754.12,-237.6"/>
-<text text-anchor="start" x="582.62" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParameterFreeMoving</text>
+<title>vm.PupilEllipseFittingHeadfixedImputed</title>
+<g id="a_node11"><a xlink:title="→ `roselab_disk`.`__headfixed_imputation`------------------------------theta                phi                  diameter             pupil_center         x0_in                y0_in                long_axis            short_axis           angle_from_x         cam_center           eye_center           scale                horizontal_offset    vertical_offset      n_nice_frames        n_imputed_markers    n_angle              calibration_source   INDEX (theta)INDEX (phi)INDEX (diameter)INDEX (pupil_center)INDEX (x0_in)INDEX (y0_in)INDEX (long_axis)INDEX (short_axis)INDEX (angle_from_x)INDEX (cam_center)INDEX (eye_center)INDEX (n_imputed_markers)">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1817" cy="-221.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="1817" y="-218.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingHeadfixedImputed</text>
 </a>
 </g>
-</g>
-<!-- vm.PupilFrameQuality -->
-<g id="node20" class="node">
-<title>vm.PupilFrameQuality</title>
-<g id="a_node20"><a xlink:title="→ vm.PupilEllipseParameterFreeMoving→ `roselab_model`.`__pose_estimation_new`------------------------------frame_class          n_frames             frac_ok              frac_partial         frac_no_reflection   frac_tracking_lost   INDEX (frame_class)">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="945.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="945.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilFrameQuality</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilEllipseParameterFreeMoving&#45;&gt;vm.PupilFrameQuality -->
-<g id="edge7" class="edge">
-<title>vm.PupilEllipseParameterFreeMoving-&gt;vm.PupilFrameQuality</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M730.97,-203.07C798.81,-186.52 898.78,-162.13 933.21,-153.73"/>
-</g>
-<!-- vm.PupilEllipseFittingFreeMoving -->
-<g id="node23" class="node">
-<title>vm.PupilEllipseFittingFreeMoving</title>
-<g id="a_node23"><a xlink:title="→ vm.PupilEllipseParameterFreeMoving→ `roselab_model`.`__pose_estimation_new`------------------------------ellipse_dict         cam_center           eye_center           pupil_center         scale                theta                phi                  diameter             ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="382.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="382.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingFreeMoving</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilEllipseParameterFreeMoving&#45;&gt;vm.PupilEllipseFittingFreeMoving -->
-<g id="edge8" class="edge">
-<title>vm.PupilEllipseParameterFreeMoving-&gt;vm.PupilEllipseFittingFreeMoving</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M597.54,-203.07C529.46,-186.52 429.13,-162.13 394.59,-153.73"/>
-</g>
-<!-- vm.EyeCamTimeSource -->
-<g id="node12" class="node">
-<title>vm.EyeCamTimeSource</title>
-<g id="a_node12"><a xlink:title="eyecam_time_source   ------------------------------event_suffix         description          ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="652,-167.04 528.75,-167.04 528.75,-132.48 652,-132.48 652,-167.04"/>
-<text text-anchor="start" x="536.75" y="-147.26" font-family="arial" text-decoration="underline" font-size="10.00">vm.EyeCamTimeSource</text>
-</a>
-</g>
-</g>
-<!-- vm.EyeCamTimeSource&#45;&gt;vm.PupilRotationOptiTrack -->
-<g id="edge9" class="edge">
-<title>vm.EyeCamTimeSource-&gt;vm.PupilRotationOptiTrack</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M528.78,-132.94C464.72,-116.49 369.16,-91.96 335.57,-83.33"/>
-</g>
-<!-- vm.EyeCamTimeSource&#45;&gt;vm.PupilRotationOptiTrackImputed -->
-<g id="edge10" class="edge">
-<title>vm.EyeCamTimeSource-&gt;vm.PupilRotationOptiTrackImputed</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M637.06,-132.51C682.8,-116.59 749.38,-93.42 775.88,-84.2"/>
-</g>
-<!-- vm.TorsionCalibManual -->
-<g id="node14" class="node">
-<title>vm.TorsionCalibManual</title>
-<g id="a_node14"><a xlink:title="→ `roselab_subject`.`subject`------------------------------param_coeff          param_intercept      ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="562.38,-96.48 420.38,-96.48 420.38,-61.92 562.38,-61.92 562.38,-96.48"/>
-<text text-anchor="middle" x="491.38" y="-74.92" font-family="arial" font-size="12.00" fill="darkgreen">vm.TorsionCalibManual</text>
-</a>
-</g>
-</g>
-<!-- vm.TorsionCalibManual&#45;&gt;vm.GazeReconstruction3DImputed -->
-<g id="edge11" class="edge">
-<title>vm.TorsionCalibManual-&gt;vm.GazeReconstruction3DImputed</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M534.56,-61.49C571.83,-47.07 623.14,-27.21 645.81,-18.43"/>
-</g>
-<!-- vm.TorsionCalibManual&#45;&gt;vm.GazeReconstruction3D -->
-<g id="edge12" class="edge">
-<title>vm.TorsionCalibManual-&gt;vm.GazeReconstruction3D</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M482.88,-61.66C476.84,-49.91 468.92,-34.49 463.74,-24.41"/>
 </g>
 <!-- vm.GlintDetectionParameter -->
-<g id="node15" class="node">
+<g id="node12" class="node">
 <title>vm.GlintDetectionParameter</title>
-<g id="a_node15"><a xlink:title="glint_param_id       ------------------------------tophat_kernel_px     threshold_nmad       threshold_min        search_radius_px     area_min_px          area_max_px          fill_min             window_half_px       llh_center           anchor_tol_px        anchor_n             llh_anchor           reject_px            reject_win_frames    offset_win_frames    llh_fallback         max_offset_px        rel_peak_min         dlc_consistency_px   block_frames         block_dev_px         max_bad_block_frac   code_version         param_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1670.25,-237.6 1530.5,-237.6 1530.5,-203.04 1670.25,-203.04 1670.25,-237.6"/>
-<text text-anchor="start" x="1538.5" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.GlintDetectionParameter</text>
-</a>
-</g>
-</g>
-<!-- vm.CorrectedGlint -->
-<g id="node18" class="node">
-<title>vm.CorrectedGlint</title>
-<g id="a_node18"><a xlink:title="→ vm.GlintDetectionParameter→ `roselab_model`.`__pose_estimation_new`------------------------------glint_x              glint_y              glint_source         n_frames             n_dlc_frames         frac_image           frac_fallback        frac_none            n_rejected_temporal  n_rejected_contrast  n_rejected_dlc_inconsistent n_bad_blocks         frac_bad_block_frames dlc_offset_dx        dlc_offset_dy        dlc_offset_block_range=null code_version         ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1600.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1600.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.CorrectedGlint</text>
+<g id="a_node12"><a xlink:title="glint_param_id       ------------------------------tophat_kernel_px     threshold_nmad       threshold_min        search_radius_px     area_min_px          area_max_px          fill_min             window_half_px       llh_center           anchor_tol_px        anchor_n             llh_anchor           reject_px            reject_win_frames    offset_win_frames    llh_fallback         max_offset_px        rel_peak_min         dlc_consistency_px   block_frames         block_dev_px         max_bad_block_frac   code_version         param_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1481,-239 1341,-239 1341,-204 1481,-204 1481,-239"/>
+<text text-anchor="start" x="1349" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.GlintDetectionParameter</text>
 </a>
 </g>
 </g>
 <!-- vm.GlintDetectionParameter&#45;&gt;vm.CorrectedGlint -->
-<g id="edge13" class="edge">
+<g id="edge6" class="edge">
 <title>vm.GlintDetectionParameter-&gt;vm.CorrectedGlint</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1600.38,-203.07C1600.38,-190.56 1600.38,-173.57 1600.38,-162.39"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1411,-203.8C1411,-191.35 1411,-174.66 1411,-163.51"/>
+</g>
+<!-- vm.PupilRotationOptiTrack&#45;&gt;vm.GazeReconstruction3D -->
+<g id="edge7" class="edge">
+<title>vm.PupilRotationOptiTrack-&gt;vm.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M556.4,-73C530.71,-60.81 469.23,-31.66 443.57,-19.49"/>
+</g>
+<!-- vm.PupilFrameQuality -->
+<g id="node14" class="node">
+<title>vm.PupilFrameQuality</title>
+<g id="a_node14"><a xlink:title="→ vm.PupilEllipseParameterFreeMoving→ `roselab_model`.`__pose_estimation_new`------------------------------frame_class          n_frames             frac_ok              frac_partial         frac_no_reflection   frac_tracking_lost   INDEX (frame_class)">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="752" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="752" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilFrameQuality</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilEllipseFittingImputed -->
+<g id="node15" class="node">
+<title>vm.PupilEllipseFittingImputed</title>
+<g id="a_node15"><a xlink:title="→ `roselab_disk`.`__d_l_c_imputation`------------------------------theta                phi                  diameter             pupil_center         x0_in                y0_in                long_axis            short_axis           angle_from_x         cam_center           eye_center           scale                horizontal_offset    vertical_offset      n_nice_frames        n_angle              n_imputed_markers    calibration_source   INDEX (theta)INDEX (phi)INDEX (diameter)INDEX (pupil_center)INDEX (x0_in)INDEX (y0_in)INDEX (long_axis)INDEX (short_axis)INDEX (angle_from_x)INDEX (cam_center)INDEX (eye_center)INDEX (n_imputed_markers)">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="101" cy="-150.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="101" y="-147.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingImputed</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilEllipseFittingImputed&#45;&gt;vm.PupilRotationOptiTrackImputed -->
+<g id="edge8" class="edge">
+<title>vm.PupilEllipseFittingImputed-&gt;vm.PupilRotationOptiTrackImputed</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M101,-137.48C101,-124.97 101,-105.48 101,-92.85"/>
 </g>
 <!-- vm.EyeModel -->
 <g id="node16" class="node">
 <title>vm.EyeModel</title>
 <g id="a_node16"><a xlink:title="eye_model_id         ------------------------------eye_model_azimuth    eye_model_elevation  reference            ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="668.75,-96.48 580,-96.48 580,-61.92 668.75,-61.92 668.75,-96.48"/>
-<text text-anchor="start" x="588" y="-75.92" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EyeModel</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="309.5,-97 220.5,-97 220.5,-62 309.5,-62 309.5,-97"/>
+<text text-anchor="start" x="228.5" y="-77.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EyeModel</text>
 </a>
 </g>
 </g>
 <!-- vm.EyeModel&#45;&gt;vm.GazeReconstruction3DImputed -->
-<g id="edge14" class="edge">
+<g id="edge9" class="edge">
 <title>vm.EyeModel-&gt;vm.GazeReconstruction3DImputed</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M632.87,-61.66C638.91,-49.91 646.83,-34.49 652.01,-24.41"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M256.5,-61.89C250.54,-50.24 242.75,-35.01 237.57,-24.88"/>
 </g>
 <!-- vm.EyeModel&#45;&gt;vm.GazeReconstruction3D -->
-<g id="edge15" class="edge">
+<g id="edge10" class="edge">
 <title>vm.EyeModel-&gt;vm.GazeReconstruction3D</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M581.19,-61.49C543.92,-47.07 492.61,-27.21 469.94,-18.43"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M308.01,-61.89C345.31,-47.48 396.84,-27.58 419.95,-18.66"/>
 </g>
 <!-- vm.EyeCamTimestampSource -->
-<g id="node17" class="node">
+<g id="node18" class="node">
 <title>vm.EyeCamTimestampSource</title>
-<g id="a_node17"><a xlink:title="timestamp_source     ------------------------------event_suffix         description=&quot;&quot;       ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1838.5,-237.6 1688.25,-237.6 1688.25,-203.04 1838.5,-203.04 1838.5,-237.6"/>
-<text text-anchor="start" x="1696.25" y="-217.82" font-family="arial" text-decoration="underline" font-size="10.00">vm.EyeCamTimestampSource</text>
+<g id="a_node18"><a xlink:title="timestamp_source     ------------------------------event_suffix         description=&quot;&quot;       ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="2101.5,-239 1950.5,-239 1950.5,-204 2101.5,-204 2101.5,-239"/>
+<text text-anchor="start" x="1958.5" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.EyeCamTimestampSource</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilEllipseFittingImputed -->
-<g id="node19" class="node">
-<title>vm.PupilEllipseFittingImputed</title>
-<g id="a_node19"><a xlink:title="→ `roselab_disk`.`__d_l_c_imputation`------------------------------theta                phi                  diameter             pupil_center         x0_in                y0_in                long_axis            short_axis           angle_from_x         cam_center           eye_center           scale                horizontal_offset    vertical_offset      n_nice_frames        n_angle              n_imputed_markers    calibration_source   INDEX (theta)INDEX (phi)INDEX (diameter)INDEX (pupil_center)INDEX (x0_in)INDEX (y0_in)INDEX (long_axis)INDEX (short_axis)INDEX (angle_from_x)INDEX (cam_center)INDEX (eye_center)INDEX (n_imputed_markers)">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="772.38" cy="-149.76" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="772.38" y="-145.48" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PupilEllipseFittingImputed</text>
-</a>
-</g>
-</g>
-<!-- vm.PupilEllipseFittingImputed&#45;&gt;vm.PupilRotationOptiTrackImputed -->
-<g id="edge16" class="edge">
-<title>vm.PupilEllipseFittingImputed-&gt;vm.PupilRotationOptiTrackImputed</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M774.92,-137.13C777.69,-124.45 782.11,-104.27 784.87,-91.66"/>
+<!-- vm.PupilEllipseFitting&#45;&gt;vm.PupilEllipseFitting.ImageFit -->
+<g id="edge11" class="edge">
+<title>vm.PupilEllipseFitting-&gt;vm.PupilEllipseFitting.ImageFit</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1270,-137.48C1270,-123.74 1270,-101.56 1270,-89.32"/>
 </g>
 <!-- vm.Parent -->
-<g id="node22" class="node">
+<g id="node20" class="node">
 <title>vm.Parent</title>
-<g id="a_node22"><a xlink:title="id                   ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1926.38,-237.6 1856.38,-237.6 1856.38,-203.04 1926.38,-203.04 1926.38,-237.6"/>
-<text text-anchor="start" x="1864.38" y="-217.04" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Parent</text>
+<g id="a_node20"><a xlink:title="id                   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="2190.5,-239 2119.5,-239 2119.5,-204 2190.5,-204 2190.5,-239"/>
+<text text-anchor="start" x="2127.5" y="-219.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Parent</text>
 </a>
 </g>
 </g>
-<!-- vm.PupilEllipseFittingFreeMoving&#45;&gt;vm.PupilRotationOptiTrack -->
+<!-- vm.EyeCamTimeSource -->
+<g id="node21" class="node">
+<title>vm.EyeCamTimeSource</title>
+<g id="a_node21"><a xlink:title="eyecam_time_source   ------------------------------event_suffix         description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="391,-168 267,-168 267,-133 391,-133 391,-168"/>
+<text text-anchor="start" x="275" y="-149" font-family="arial" text-decoration="underline" font-size="10.00">vm.EyeCamTimeSource</text>
+</a>
+</g>
+</g>
+<!-- vm.EyeCamTimeSource&#45;&gt;vm.PupilRotationOptiTrackImputed -->
+<g id="edge12" class="edge">
+<title>vm.EyeCamTimeSource-&gt;vm.PupilRotationOptiTrackImputed</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M274.39,-132.97C220.9,-116.79 143.21,-93.28 113.34,-84.23"/>
+</g>
+<!-- vm.EyeCamTimeSource&#45;&gt;vm.PupilRotationOptiTrack -->
+<g id="edge13" class="edge">
+<title>vm.EyeCamTimeSource-&gt;vm.PupilRotationOptiTrack</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M386.25,-132.97C442.59,-116.71 524.55,-93.04 555.52,-84.1"/>
+</g>
+<!-- vm.TorsionCalibManual -->
+<g id="node22" class="node">
+<title>vm.TorsionCalibManual</title>
+<g id="a_node22"><a xlink:title="→ `roselab_subject`.`subject`------------------------------param_coeff          param_intercept      ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="470.5,-97 327.5,-97 327.5,-62 470.5,-62 470.5,-97"/>
+<text text-anchor="middle" x="399" y="-76.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.TorsionCalibManual</text>
+</a>
+</g>
+</g>
+<!-- vm.TorsionCalibManual&#45;&gt;vm.GazeReconstruction3DImputed -->
+<g id="edge14" class="edge">
+<title>vm.TorsionCalibManual-&gt;vm.GazeReconstruction3DImputed</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M355.99,-61.89C318.69,-47.48 267.16,-27.58 244.05,-18.66"/>
+</g>
+<!-- vm.TorsionCalibManual&#45;&gt;vm.GazeReconstruction3D -->
+<g id="edge15" class="edge">
+<title>vm.TorsionCalibManual-&gt;vm.GazeReconstruction3D</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M407.5,-61.89C413.46,-50.24 421.25,-35.01 426.43,-24.88"/>
+</g>
+<!-- vm.PupilEllipseParameterFreeMoving -->
+<g id="node23" class="node">
+<title>vm.PupilEllipseParameterFreeMoving</title>
+<g id="a_node23"><a xlink:title="parameter_id         ------------------------------llh_thres_pupil      llh_thres_ir         llh_thres_corner     pupil_min_dots       exclude_ir_std       ellipticity_thres    description          ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="750,-239 570,-239 570,-204 750,-204 750,-239"/>
+<text text-anchor="start" x="578" y="-220" font-family="arial" text-decoration="underline" font-size="10.00">vm.PupilEllipseParameterFreeMoving</text>
+</a>
+</g>
+</g>
+<!-- vm.PupilEllipseParameterFreeMoving&#45;&gt;vm.PupilEllipseFittingFreeMoving -->
+<g id="edge16" class="edge">
+<title>vm.PupilEllipseParameterFreeMoving-&gt;vm.PupilEllipseFittingFreeMoving</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M637.73,-203.8C618.8,-189.6 592.48,-169.86 578.2,-159.15"/>
+</g>
+<!-- vm.PupilEllipseParameterFreeMoving&#45;&gt;vm.PupilFrameQuality -->
 <g id="edge17" class="edge">
-<title>vm.PupilEllipseFittingFreeMoving-&gt;vm.PupilRotationOptiTrack</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M374.66,-139.8C363.42,-126.73 342.63,-102.57 331.28,-89.38"/>
+<title>vm.PupilEllipseParameterFreeMoving-&gt;vm.PupilFrameQuality</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M682.27,-203.8C701.2,-189.6 727.52,-169.86 741.8,-159.15"/>
 </g>
 </g>
 </svg>

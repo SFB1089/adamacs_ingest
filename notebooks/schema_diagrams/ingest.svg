@@ -1,42 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="292pt" height="99pt" viewBox="0.00 0.00 291.62 98.56">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 94.56)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-94.56 287.62,-94.56 287.62,4 -4,4"/>
-<!-- vm.IngestRun.Failure -->
-<g id="node1" class="node">
-<title>vm.IngestRun.Failure</title>
-<g id="a_node1"><a xlink:title="→ vm.IngestRunfailure_id           ------------------------------session_id=&quot;&quot;        scan_id=&quot;&quot;           camera=&quot;&quot;            model_name=&quot;&quot;        outcome              description=&quot;&quot;       detail=&quot;&quot;            ">
-<polygon fill="none" stroke="none" points="109.75,-20 0,-20 0,0 109.75,0 109.75,-20"/>
-<text text-anchor="start" x="8" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.IngestRun.Failure</text>
-</a>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="292pt" height="98pt" viewBox="0.00 0.00 292.00 98.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 94)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-94 288,-94 288,4 -4,4"/>
 <!-- vm.IngestRun.SessionOutcome -->
-<g id="node2" class="node">
+<g id="node1" class="node">
 <title>vm.IngestRun.SessionOutcome</title>
-<g id="a_node2"><a xlink:title="→ vm.IngestRunsession_id           ------------------------------outcome              session_steps_ok=0   session_steps_skipped=0 session_steps_failed=0 first_error=&quot;&quot;       ">
-<polygon fill="none" stroke="none" points="283.62,-20 128.12,-20 128.12,0 283.62,0 283.62,-20"/>
-<text text-anchor="start" x="136.12" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.IngestRun.SessionOutcome</text>
+<g id="a_node1"><a xlink:title="→ vm.IngestRunsession_id           ------------------------------outcome              session_steps_ok=0   session_steps_skipped=0 session_steps_failed=0 first_error=&quot;&quot;       ">
+<polygon fill="transparent" stroke="transparent" points="156,-19 0,-19 0,0 156,0 156,-19"/>
+<text text-anchor="start" x="8" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.IngestRun.SessionOutcome</text>
 </a>
 </g>
 </g>
 <!-- vm.IngestRun -->
-<g id="node3" class="node">
+<g id="node2" class="node">
 <title>vm.IngestRun</title>
-<g id="a_node3"><a xlink:title="run_id               ------------------------------run_start            run_end=null         user_initials=null   os_user=null         host=null            git_sha=null         git_dirty=0          log_dir=null         n_sessions=0         n_sessions_failed=0  n_steps_ok=0         n_steps_skipped=0    n_steps_failed=0     environment=null     selections=null      summary=null         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="174.62,-90.56 85.12,-90.56 85.12,-56 174.62,-56 174.62,-90.56"/>
-<text text-anchor="start" x="93.12" y="-70" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.IngestRun</text>
+<g id="a_node2"><a xlink:title="run_id               ------------------------------run_start            run_end=null         user_initials=null   os_user=null         host=null            git_sha=null         git_dirty=0          log_dir=null         n_sessions=0         n_sessions_failed=0  n_steps_ok=0         n_steps_skipped=0    n_steps_failed=0     environment=null     selections=null      summary=null         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="198,-90 108,-90 108,-55 198,-55 198,-90"/>
+<text text-anchor="start" x="116" y="-70.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.IngestRun</text>
+</a>
+</g>
+</g>
+<!-- vm.IngestRun&#45;&gt;vm.IngestRun.SessionOutcome -->
+<g id="edge1" class="edge">
+<title>vm.IngestRun-&gt;vm.IngestRun.SessionOutcome</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M132.51,-54.83C118.28,-43.26 99.91,-28.32 88.55,-19.08"/>
+</g>
+<!-- vm.IngestRun.Failure -->
+<g id="node3" class="node">
+<title>vm.IngestRun.Failure</title>
+<g id="a_node3"><a xlink:title="→ vm.IngestRunfailure_id           ------------------------------session_id=&quot;&quot;        scan_id=&quot;&quot;           camera=&quot;&quot;            model_name=&quot;&quot;        outcome              description=&quot;&quot;       detail=&quot;&quot;            ">
+<polygon fill="transparent" stroke="transparent" points="284,-19 174,-19 174,0 284,0 284,-19"/>
+<text text-anchor="start" x="182" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.IngestRun.Failure</text>
 </a>
 </g>
 </g>
 <!-- vm.IngestRun&#45;&gt;vm.IngestRun.Failure -->
-<g id="edge1" class="edge">
-<title>vm.IngestRun-&gt;vm.IngestRun.Failure</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M109.38,-55.53C95.33,-44.05 77.23,-29.27 65.84,-19.96"/>
-</g>
-<!-- vm.IngestRun&#45;&gt;vm.IngestRun.SessionOutcome -->
 <g id="edge2" class="edge">
-<title>vm.IngestRun-&gt;vm.IngestRun.SessionOutcome</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M150.64,-55.53C164.88,-44.05 183.22,-29.27 194.76,-19.96"/>
+<title>vm.IngestRun-&gt;vm.IngestRun.Failure</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M173.77,-54.83C188.18,-43.26 206.8,-28.32 218.31,-19.08"/>
 </g>
 </g>
 </svg>

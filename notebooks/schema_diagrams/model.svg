@@ -1,328 +1,329 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1851pt" height="231pt" viewBox="0.00 0.00 1851.21 231.04">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227.04)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-227.04 1847.21,-227.04 1847.21,4 -4,4"/>
-<!-- vm.Model.BodyPart -->
-<g id="node1" class="node">
-<title>vm.Model.BodyPart</title>
-<g id="a_node1"><a xlink:title="→ vm.Model→ vm.BodyPart">
-<polygon fill="none" stroke="none" points="689.62,-78.96 587.38,-78.96 587.38,-58.96 689.62,-58.96 689.62,-78.96"/>
-<text text-anchor="middle" x="638.5" y="-65.46" font-family="arial" font-size="10.00">vm.Model.BodyPart</text>
-</a>
-</g>
-</g>
-<!-- vm.PoseEstimation.BodyPartPosition -->
-<g id="node5" class="node">
-<title>vm.PoseEstimation.BodyPartPosition</title>
-<g id="a_node5"><a xlink:title="→ vm.PoseEstimation→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
-<polygon fill="none" stroke="none" points="1245.62,-20 1065.38,-20 1065.38,0 1245.62,0 1245.62,-20"/>
-<text text-anchor="middle" x="1155.5" y="-6.5" font-family="arial" font-size="10.00">vm.PoseEstimation.BodyPartPosition</text>
-</a>
-</g>
-</g>
-<!-- vm.Model.BodyPart&#45;&gt;vm.PoseEstimation.BodyPartPosition -->
-<g id="edge1" class="edge">
-<title>vm.Model.BodyPart-&gt;vm.PoseEstimation.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M689.49,-62.34C779.29,-52.45 966.33,-31.84 1074.15,-19.96"/>
-</g>
-<!-- vm.PoseEstimationNew.BodyPartPosition -->
-<g id="node8" class="node">
-<title>vm.PoseEstimationNew.BodyPartPosition</title>
-<g id="a_node8"><a xlink:title="→ vm.PoseEstimationNew→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
-<polygon fill="none" stroke="none" points="652,-20 453,-20 453,0 652,0 652,-20"/>
-<text text-anchor="middle" x="552.5" y="-6.5" font-family="arial" font-size="10.00">vm.PoseEstimationNew.BodyPartPosition</text>
-</a>
-</g>
-</g>
-<!-- vm.Model.BodyPart&#45;&gt;vm.PoseEstimationNew.BodyPartPosition -->
-<g id="edge2" class="edge">
-<title>vm.Model.BodyPart-&gt;vm.PoseEstimationNew.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M625.06,-59.06C608.91,-48.36 581.96,-30.51 565.84,-19.84"/>
-</g>
-<!-- vm.DLCLivePoseEstimation.BodyPartPosition -->
-<g id="node9" class="node">
-<title>vm.DLCLivePoseEstimation.BodyPartPosition</title>
-<g id="a_node9"><a xlink:title="→ vm.DLCLivePoseEstimation→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
-<polygon fill="none" stroke="none" points="980.75,-20 762.25,-20 762.25,0 980.75,0 980.75,-20"/>
-<text text-anchor="middle" x="871.5" y="-6.5" font-family="arial" font-size="10.00">vm.DLCLivePoseEstimation.BodyPartPosition</text>
-</a>
-</g>
-</g>
-<!-- vm.Model.BodyPart&#45;&gt;vm.DLCLivePoseEstimation.BodyPartPosition -->
-<g id="edge3" class="edge">
-<title>vm.Model.BodyPart-&gt;vm.DLCLivePoseEstimation.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M675.16,-59C718.86,-48.31 791.44,-30.57 835.05,-19.91"/>
-</g>
-<!-- vm.PoseEstimationTaskNew -->
-<g id="node2" class="node">
-<title>vm.PoseEstimationTaskNew</title>
-<g id="a_node2"><a xlink:title="→ vm.VideoRecordingNew→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="518.62,-152.48 350.38,-152.48 350.38,-117.92 518.62,-117.92 518.62,-152.48"/>
-<text text-anchor="middle" x="434.5" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.PoseEstimationTaskNew</text>
-</a>
-</g>
-</g>
-<!-- vm.PoseEstimationNew -->
-<g id="node10" class="node">
-<title>vm.PoseEstimationNew</title>
-<g id="a_node10"><a xlink:title="→ vm.PoseEstimationTaskNew------------------------------pose_estimation_time ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="466.5" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="466.5" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PoseEstimationNew</text>
-</a>
-</g>
-</g>
-<!-- vm.PoseEstimationTaskNew&#45;&gt;vm.PoseEstimationNew -->
-<g id="edge4" class="edge">
-<title>vm.PoseEstimationTaskNew-&gt;vm.PoseEstimationNew</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M442.74,-117.66C448.59,-105.91 456.27,-90.49 461.29,-80.41"/>
-</g>
-<!-- vm.BodyPart -->
-<g id="node3" class="node">
-<title>vm.BodyPart</title>
-<g id="a_node3"><a xlink:title="body_part            ------------------------------body_part_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="610,-152.48 537,-152.48 537,-117.92 610,-117.92 610,-152.48"/>
-<text text-anchor="start" x="545" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.BodyPart</text>
-</a>
-</g>
-</g>
-<!-- vm.BodyPart&#45;&gt;vm.Model.BodyPart -->
-<g id="edge5" class="edge">
-<title>vm.BodyPart-&gt;vm.Model.BodyPart</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M589.9,-117.99C602.54,-105.5 619.52,-88.72 629.7,-78.66"/>
-</g>
-<!-- vm.DLCliveRecording -->
-<g id="node4" class="node">
-<title>vm.DLCliveRecording</title>
-<g id="a_node4"><a xlink:title="→ `roselab_scan`.`scan`recording_id         ------------------------------→ `roselab_equipment`.`device`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1204.38,-223.04 1070.62,-223.04 1070.62,-188.48 1204.38,-188.48 1204.38,-223.04"/>
-<text text-anchor="start" x="1078.62" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.DLCliveRecording</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCLivePoseEstimationTask -->
-<g id="node7" class="node">
-<title>vm.DLCLivePoseEstimationTask</title>
-<g id="a_node7"><a xlink:title="→ vm.DLCliveRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1232.88,-152.48 1042.12,-152.48 1042.12,-117.92 1232.88,-117.92 1232.88,-152.48"/>
-<text text-anchor="middle" x="1137.5" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCLivePoseEstimationTask</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCliveRecording&#45;&gt;vm.DLCLivePoseEstimationTask -->
-<g id="edge6" class="edge">
-<title>vm.DLCliveRecording-&gt;vm.DLCLivePoseEstimationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1137.5,-188.16C1137.5,-177.38 1137.5,-163.39 1137.5,-152.64"/>
-</g>
-<!-- vm.DLCliveRecording.File -->
-<g id="node17" class="node">
-<title>vm.DLCliveRecording.File</title>
-<g id="a_node17"><a xlink:title="→ vm.DLCliveRecordingfile_id              ------------------------------file_path            ">
-<polygon fill="none" stroke="none" points="1542.88,-145.2 1412.12,-145.2 1412.12,-125.2 1542.88,-125.2 1542.88,-145.2"/>
-<text text-anchor="start" x="1420.12" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.DLCliveRecording.File</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCliveRecording&#45;&gt;vm.DLCliveRecording.File -->
-<g id="edge7" class="edge">
-<title>vm.DLCliveRecording-&gt;vm.DLCliveRecording.File</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1204.82,-191.96C1258.64,-181.63 1336,-166.54 1403.5,-152.48 1414.58,-150.17 1426.56,-147.58 1437.59,-145.15"/>
-</g>
-<!-- vm.DLCLivePoseEstimationTaskNew -->
-<g id="node22" class="node">
-<title>vm.DLCLivePoseEstimationTaskNew</title>
-<g id="a_node22"><a xlink:title="→ vm.DLCliveRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1024.25,-152.48 808.75,-152.48 808.75,-117.92 1024.25,-117.92 1024.25,-152.48"/>
-<text text-anchor="middle" x="916.5" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCLivePoseEstimationTaskNew</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCliveRecording&#45;&gt;vm.DLCLivePoseEstimationTaskNew -->
-<g id="edge8" class="edge">
-<title>vm.DLCliveRecording-&gt;vm.DLCLivePoseEstimationTaskNew</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1083.44,-187.99C1049.06,-177.32 1004.73,-163.57 970.39,-152.92"/>
-</g>
-<!-- vm.VideoRecording.File -->
-<g id="node6" class="node">
-<title>vm.VideoRecording.File</title>
-<g id="a_node6"><a xlink:title="→ vm.VideoRecordingfile_id              ------------------------------file_path            ">
-<polygon fill="none" stroke="none" points="1681.62,-145.2 1561.38,-145.2 1561.38,-125.2 1681.62,-125.2 1681.62,-145.2"/>
-<text text-anchor="start" x="1569.38" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.VideoRecording.File</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCLivePoseEstimation -->
-<g id="node14" class="node">
-<title>vm.DLCLivePoseEstimation</title>
-<g id="a_node14"><a xlink:title="→ vm.DLCLivePoseEstimationTask------------------------------pose_estimation_time ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="963.5" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="963.5" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DLCLivePoseEstimation</text>
-</a>
-</g>
-</g>
-<!-- vm.DLCLivePoseEstimationTask&#45;&gt;vm.DLCLivePoseEstimation -->
-<g id="edge9" class="edge">
-<title>vm.DLCLivePoseEstimationTask-&gt;vm.DLCLivePoseEstimation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1092.24,-117.49C1052.97,-102.99 998.83,-83 975.26,-74.3"/>
-</g>
-<!-- vm.PoseEstimationNew&#45;&gt;vm.PoseEstimationNew.BodyPartPosition -->
-<g id="edge10" class="edge">
-<title>vm.PoseEstimationNew-&gt;vm.PoseEstimationNew.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M476.7,-61.2C492.19,-50.95 521.64,-31.44 538.92,-20"/>
-</g>
-<!-- vm.RecordingInfo -->
-<g id="node11" class="node">
-<title>vm.RecordingInfo</title>
-<g id="a_node11"><a xlink:title="→ vm.VideoRecording------------------------------px_height            px_width             nframes              fps=null             recording_datetime=null recording_duration   ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1771.5" cy="-135.2" rx="71.71" ry="17.28"/>
-<text text-anchor="middle" x="1771.5" y="-130.93" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.RecordingInfo</text>
-</a>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1845pt" height="231pt" viewBox="0.00 0.00 1844.50 231.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 227)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-227 1840.5,-227 1840.5,4 -4,4"/>
 <!-- vm.Model -->
-<g id="node12" class="node">
+<g id="node1" class="node">
 <title>vm.Model</title>
-<g id="a_node12"><a xlink:title="model_name           ------------------------------task                 date                 iteration            snapshotindex        shuffle              trainingsetindex     scorer               config_template      project_path         model_prefix=&quot;&quot;      model_description=&quot;&quot; → [nullable] `roselab_train`.`#training_param_set`UNIQUE INDEX (task, date, iteration, shuffle, snapshotindex, trainingsetindex)">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="856.38,-223.04 788.62,-223.04 788.62,-188.48 856.38,-188.48 856.38,-223.04"/>
-<text text-anchor="start" x="796.62" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Model</text>
+<g id="a_node1"><a xlink:title="model_name           ------------------------------task                 date                 iteration            snapshotindex        shuffle              trainingsetindex     scorer               config_template      project_path         model_prefix=&quot;&quot;      model_description=&quot;&quot; → [nullable] `roselab_train`.`#training_param_set`UNIQUE INDEX (task, date, iteration, shuffle, snapshotindex, trainingsetindex)">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="734.5,-223 666.5,-223 666.5,-188 734.5,-188 734.5,-223"/>
+<text text-anchor="start" x="674.5" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Model</text>
 </a>
 </g>
-</g>
-<!-- vm.Model&#45;&gt;vm.Model.BodyPart -->
-<g id="edge11" class="edge">
-<title>vm.Model-&gt;vm.Model.BodyPart</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M788.2,-203.51C750.66,-200.24 691.32,-189.14 657.5,-152.48 638.26,-131.63 637.23,-95.31 637.89,-78.7"/>
-</g>
-<!-- vm.Model&#45;&gt;vm.PoseEstimationTaskNew -->
-<g id="edge12" class="edge">
-<title>vm.Model-&gt;vm.PoseEstimationTaskNew</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M788.41,-198.74C728.59,-188.17 603.07,-165.99 518.76,-151.09"/>
-</g>
-<!-- vm.Model&#45;&gt;vm.DLCLivePoseEstimationTask -->
-<g id="edge13" class="edge">
-<title>vm.Model-&gt;vm.DLCLivePoseEstimationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M856.81,-197.29C905.36,-186.72 995.45,-167.12 1060.49,-152.96"/>
 </g>
 <!-- vm.ModelEvaluation -->
-<g id="node20" class="node">
+<g id="node2" class="node">
 <title>vm.ModelEvaluation</title>
-<g id="a_node20"><a xlink:title="→ vm.Model------------------------------train_iterations     train_error=null     test_error=null      p_cutoff=null        train_error_p=null   test_error_p=null    ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="728.5" cy="-135.2" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="728.5" y="-130.93" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.ModelEvaluation</text>
+<g id="a_node2"><a xlink:title="→ vm.Model------------------------------train_iterations     train_error=null     test_error=null      p_cutoff=null        train_error_p=null   test_error_p=null    ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="655.5" cy="-134.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="655.5" y="-131.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.ModelEvaluation</text>
 </a>
 </g>
 </g>
 <!-- vm.Model&#45;&gt;vm.ModelEvaluation -->
-<g id="edge14" class="edge">
+<g id="edge1" class="edge">
 <title>vm.Model-&gt;vm.ModelEvaluation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M799.75,-188.16C780.18,-173.9 752.91,-154 738.44,-143.45"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M689.61,-187.8C681.07,-174.71 669.48,-156.93 662.24,-145.84"/>
+</g>
+<!-- vm.DLCLivePoseEstimationTaskNew -->
+<g id="node4" class="node">
+<title>vm.DLCLivePoseEstimationTaskNew</title>
+<g id="a_node4"><a xlink:title="→ vm.DLCliveRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="365.5,-152 149.5,-152 149.5,-117 365.5,-117 365.5,-152"/>
+<text text-anchor="middle" x="257.5" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCLivePoseEstimationTaskNew</text>
+</a>
+</g>
+</g>
+<!-- vm.Model&#45;&gt;vm.DLCLivePoseEstimationTaskNew -->
+<g id="edge2" class="edge">
+<title>vm.Model-&gt;vm.DLCLivePoseEstimationTaskNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M666.47,-199.2C602.55,-189.24 462.12,-167.37 363.73,-152.05"/>
+</g>
+<!-- vm.Model.BodyPart -->
+<g id="node9" class="node">
+<title>vm.Model.BodyPart</title>
+<g id="a_node9"><a xlink:title="→ vm.Model→ vm.BodyPart">
+<polygon fill="transparent" stroke="transparent" points="861,-77.5 758,-77.5 758,-58.5 861,-58.5 861,-77.5"/>
+<text text-anchor="middle" x="809.5" y="-65.5" font-family="arial" font-size="10.00">vm.Model.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- vm.Model&#45;&gt;vm.Model.BodyPart -->
+<g id="edge3" class="edge">
+<title>vm.Model-&gt;vm.Model.BodyPart</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M711.99,-187.99C724.62,-170.11 745.73,-140.93 765.5,-117 777.31,-102.71 792.04,-87.03 801.11,-77.6"/>
+</g>
+<!-- vm.DLCLivePoseEstimationTask -->
+<g id="node11" class="node">
+<title>vm.DLCLivePoseEstimationTask</title>
+<g id="a_node11"><a xlink:title="→ vm.DLCliveRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="575,-152 384,-152 384,-117 575,-117 575,-152"/>
+<text text-anchor="middle" x="479.5" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.DLCLivePoseEstimationTask</text>
+</a>
+</g>
+</g>
+<!-- vm.Model&#45;&gt;vm.DLCLivePoseEstimationTask -->
+<g id="edge4" class="edge">
+<title>vm.Model-&gt;vm.DLCLivePoseEstimationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M666.45,-193.87C630.73,-182.72 574.11,-165.04 532.53,-152.06"/>
+</g>
+<!-- vm.PoseEstimationTaskNew -->
+<g id="node15" class="node">
+<title>vm.PoseEstimationTaskNew</title>
+<g id="a_node15"><a xlink:title="→ vm.VideoRecordingNew→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1492,-152 1323,-152 1323,-117 1492,-117 1492,-152"/>
+<text text-anchor="middle" x="1407.5" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.PoseEstimationTaskNew</text>
+</a>
+</g>
+</g>
+<!-- vm.Model&#45;&gt;vm.PoseEstimationTaskNew -->
+<g id="edge5" class="edge">
+<title>vm.Model-&gt;vm.PoseEstimationTaskNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M734.56,-202.67C827.71,-197.43 1094.39,-180.88 1314.5,-152 1317.26,-151.64 1320.07,-151.25 1322.9,-150.84"/>
 </g>
 <!-- vm.PoseEstimationTask -->
-<g id="node21" class="node">
+<g id="node19" class="node">
 <title>vm.PoseEstimationTask</title>
-<g id="a_node21"><a xlink:title="→ vm.VideoRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1394.25,-152.48 1250.75,-152.48 1250.75,-117.92 1394.25,-117.92 1394.25,-152.48"/>
-<text text-anchor="middle" x="1322.5" y="-130.93" font-family="arial" font-size="12.00" fill="darkgreen">vm.PoseEstimationTask</text>
+<g id="a_node19"><a xlink:title="→ vm.VideoRecording→ vm.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1010.5,-152 866.5,-152 866.5,-117 1010.5,-117 1010.5,-152"/>
+<text text-anchor="middle" x="938.5" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.PoseEstimationTask</text>
 </a>
 </g>
 </g>
 <!-- vm.Model&#45;&gt;vm.PoseEstimationTask -->
-<g id="edge15" class="edge">
+<g id="edge6" class="edge">
 <title>vm.Model-&gt;vm.PoseEstimationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M856.84,-201.35C928.54,-194.03 1099.32,-175.61 1241.5,-152.48 1244.47,-152 1247.5,-151.48 1250.56,-150.95"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M734.6,-194.61C772.9,-183.51 835.69,-165.31 881.49,-152.03"/>
 </g>
-<!-- vm.Model&#45;&gt;vm.DLCLivePoseEstimationTaskNew -->
-<g id="edge16" class="edge">
-<title>vm.Model-&gt;vm.DLCLivePoseEstimationTaskNew</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M845.25,-188.16C859.93,-177.46 878.94,-163.6 893.63,-152.88"/>
-</g>
-<!-- vm.PoseEstimation -->
-<g id="node13" class="node">
-<title>vm.PoseEstimation</title>
-<g id="a_node13"><a xlink:title="→ vm.PoseEstimationTask------------------------------pose_estimation_time ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1222.5" cy="-68.96" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1222.5" y="-64.69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PoseEstimation</text>
+<!-- vm.VideoRecording.File -->
+<g id="node3" class="node">
+<title>vm.VideoRecording.File</title>
+<g id="a_node3"><a xlink:title="→ vm.VideoRecordingfile_id              ------------------------------file_path            ">
+<polygon fill="transparent" stroke="transparent" points="1150,-144 1029,-144 1029,-125 1150,-125 1150,-144"/>
+<text text-anchor="start" x="1037" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.VideoRecording.File</text>
 </a>
 </g>
 </g>
-<!-- vm.PoseEstimation&#45;&gt;vm.PoseEstimation.BodyPartPosition -->
-<g id="edge17" class="edge">
-<title>vm.PoseEstimation-&gt;vm.PoseEstimation.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1213.18,-60.04C1200.81,-49.52 1179.03,-31 1166.06,-19.98"/>
+<!-- vm.DLCliveRecording.File -->
+<g id="node5" class="node">
+<title>vm.DLCliveRecording.File</title>
+<g id="a_node5"><a xlink:title="→ vm.DLCliveRecordingfile_id              ------------------------------file_path            ">
+<polygon fill="transparent" stroke="transparent" points="131,-144 0,-144 0,-125 131,-125 131,-144"/>
+<text text-anchor="start" x="8" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.DLCliveRecording.File</text>
+</a>
+</g>
+</g>
+<!-- vm.DLCLivePoseEstimation -->
+<g id="node6" class="node">
+<title>vm.DLCLivePoseEstimation</title>
+<g id="a_node6"><a xlink:title="→ vm.DLCLivePoseEstimationTask------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="623.5" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="623.5" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.DLCLivePoseEstimation</text>
+</a>
+</g>
+</g>
+<!-- vm.DLCLivePoseEstimation.BodyPartPosition -->
+<g id="node14" class="node">
+<title>vm.DLCLivePoseEstimation.BodyPartPosition</title>
+<g id="a_node14"><a xlink:title="→ vm.DLCLivePoseEstimation→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
+<polygon fill="transparent" stroke="transparent" points="735,-19 516,-19 516,0 735,0 735,-19"/>
+<text text-anchor="middle" x="625.5" y="-7" font-family="arial" font-size="10.00">vm.DLCLivePoseEstimation.BodyPartPosition</text>
+</a>
+</g>
 </g>
 <!-- vm.DLCLivePoseEstimation&#45;&gt;vm.DLCLivePoseEstimation.BodyPartPosition -->
-<g id="edge18" class="edge">
+<g id="edge7" class="edge">
 <title>vm.DLCLivePoseEstimation-&gt;vm.DLCLivePoseEstimation.BodyPartPosition</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M953.3,-61.65C936.93,-51.51 904.71,-31.56 885.97,-19.96"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M623.93,-54.74C624.32,-43.97 624.86,-28.56 625.2,-19.06"/>
 </g>
-<!-- vm.VideoRecordingNew.File -->
-<g id="node15" class="node">
-<title>vm.VideoRecordingNew.File</title>
-<g id="a_node15"><a xlink:title="→ vm.VideoRecordingNewfile_id              ------------------------------file_path            ">
-<polygon fill="none" stroke="none" points="139,-145.2 0,-145.2 0,-125.2 139,-125.2 139,-145.2"/>
-<text text-anchor="start" x="8" y="-132.7" font-family="arial" text-decoration="underline" font-size="10.00">vm.VideoRecordingNew.File</text>
+<!-- vm.PoseEstimationNew -->
+<g id="node7" class="node">
+<title>vm.PoseEstimationNew</title>
+<g id="a_node7"><a xlink:title="→ vm.PoseEstimationTaskNew------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1247.5" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="1247.5" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PoseEstimationNew</text>
+</a>
+</g>
+</g>
+<!-- vm.PoseEstimationNew.BodyPartPosition -->
+<g id="node21" class="node">
+<title>vm.PoseEstimationNew.BodyPartPosition</title>
+<g id="a_node21"><a xlink:title="→ vm.PoseEstimationNew→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
+<polygon fill="transparent" stroke="transparent" points="1273.5,-19 1073.5,-19 1073.5,0 1273.5,0 1273.5,-19"/>
+<text text-anchor="middle" x="1173.5" y="-7" font-family="arial" font-size="10.00">vm.PoseEstimationNew.BodyPartPosition</text>
+</a>
+</g>
+</g>
+<!-- vm.PoseEstimationNew&#45;&gt;vm.PoseEstimationNew.BodyPartPosition -->
+<g id="edge8" class="edge">
+<title>vm.PoseEstimationNew-&gt;vm.PoseEstimationNew.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1237.52,-59.38C1223.79,-48.9 1199.15,-30.08 1184.77,-19.11"/>
+</g>
+<!-- vm.VideoRecordingNew -->
+<g id="node8" class="node">
+<title>vm.VideoRecordingNew</title>
+<g id="a_node8"><a xlink:title="→ `roselab_scan`.`scan`recording_id         ------------------------------→ `roselab_equipment`.`device`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1667.5,-223 1521.5,-223 1521.5,-188 1667.5,-188 1667.5,-223"/>
+<text text-anchor="start" x="1529.5" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.VideoRecordingNew</text>
 </a>
 </g>
 </g>
 <!-- vm.RecordingInfoNew -->
-<g id="node16" class="node">
+<g id="node10" class="node">
 <title>vm.RecordingInfoNew</title>
-<g id="a_node16"><a xlink:title="→ vm.VideoRecordingNew------------------------------px_height            px_width             nframes              fps=null             recording_datetime=null recording_duration   ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="244.5" cy="-135.2" rx="87.89" ry="17.28"/>
-<text text-anchor="middle" x="244.5" y="-130.93" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.RecordingInfoNew</text>
+<g id="a_node10"><a xlink:title="→ vm.VideoRecordingNew------------------------------px_height            px_width             nframes              fps=null             recording_datetime=null recording_duration   ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1594.5" cy="-134.5" rx="84.25" ry="17.5"/>
+<text text-anchor="middle" x="1594.5" y="-131.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.RecordingInfoNew</text>
 </a>
 </g>
 </g>
-<!-- vm.VideoRecording -->
+<!-- vm.VideoRecordingNew&#45;&gt;vm.RecordingInfoNew -->
+<g id="edge9" class="edge">
+<title>vm.VideoRecordingNew-&gt;vm.RecordingInfoNew</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1594.5,-187.8C1594.5,-176.95 1594.5,-162.87 1594.5,-152.05"/>
+</g>
+<!-- vm.VideoRecordingNew&#45;&gt;vm.PoseEstimationTaskNew -->
+<g id="edge10" class="edge">
+<title>vm.VideoRecordingNew-&gt;vm.PoseEstimationTaskNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1549.71,-187.97C1520.21,-177.09 1481.74,-162.89 1452.25,-152.01"/>
+</g>
+<!-- vm.VideoRecordingNew.File -->
 <g id="node18" class="node">
+<title>vm.VideoRecordingNew.File</title>
+<g id="a_node18"><a xlink:title="→ vm.VideoRecordingNewfile_id              ------------------------------file_path            ">
+<polygon fill="transparent" stroke="transparent" points="1836.5,-144 1696.5,-144 1696.5,-125 1836.5,-125 1836.5,-144"/>
+<text text-anchor="start" x="1704.5" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.VideoRecordingNew.File</text>
+</a>
+</g>
+</g>
+<!-- vm.VideoRecordingNew&#45;&gt;vm.VideoRecordingNew.File -->
+<g id="edge11" class="edge">
+<title>vm.VideoRecordingNew-&gt;vm.VideoRecordingNew.File</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1635.7,-187.97C1670.09,-174.18 1717.73,-155.06 1745.01,-144.12"/>
+</g>
+<!-- vm.PoseEstimation.BodyPartPosition -->
+<g id="node13" class="node">
+<title>vm.PoseEstimation.BodyPartPosition</title>
+<g id="a_node13"><a xlink:title="→ vm.PoseEstimation→ vm.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
+<polygon fill="transparent" stroke="transparent" points="981,-19 800,-19 800,0 981,0 981,-19"/>
+<text text-anchor="middle" x="890.5" y="-7" font-family="arial" font-size="10.00">vm.PoseEstimation.BodyPartPosition</text>
+</a>
+</g>
+</g>
+<!-- vm.Model.BodyPart&#45;&gt;vm.PoseEstimation.BodyPartPosition -->
+<g id="edge12" class="edge">
+<title>vm.Model.BodyPart-&gt;vm.PoseEstimation.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M821.8,-58.42C837.03,-47.8 862.8,-29.82 878.08,-19.16"/>
+</g>
+<!-- vm.Model.BodyPart&#45;&gt;vm.DLCLivePoseEstimation.BodyPartPosition -->
+<g id="edge13" class="edge">
+<title>vm.Model.BodyPart-&gt;vm.DLCLivePoseEstimation.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M781.55,-58.42C746.87,-47.77 688.07,-29.71 653.41,-19.07"/>
+</g>
+<!-- vm.Model.BodyPart&#45;&gt;vm.PoseEstimationNew.BodyPartPosition -->
+<g id="edge14" class="edge">
+<title>vm.Model.BodyPart-&gt;vm.PoseEstimationNew.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M851.45,-58.47C857.82,-57.25 864.33,-56.06 870.5,-55 952.64,-40.9 1047.79,-27.38 1109.22,-19.02"/>
+</g>
+<!-- vm.DLCLivePoseEstimationTask&#45;&gt;vm.DLCLivePoseEstimation -->
+<g id="edge15" class="edge">
+<title>vm.DLCLivePoseEstimationTask-&gt;vm.DLCLivePoseEstimation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M516.58,-116.89C548.08,-102.78 591.35,-83.4 611.84,-74.22"/>
+</g>
+<!-- vm.PoseEstimation -->
+<g id="node12" class="node">
+<title>vm.PoseEstimation</title>
+<g id="a_node12"><a xlink:title="→ vm.PoseEstimationTask------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="938.5" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="938.5" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.PoseEstimation</text>
+</a>
+</g>
+</g>
+<!-- vm.PoseEstimation&#45;&gt;vm.PoseEstimation.BodyPartPosition -->
+<g id="edge16" class="edge">
+<title>vm.PoseEstimation-&gt;vm.PoseEstimation.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M930.57,-57.67C921.52,-47.01 906.82,-29.71 897.96,-19.29"/>
+</g>
+<!-- vm.PoseEstimationTaskNew&#45;&gt;vm.PoseEstimationNew -->
+<g id="edge17" class="edge">
+<title>vm.PoseEstimationTaskNew-&gt;vm.PoseEstimationNew</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1366.3,-116.89C1330.74,-102.56 1281.7,-82.79 1259.4,-73.8"/>
+</g>
+<!-- vm.VideoRecording -->
+<g id="node16" class="node">
 <title>vm.VideoRecording</title>
-<g id="a_node18"><a xlink:title="→ `roselab_session`.`session`recording_id         ------------------------------→ `roselab_equipment`.`device`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1682,-223.04 1561,-223.04 1561,-188.48 1682,-188.48 1682,-223.04"/>
-<text text-anchor="start" x="1569" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.VideoRecording</text>
+<g id="a_node16"><a xlink:title="→ `roselab_session`.`session`recording_id         ------------------------------→ `roselab_equipment`.`device`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1150.5,-223 1028.5,-223 1028.5,-188 1150.5,-188 1150.5,-223"/>
+<text text-anchor="start" x="1036.5" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.VideoRecording</text>
 </a>
 </g>
 </g>
 <!-- vm.VideoRecording&#45;&gt;vm.VideoRecording.File -->
-<g id="edge19" class="edge">
+<g id="edge18" class="edge">
 <title>vm.VideoRecording-&gt;vm.VideoRecording.File</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1621.5,-188.16C1621.5,-174.53 1621.5,-155.76 1621.5,-144.91"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1089.5,-187.8C1089.5,-174.08 1089.5,-155.19 1089.5,-144.27"/>
+</g>
+<!-- vm.VideoRecording&#45;&gt;vm.PoseEstimationTask -->
+<g id="edge19" class="edge">
+<title>vm.VideoRecording-&gt;vm.PoseEstimationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1053.33,-187.97C1029.51,-177.09 998.45,-162.89 974.63,-152.01"/>
+</g>
+<!-- vm.RecordingInfo -->
+<g id="node22" class="node">
+<title>vm.RecordingInfo</title>
+<g id="a_node22"><a xlink:title="→ vm.VideoRecording------------------------------px_height            px_width             nframes              fps=null             recording_datetime=null recording_duration   ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1236.5" cy="-134.5" rx="68.5" ry="17.5"/>
+<text text-anchor="middle" x="1236.5" y="-131.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.RecordingInfo</text>
+</a>
+</g>
 </g>
 <!-- vm.VideoRecording&#45;&gt;vm.RecordingInfo -->
 <g id="edge20" class="edge">
 <title>vm.VideoRecording-&gt;vm.RecordingInfo</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1658.19,-187.99C1682.91,-176.69 1715.22,-161.92 1739.01,-151.05"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1124.71,-187.97C1149.17,-176.49 1181.49,-161.32 1205.08,-150.25"/>
 </g>
-<!-- vm.VideoRecording&#45;&gt;vm.PoseEstimationTask -->
-<g id="edge21" class="edge">
-<title>vm.VideoRecording-&gt;vm.PoseEstimationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1560.63,-190.8C1512.57,-179.78 1445.37,-164.37 1394.61,-152.73"/>
-</g>
-<!-- vm.VideoRecordingNew -->
-<g id="node19" class="node">
-<title>vm.VideoRecordingNew</title>
-<g id="a_node19"><a xlink:title="→ `roselab_scan`.`scan`recording_id         ------------------------------→ `roselab_equipment`.`device`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="317.38,-223.04 171.62,-223.04 171.62,-188.48 317.38,-188.48 317.38,-223.04"/>
-<text text-anchor="start" x="179.62" y="-202.49" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.VideoRecordingNew</text>
+<!-- vm.DLCliveRecording -->
+<g id="node17" class="node">
+<title>vm.DLCliveRecording</title>
+<g id="a_node17"><a xlink:title="→ `roselab_scan`.`scan`recording_id         ------------------------------→ `roselab_equipment`.`device`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="324.5,-223 190.5,-223 190.5,-188 324.5,-188 324.5,-223"/>
+<text text-anchor="start" x="198.5" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.DLCliveRecording</text>
 </a>
 </g>
 </g>
-<!-- vm.VideoRecordingNew&#45;&gt;vm.PoseEstimationTaskNew -->
+<!-- vm.DLCliveRecording&#45;&gt;vm.DLCLivePoseEstimationTaskNew -->
+<g id="edge21" class="edge">
+<title>vm.DLCliveRecording-&gt;vm.DLCLivePoseEstimationTaskNew</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M257.5,-187.8C257.5,-176.95 257.5,-162.87 257.5,-152.05"/>
+</g>
+<!-- vm.DLCliveRecording&#45;&gt;vm.DLCliveRecording.File -->
 <g id="edge22" class="edge">
-<title>vm.VideoRecordingNew-&gt;vm.PoseEstimationTaskNew</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M290.98,-187.99C320.53,-177.32 358.65,-163.57 388.17,-152.92"/>
+<title>vm.DLCliveRecording-&gt;vm.DLCliveRecording.File</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M211.51,-187.97C173.01,-174.14 119.63,-154.95 89.22,-144.03"/>
 </g>
-<!-- vm.VideoRecordingNew&#45;&gt;vm.VideoRecordingNew.File -->
+<!-- vm.DLCliveRecording&#45;&gt;vm.DLCLivePoseEstimationTask -->
 <g id="edge23" class="edge">
-<title>vm.VideoRecordingNew-&gt;vm.VideoRecordingNew.File</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M201.69,-187.99C167.08,-174.43 119.73,-155.88 92.1,-145.05"/>
-</g>
-<!-- vm.VideoRecordingNew&#45;&gt;vm.RecordingInfoNew -->
-<g id="edge24" class="edge">
-<title>vm.VideoRecordingNew-&gt;vm.RecordingInfoNew</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M244.5,-188.16C244.5,-177.38 244.5,-163.39 244.5,-152.64"/>
+<title>vm.DLCliveRecording-&gt;vm.DLCLivePoseEstimationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M310.67,-187.97C345.69,-177.09 391.37,-162.89 426.38,-152.01"/>
 </g>
 <!-- vm.PoseEstimationTask&#45;&gt;vm.PoseEstimation -->
-<g id="edge25" class="edge">
+<g id="edge24" class="edge">
 <title>vm.PoseEstimationTask-&gt;vm.PoseEstimation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1296.49,-117.49C1275.65,-104.11 1247.54,-86.05 1232.68,-76.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M938.5,-116.89C938.5,-105.69 938.5,-91.17 938.5,-81.07"/>
+</g>
+<!-- vm.BodyPart -->
+<g id="node20" class="node">
+<title>vm.BodyPart</title>
+<g id="a_node20"><a xlink:title="body_part            ------------------------------body_part_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="848.5,-152 774.5,-152 774.5,-117 848.5,-117 848.5,-152"/>
+<text text-anchor="start" x="782.5" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">vm.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- vm.BodyPart&#45;&gt;vm.Model.BodyPart -->
+<g id="edge25" class="edge">
+<title>vm.BodyPart-&gt;vm.Model.BodyPart</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M810.98,-116.89C810.6,-104.35 810.08,-87.64 809.77,-77.64"/>
 </g>
 </g>
 </svg>

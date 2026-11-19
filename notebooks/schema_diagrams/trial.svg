@@ -1,98 +1,99 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="480pt" height="184pt" viewBox="0.00 0.00 480.00 183.68">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 179.68)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-179.68 476,-179.68 476,4 -4,4"/>
-<!-- vm.BlockTrial -->
-<g id="node1" class="node">
-<title>vm.BlockTrial</title>
-<g id="a_node1"><a xlink:title="→ vm.Block→ vm.Trial">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="172.5" cy="-17.28" rx="57.5" ry="17.28"/>
-<text text-anchor="middle" x="172.5" y="-13.01" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.BlockTrial</text>
-</a>
-</g>
-</g>
-<!-- vm.TrialType -->
-<g id="node2" class="node">
-<title>vm.TrialType</title>
-<g id="a_node2"><a xlink:title="trial_type           ------------------------------trial_type_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="341.62,-175.68 269.38,-175.68 269.38,-141.12 341.62,-141.12 341.62,-175.68"/>
-<text text-anchor="start" x="277.38" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.TrialType</text>
-</a>
-</g>
-</g>
-<!-- vm.Trial -->
-<g id="node6" class="node">
-<title>vm.Trial</title>
-<g id="a_node6"><a xlink:title="→ `roselab_event`.`behavior_recording`trial_id             ------------------------------→ vm.TrialTypetrial_start_time     trial_stop_time      ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="305.5" cy="-87.84" rx="37.9" ry="17.28"/>
-<text text-anchor="start" x="284.5" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Trial</text>
-</a>
-</g>
-</g>
-<!-- vm.TrialType&#45;&gt;vm.Trial -->
-<g id="edge1" class="edge">
-<title>vm.TrialType-&gt;vm.Trial</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M305.5,-141.15C305.5,-130.38 305.5,-116.29 305.5,-105.45"/>
-</g>
-<!-- vm.TrialEvent -->
-<g id="node3" class="node">
-<title>vm.TrialEvent</title>
-<g id="a_node3"><a xlink:title="→ vm.Trial→ `roselab_event`.`_event`">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="305.5" cy="-17.28" rx="57.99" ry="17.28"/>
-<text text-anchor="middle" x="305.5" y="-13.01" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.TrialEvent</text>
-</a>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="476pt" height="185pt" viewBox="0.00 0.00 475.62 185.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 181)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-181 471.62,-181 471.62,4 -4,4"/>
 <!-- vm.Trial.Attribute -->
-<g id="node4" class="node">
+<g id="node1" class="node">
 <title>vm.Trial.Attribute</title>
-<g id="a_node4"><a xlink:title="→ vm.Trialattribute_name       ------------------------------attribute_value      ">
-<polygon fill="none" stroke="none" points="472,-27.28 381,-27.28 381,-7.28 472,-7.28 472,-27.28"/>
-<text text-anchor="start" x="389" y="-14.78" font-family="arial" text-decoration="underline" font-size="10.00">vm.Trial.Attribute</text>
+<g id="a_node1"><a xlink:title="→ vm.Trialattribute_name       ------------------------------attribute_value      ">
+<polygon fill="transparent" stroke="transparent" points="338,-27 246,-27 246,-8 338,-8 338,-27"/>
+<text text-anchor="start" x="254" y="-16" font-family="arial" text-decoration="underline" font-size="10.00">vm.Trial.Attribute</text>
 </a>
 </g>
 </g>
 <!-- vm.Block -->
-<g id="node5" class="node">
+<g id="node2" class="node">
 <title>vm.Block</title>
-<g id="a_node5"><a xlink:title="→ `roselab_event`.`behavior_recording`block_id             ------------------------------block_start_time     block_stop_time      ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="110.5" cy="-87.84" rx="42.31" ry="17.28"/>
-<text text-anchor="start" x="86.12" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Block</text>
+<g id="a_node2"><a xlink:title="→ `roselab_event`.`behavior_recording`block_id             ------------------------------block_start_time     block_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="111" cy="-88.5" rx="40.75" ry="17.5"/>
+<text text-anchor="start" x="86.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Block</text>
+</a>
+</g>
+</g>
+<!-- vm.BlockTrial -->
+<g id="node3" class="node">
+<title>vm.BlockTrial</title>
+<g id="a_node3"><a xlink:title="→ vm.Block→ vm.Trial">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="172" cy="-17.5" rx="55.75" ry="17.5"/>
+<text text-anchor="middle" x="172" y="-14.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.BlockTrial</text>
 </a>
 </g>
 </g>
 <!-- vm.Block&#45;&gt;vm.BlockTrial -->
-<g id="edge2" class="edge">
+<g id="edge1" class="edge">
 <title>vm.Block-&gt;vm.BlockTrial</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M124.57,-71.28C134.57,-60.22 147.97,-45.41 158.06,-34.25"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M124.84,-71.84C134.68,-60.71 147.87,-45.8 157.79,-34.57"/>
 </g>
 <!-- vm.Block.Attribute -->
-<g id="node7" class="node">
+<g id="node4" class="node">
 <title>vm.Block.Attribute</title>
-<g id="a_node7"><a xlink:title="→ vm.Blockattribute_name       ------------------------------attribute_value      ">
-<polygon fill="none" stroke="none" points="97,-27.28 0,-27.28 0,-7.28 97,-7.28 97,-27.28"/>
-<text text-anchor="start" x="8" y="-14.78" font-family="arial" text-decoration="underline" font-size="10.00">vm.Block.Attribute</text>
+<g id="a_node4"><a xlink:title="→ vm.Blockattribute_name       ------------------------------attribute_value      ">
+<polygon fill="transparent" stroke="transparent" points="98,-27 0,-27 0,-8 98,-8 98,-27"/>
+<text text-anchor="start" x="8" y="-16" font-family="arial" text-decoration="underline" font-size="10.00">vm.Block.Attribute</text>
 </a>
 </g>
 </g>
 <!-- vm.Block&#45;&gt;vm.Block.Attribute -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>vm.Block-&gt;vm.Block.Attribute</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M96.43,-71.28C84.14,-57.69 66.73,-38.44 56.63,-27.27"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M96.93,-71.84C84.5,-58.01 66.82,-38.34 56.78,-27.15"/>
 </g>
-<!-- vm.Trial&#45;&gt;vm.BlockTrial -->
-<g id="edge4" class="edge">
-<title>vm.Trial-&gt;vm.BlockTrial</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M281.11,-74.27C258.31,-62.51 224.29,-44.98 200.42,-32.67"/>
+<!-- vm.TrialEvent -->
+<g id="node5" class="node">
+<title>vm.TrialEvent</title>
+<g id="a_node5"><a xlink:title="→ vm.Trial→ `roselab_event`.`_event`">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="412" cy="-17.5" rx="55.75" ry="17.5"/>
+<text text-anchor="middle" x="412" y="-14.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.TrialEvent</text>
+</a>
 </g>
-<!-- vm.Trial&#45;&gt;vm.TrialEvent -->
-<g id="edge5" class="edge">
-<title>vm.Trial-&gt;vm.TrialEvent</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M305.5,-70.24C305.5,-59.46 305.5,-45.47 305.5,-34.72"/>
+</g>
+<!-- vm.TrialType -->
+<g id="node6" class="node">
+<title>vm.TrialType</title>
+<g id="a_node6"><a xlink:title="trial_type           ------------------------------trial_type_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="328.5,-177 255.5,-177 255.5,-142 328.5,-142 328.5,-177"/>
+<text text-anchor="start" x="263.5" y="-158" font-family="arial" text-decoration="underline" font-size="10.00">vm.TrialType</text>
+</a>
+</g>
+</g>
+<!-- vm.Trial -->
+<g id="node7" class="node">
+<title>vm.Trial</title>
+<g id="a_node7"><a xlink:title="→ `roselab_event`.`behavior_recording`trial_id             ------------------------------→ vm.TrialTypetrial_start_time     trial_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="292" cy="-88.5" rx="36.75" ry="17.5"/>
+<text text-anchor="start" x="270.5" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Trial</text>
+</a>
+</g>
+</g>
+<!-- vm.TrialType&#45;&gt;vm.Trial -->
+<g id="edge3" class="edge">
+<title>vm.TrialType-&gt;vm.Trial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M292,-141.8C292,-130.95 292,-116.87 292,-106.05"/>
 </g>
 <!-- vm.Trial&#45;&gt;vm.Trial.Attribute -->
-<g id="edge6" class="edge">
+<g id="edge4" class="edge">
 <title>vm.Trial-&gt;vm.Trial.Attribute</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M328.54,-73.78C352.68,-60.11 389.93,-39 410.85,-27.15"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M292,-70.8C292,-57.08 292,-38.19 292,-27.27"/>
+</g>
+<!-- vm.Trial&#45;&gt;vm.BlockTrial -->
+<g id="edge5" class="edge">
+<title>vm.Trial-&gt;vm.BlockTrial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M269.43,-74.52C248.93,-62.73 218.71,-45.36 197.38,-33.09"/>
+</g>
+<!-- vm.Trial&#45;&gt;vm.TrialEvent -->
+<g id="edge6" class="edge">
+<title>vm.Trial-&gt;vm.TrialEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M314.57,-74.52C335.07,-62.73 365.29,-45.36 386.62,-33.09"/>
 </g>
 </g>
 </svg>

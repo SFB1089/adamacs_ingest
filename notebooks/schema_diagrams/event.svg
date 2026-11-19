@@ -1,174 +1,175 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="789pt" height="184pt" viewBox="0.00 0.00 789.12 183.68">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 179.68)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-179.68 785.12,-179.68 785.12,4 -4,4"/>
-<!-- 65 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="790pt" height="185pt" viewBox="0.00 0.00 789.50 185.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 181)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-181 785.5,-181 785.5,4 -4,4"/>
+<!-- 66 -->
 <g id="node1" class="node">
-<title>65</title>
-<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="23.75" cy="-87.84" rx="2.16" ry="2.16"/>
-<text text-anchor="middle" x="23.75" y="-88.02" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">65</text>
+<title>66</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="24" cy="-88.5" rx="2" ry="2"/>
+<text text-anchor="middle" x="24" y="-88.2" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">66</text>
 </g>
 <!-- vm.AlignmentEvent -->
-<g id="node11" class="node">
+<g id="node9" class="node">
 <title>vm.AlignmentEvent</title>
-<g id="a_node11"><a xlink:title="alignment_name       ------------------------------alignment_description=&quot;&quot; → vm.EventType.proj(alignment_event_type=&quot;event_type&quot;)alignment_time_shift → vm.EventType.proj(start_event_type=&quot;event_type&quot;)start_time_shift     → vm.EventType.proj(end_event_type=&quot;event_type&quot;)end_time_shift       ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="119.5,-34.56 0,-34.56 0,0 119.5,0 119.5,-34.56"/>
-<text text-anchor="start" x="8" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AlignmentEvent</text>
+<g id="a_node9"><a xlink:title="alignment_name       ------------------------------alignment_description=&quot;&quot; → vm.EventType.proj(alignment_event_type=&quot;event_type&quot;)alignment_time_shift → vm.EventType.proj(start_event_type=&quot;event_type&quot;)start_time_shift     → vm.EventType.proj(end_event_type=&quot;event_type&quot;)end_time_shift       ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="120,-35 0,-35 0,0 120,0 120,-35"/>
+<text text-anchor="start" x="8" y="-15.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.AlignmentEvent</text>
 </a>
 </g>
 </g>
-<!-- 65&#45;&gt;vm.AlignmentEvent -->
+<!-- 66&#45;&gt;vm.AlignmentEvent -->
 <g id="edge1" class="edge">
-<title>65-&gt;vm.AlignmentEvent</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M24.26,-85.87C27.13,-80.4 41.52,-53 51.07,-34.81"/>
+<title>66-&gt;vm.AlignmentEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M24.51,-86.52C27.38,-81.02 41.77,-53.45 51.32,-35.14"/>
 </g>
 <!-- 64 -->
 <g id="node2" class="node">
 <title>64</title>
-<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="59.75" cy="-87.84" rx="2.16" ry="2.16"/>
-<text text-anchor="middle" x="59.75" y="-88.02" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">64</text>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="60" cy="-88.5" rx="2" ry="2"/>
+<text text-anchor="middle" x="60" y="-88.2" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">64</text>
 </g>
 <!-- 64&#45;&gt;vm.AlignmentEvent -->
 <g id="edge2" class="edge">
 <title>64-&gt;vm.AlignmentEvent</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M59.75,-85.87C59.75,-80.4 59.75,-53 59.75,-34.81"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M60,-86.3C60,-80.33 60,-53.29 60,-35.22"/>
 </g>
-<!-- 66 -->
+<!-- 65 -->
 <g id="node3" class="node">
-<title>66</title>
-<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="95.75" cy="-87.84" rx="2.16" ry="2.16"/>
-<text text-anchor="middle" x="95.75" y="-88.02" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">66</text>
+<title>65</title>
+<ellipse fill="#ff8800" fill-opacity="0.501961" stroke="#ff8800" stroke-opacity="0.501961" cx="96" cy="-88.5" rx="2" ry="2"/>
+<text text-anchor="middle" x="96" y="-88.2" font-family="arial" font-size="1.00" fill="#ff8800" fill-opacity="0.501961">65</text>
 </g>
-<!-- 66&#45;&gt;vm.AlignmentEvent -->
+<!-- 65&#45;&gt;vm.AlignmentEvent -->
 <g id="edge3" class="edge">
-<title>66-&gt;vm.AlignmentEvent</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M95.24,-85.87C92.37,-80.4 77.98,-53 68.43,-34.81"/>
+<title>65-&gt;vm.AlignmentEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M95.49,-86.52C92.62,-81.02 78.23,-53.45 68.68,-35.14"/>
 </g>
 <!-- vm.Event -->
 <g id="node4" class="node">
 <title>vm.Event</title>
 <g id="a_node4"><a xlink:title="→ vm.BehaviorRecording→ vm.EventTypeevent_start_time     ------------------------------event_end_time=null  ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="165.75" cy="-87.84" rx="42.8" ry="17.28"/>
-<text text-anchor="start" x="141" y="-84.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Event</text>
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="164" cy="-88.5" rx="41" ry="17.5"/>
+<text text-anchor="start" x="139" y="-86.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.Event</text>
 </a>
 </g>
 </g>
 <!-- vm.EventInterpolation -->
-<g id="node12" class="node">
+<g id="node10" class="node">
 <title>vm.EventInterpolation</title>
-<g id="a_node12"><a xlink:title="→ vm.Eventframe_idx            ------------------------------→ vm.InterpolationTypeoriginal_value       corrected_value      diff_before=null     diff_after=null      details=&quot;&quot;           ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="307.5,-34.56 176,-34.56 176,0 307.5,0 307.5,-34.56"/>
-<text text-anchor="start" x="184" y="-14.01" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EventInterpolation</text>
+<g id="a_node10"><a xlink:title="→ vm.Eventframe_idx            ------------------------------→ vm.InterpolationTypeoriginal_value       corrected_value      diff_before=null     diff_after=null      details=&quot;&quot;           ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="306,-35 174,-35 174,0 306,0 306,-35"/>
+<text text-anchor="start" x="182" y="-15.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.EventInterpolation</text>
 </a>
 </g>
 </g>
 <!-- vm.Event&#45;&gt;vm.EventInterpolation -->
 <g id="edge4" class="edge">
 <title>vm.Event-&gt;vm.EventInterpolation</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M182.62,-71.62C194.69,-60.74 210.93,-46.09 223.33,-34.89"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M180.87,-72.19C192.94,-61.23 209.18,-46.48 221.58,-35.22"/>
 </g>
-<!-- vm.CameraTimestamps -->
+<!-- vm.BehaviorRecording.File -->
 <g id="node5" class="node">
-<title>vm.CameraTimestamps</title>
-<g id="a_node5"><a xlink:title="→ vm.BehaviorRecording→ vm.EventType------------------------------raw_ocr_frame_indices csv_timestamps       csv_timestamps_iso   csv_start_datetime   n_frames             n_valid_ocr          n_csv_timestamps     frame_rate_csv_hz    csv_duration_sec     notes=&quot;&quot;             ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="492.38,-105.12 351.12,-105.12 351.12,-70.56 492.38,-70.56 492.38,-105.12"/>
-<text text-anchor="middle" x="421.75" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">vm.CameraTimestamps</text>
+<title>vm.BehaviorRecording.File</title>
+<g id="a_node5"><a xlink:title="→ vm.BehaviorRecordingfilepath             ">
+<polygon fill="transparent" stroke="transparent" points="644,-98 510,-98 510,-79 644,-79 644,-98"/>
+<text text-anchor="start" x="518" y="-87" font-family="arial" text-decoration="underline" font-size="10.00">vm.BehaviorRecording.File</text>
+</a>
+</g>
+</g>
+<!-- vm.BpodRecording -->
+<g id="node6" class="node">
+<title>vm.BpodRecording</title>
+<g id="a_node6"><a xlink:title="→ vm.BehaviorRecording------------------------------bpod_recording_start_time=null bpod_recording_duration=null bpod_protocol_name=&quot;&quot; bpod_n_trials=null   bpod_trial_types=null bpod_trial_type_names=null bpod_event_names=null bpod_state_names=null bpod_softcode_names=null bpod_info=null       session_data=null    bpod_metadata=null   bpod_mat_filepath=null bpod_protocol_filepath=null optitrack2camera_tform=null optitrack2projector_tform=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="781.5,-106 662.5,-106 662.5,-71 781.5,-71 781.5,-106"/>
+<text text-anchor="middle" x="722" y="-85.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.BpodRecording</text>
 </a>
 </g>
 </g>
 <!-- vm.EventType -->
-<g id="node6" class="node">
+<g id="node7" class="node">
 <title>vm.EventType</title>
-<g id="a_node6"><a xlink:title="event_type           ------------------------------event_type_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="135.25,-175.68 56.25,-175.68 56.25,-141.12 135.25,-141.12 135.25,-175.68"/>
-<text text-anchor="start" x="64.25" y="-155.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.EventType</text>
+<g id="a_node7"><a xlink:title="event_type           ------------------------------event_type_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="136,-177 56,-177 56,-142 136,-142 136,-177"/>
+<text text-anchor="start" x="64" y="-158" font-family="arial" text-decoration="underline" font-size="10.00">vm.EventType</text>
 </a>
 </g>
 </g>
-<!-- vm.EventType&#45;&gt;65 -->
+<!-- vm.EventType&#45;&gt;66 -->
 <g id="edge5" class="edge">
-<title>vm.EventType-&gt;65</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M78.69,-141.15C59.39,-122.78 29.95,-94.74 24.6,-89.65"/>
+<title>vm.EventType-&gt;66</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M78.57,-141.8C59.93,-123.93 32.13,-97.29 25.47,-90.91"/>
 </g>
 <!-- vm.EventType&#45;&gt;64 -->
 <g id="edge6" class="edge">
 <title>vm.EventType-&gt;64</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M87.22,-141.15C77.57,-122.78 62.85,-94.74 60.17,-89.65"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M87.29,-141.8C77.96,-123.93 64.06,-97.29 60.74,-90.91"/>
 </g>
-<!-- vm.EventType&#45;&gt;66 -->
+<!-- vm.EventType&#45;&gt;65 -->
 <g id="edge7" class="edge">
-<title>vm.EventType-&gt;66</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M95.75,-141.15C95.75,-122.78 95.75,-94.74 95.75,-89.65"/>
+<title>vm.EventType-&gt;65</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M96,-141.8C96,-123.93 96,-97.29 96,-90.91"/>
 </g>
 <!-- vm.EventType&#45;&gt;vm.Event -->
 <g id="edge8" class="edge">
 <title>vm.EventType-&gt;vm.Event</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112.34,-141.15C123.82,-129.91 139,-115.04 150.24,-104.03"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112.46,-141.8C123.47,-130.63 137.85,-116.04 148.62,-105.1"/>
+</g>
+<!-- vm.CameraTimestamps -->
+<g id="node8" class="node">
+<title>vm.CameraTimestamps</title>
+<g id="a_node8"><a xlink:title="→ vm.BehaviorRecording→ vm.EventType------------------------------raw_ocr_frame_indices csv_timestamps       csv_timestamps_iso   csv_start_datetime   n_frames             n_valid_ocr          n_csv_timestamps     frame_rate_csv_hz    csv_duration_sec     notes=&quot;&quot;             ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="491.5,-106 348.5,-106 348.5,-71 491.5,-71 491.5,-106"/>
+<text text-anchor="middle" x="420" y="-85.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.CameraTimestamps</text>
+</a>
+</g>
 </g>
 <!-- vm.EventType&#45;&gt;vm.CameraTimestamps -->
 <g id="edge9" class="edge">
 <title>vm.EventType-&gt;vm.CameraTimestamps</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M135.07,-149.13C188.42,-137.91 284.63,-117.68 350.78,-103.77"/>
-</g>
-<!-- vm.BehaviorRecording.File -->
-<g id="node7" class="node">
-<title>vm.BehaviorRecording.File</title>
-<g id="a_node7"><a xlink:title="→ vm.BehaviorRecordingfilepath             ">
-<polygon fill="none" stroke="none" points="644.62,-97.84 510.88,-97.84 510.88,-77.84 644.62,-77.84 644.62,-97.84"/>
-<text text-anchor="start" x="518.88" y="-85.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.BehaviorRecording.File</text>
-</a>
-</g>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M136.05,-149.97C188.96,-138.7 283.06,-118.66 348.36,-104.76"/>
 </g>
 <!-- vm.InterpolationType -->
-<g id="node8" class="node">
+<g id="node11" class="node">
 <title>vm.InterpolationType</title>
-<g id="a_node8"><a xlink:title="interpolation_type   ------------------------------interpolation_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="333.12,-105.12 226.38,-105.12 226.38,-70.56 333.12,-70.56 333.12,-105.12"/>
-<text text-anchor="start" x="234.38" y="-85.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.InterpolationType</text>
+<g id="a_node11"><a xlink:title="interpolation_type   ------------------------------interpolation_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="330.5,-106 223.5,-106 223.5,-71 330.5,-71 330.5,-106"/>
+<text text-anchor="start" x="231.5" y="-87" font-family="arial" text-decoration="underline" font-size="10.00">vm.InterpolationType</text>
 </a>
 </g>
 </g>
 <!-- vm.InterpolationType&#45;&gt;vm.EventInterpolation -->
 <g id="edge10" class="edge">
 <title>vm.InterpolationType-&gt;vm.EventInterpolation</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M270.74,-70.59C264.77,-59.82 256.96,-45.73 250.95,-34.89"/>
-</g>
-<!-- vm.BpodRecording -->
-<g id="node9" class="node">
-<title>vm.BpodRecording</title>
-<g id="a_node9"><a xlink:title="→ vm.BehaviorRecording------------------------------bpod_recording_start_time=null bpod_recording_duration=null bpod_protocol_name=&quot;&quot; bpod_n_trials=null   bpod_trial_types=null bpod_trial_type_names=null bpod_event_names=null bpod_state_names=null bpod_softcode_names=null bpod_info=null       session_data=null    bpod_metadata=null   bpod_mat_filepath=null bpod_protocol_filepath=null optitrack2camera_tform=null optitrack2projector_tform=null ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="781.12,-105.12 662.38,-105.12 662.38,-70.56 781.12,-70.56 781.12,-105.12"/>
-<text text-anchor="middle" x="721.75" y="-83.56" font-family="arial" font-size="12.00" fill="darkgreen">vm.BpodRecording</text>
-</a>
-</g>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M268.04,-70.8C262.23,-59.95 254.68,-45.87 248.87,-35.05"/>
 </g>
 <!-- vm.BehaviorRecording -->
-<g id="node10" class="node">
+<g id="node12" class="node">
 <title>vm.BehaviorRecording</title>
-<g id="a_node10"><a xlink:title="→ `roselab_session`.`session`→ `roselab_scan`.`scan`------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="568.88,-175.68 430.62,-175.68 430.62,-141.12 568.88,-141.12 568.88,-175.68"/>
-<text text-anchor="middle" x="499.75" y="-154.12" font-family="arial" font-size="12.00" fill="darkgreen">vm.BehaviorRecording</text>
+<g id="a_node12"><a xlink:title="→ `roselab_session`.`session`→ `roselab_scan`.`scan`------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="567.5,-177 428.5,-177 428.5,-142 567.5,-142 567.5,-177"/>
+<text text-anchor="middle" x="498" y="-156.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.BehaviorRecording</text>
 </a>
 </g>
 </g>
 <!-- vm.BehaviorRecording&#45;&gt;vm.Event -->
 <g id="edge11" class="edge">
 <title>vm.BehaviorRecording-&gt;vm.Event</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M430.3,-146.91C372.91,-137.68 289.51,-122.94 217.75,-105.12 211.32,-103.52 204.52,-101.58 198.03,-99.61"/>
-</g>
-<!-- vm.BehaviorRecording&#45;&gt;vm.CameraTimestamps -->
-<g id="edge12" class="edge">
-<title>vm.BehaviorRecording-&gt;vm.CameraTimestamps</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M480.87,-140.8C468.7,-130.1 452.92,-116.24 440.73,-105.52"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M428.27,-148.32C370.42,-139.23 286.25,-124.51 214,-106 207.71,-104.39 201.07,-102.4 194.75,-100.37"/>
 </g>
 <!-- vm.BehaviorRecording&#45;&gt;vm.BehaviorRecording.File -->
-<g id="edge13" class="edge">
+<g id="edge12" class="edge">
 <title>vm.BehaviorRecording-&gt;vm.BehaviorRecording.File</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M518.63,-140.8C534.14,-127.17 555.5,-108.4 567.84,-97.55"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M517.12,-141.8C532.83,-128.08 554.46,-109.19 566.96,-98.27"/>
 </g>
 <!-- vm.BehaviorRecording&#45;&gt;vm.BpodRecording -->
-<g id="edge14" class="edge">
+<g id="edge13" class="edge">
 <title>vm.BehaviorRecording-&gt;vm.BpodRecording</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M554.06,-140.63C588.59,-129.96 633.12,-116.21 667.62,-105.56"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M551.65,-141.97C586.99,-131.09 633.07,-116.89 668.4,-106.01"/>
+</g>
+<!-- vm.BehaviorRecording&#45;&gt;vm.CameraTimestamps -->
+<g id="edge14" class="edge">
+<title>vm.BehaviorRecording-&gt;vm.CameraTimestamps</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M479.12,-141.8C466.85,-130.95 450.94,-116.87 438.71,-106.05"/>
 </g>
 </g>
 </svg>

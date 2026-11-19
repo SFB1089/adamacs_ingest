@@ -1,107 +1,108 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="411pt" height="240pt" viewBox="0.00 0.00 411.00 239.68">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 235.68)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-235.68 407,-235.68 407,4 -4,4"/>
-<!-- vm.AcquisitionSoftware -->
-<g id="node1" class="node">
-<title>vm.AcquisitionSoftware</title>
-<g id="a_node1"><a xlink:title="acq_software         ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="303.12,-231.68 183.62,-231.68 183.62,-197.12 303.12,-197.12 303.12,-231.68"/>
-<text text-anchor="start" x="191.62" y="-211.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.AcquisitionSoftware</text>
-</a>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="345pt" height="240pt" viewBox="0.00 0.00 344.50 240.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 236)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-236 340.5,-236 340.5,4 -4,4"/>
 <!-- vm.Scan -->
-<g id="node7" class="node">
+<g id="node1" class="node">
 <title>vm.Scan</title>
-<g id="a_node7"><a xlink:title="→ `roselab_session`.`session`scan_id              ------------------------------→ [nullable] `roselab_equipment`.`equipment`→ vm.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="274.62,-161.12 212.12,-161.12 212.12,-126.56 274.62,-126.56 274.62,-161.12"/>
-<text text-anchor="start" x="220.12" y="-140.56" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Scan</text>
-</a>
-</g>
-</g>
-<!-- vm.AcquisitionSoftware&#45;&gt;vm.Scan -->
-<g id="edge1" class="edge">
-<title>vm.AcquisitionSoftware-&gt;vm.Scan</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M243.38,-197.15C243.38,-186.38 243.38,-172.29 243.38,-161.45"/>
-</g>
-<!-- vm.ScanInfo.ScanFile -->
-<g id="node2" class="node">
-<title>vm.ScanInfo.ScanFile</title>
-<g id="a_node2"><a xlink:title="→ vm.ScanInfofile_path            ">
-<polygon fill="none" stroke="none" points="112.75,-20 0,-20 0,0 112.75,0 112.75,-20"/>
-<text text-anchor="start" x="8" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.ScanInfo.ScanFile</text>
-</a>
-</g>
-</g>
-<!-- vm.ScanInfo -->
-<g id="node3" class="node">
-<title>vm.ScanInfo</title>
-<g id="a_node3"><a xlink:title="→ vm.Scan------------------------------nfields              nchannels            ndepths              nframes              nrois                x=null               y=null               z=null               fps                  bidirectional        usecs_per_line=null  fill_fraction=null   scan_datetime=null   scan_duration=null   userfunction_info    ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="117.38" cy="-73.28" rx="53.58" ry="17.28"/>
-<text text-anchor="middle" x="117.38" y="-69" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.ScanInfo</text>
-</a>
-</g>
-</g>
-<!-- vm.ScanInfo&#45;&gt;vm.ScanInfo.ScanFile -->
-<g id="edge2" class="edge">
-<title>vm.ScanInfo-&gt;vm.ScanInfo.ScanFile</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M101.67,-56.5C90.09,-44.87 74.76,-29.47 65.23,-19.9"/>
-</g>
-<!-- vm.ScanInfo.Field -->
-<g id="node6" class="node">
-<title>vm.ScanInfo.Field</title>
-<g id="a_node6"><a xlink:title="→ vm.ScanInfofield_idx            ------------------------------px_height            px_width             um_height=null       um_width=null        zoom                 power                field_x=null         field_y=null         field_z=null         delay_image=null     roi=null             ">
-<polygon fill="none" stroke="none" points="226.12,-20 130.62,-20 130.62,0 226.12,0 226.12,-20"/>
-<text text-anchor="start" x="138.62" y="-7.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.ScanInfo.Field</text>
-</a>
-</g>
-</g>
-<!-- vm.ScanInfo&#45;&gt;vm.ScanInfo.Field -->
-<g id="edge3" class="edge">
-<title>vm.ScanInfo-&gt;vm.ScanInfo.Field</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M133.08,-56.5C144.66,-44.87 159.99,-29.47 169.52,-19.9"/>
-</g>
-<!-- vm.Channel -->
-<g id="node4" class="node">
-<title>vm.Channel</title>
-<g id="a_node4"><a xlink:title="channel              ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="389.62,-231.68 321.12,-231.68 321.12,-197.12 389.62,-197.12 389.62,-231.68"/>
-<text text-anchor="start" x="329.12" y="-211.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.Channel</text>
+<g id="a_node1"><a xlink:title="→ `roselab_session`.`session`scan_id              ------------------------------→ [nullable] `roselab_equipment`.`equipment`→ vm.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="210,-161 147,-161 147,-126 210,-126 210,-161"/>
+<text text-anchor="start" x="155" y="-141.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Scan</text>
 </a>
 </g>
 </g>
 <!-- vm.ScanLocation -->
-<g id="node5" class="node">
+<g id="node3" class="node">
 <title>vm.ScanLocation</title>
-<g id="a_node5"><a xlink:title="→ vm.Scan------------------------------→ `roselab_surgery`.`anatomical_location`">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="297.5,-90.56 189.25,-90.56 189.25,-56 297.5,-56 297.5,-90.56"/>
-<text text-anchor="middle" x="243.38" y="-69" font-family="arial" font-size="12.00" fill="darkgreen">vm.ScanLocation</text>
+<g id="a_node3"><a xlink:title="→ vm.Scan------------------------------→ `roselab_surgery`.`anatomical_location`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="109,-90 0,-90 0,-55 109,-55 109,-90"/>
+<text text-anchor="middle" x="54.5" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ScanLocation</text>
+</a>
+</g>
+</g>
+<!-- vm.Scan&#45;&gt;vm.ScanLocation -->
+<g id="edge1" class="edge">
+<title>vm.Scan-&gt;vm.ScanLocation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M148.8,-125.97C129.31,-115.13 103.91,-101 84.39,-90.13"/>
+</g>
+<!-- vm.ScanInfo -->
+<g id="node5" class="node">
+<title>vm.ScanInfo</title>
+<g id="a_node5"><a xlink:title="→ vm.Scan------------------------------nfields              nchannels            ndepths              nframes              nrois                x=null               y=null               z=null               fps                  bidirectional        usecs_per_line=null  fill_fraction=null   scan_datetime=null   scan_duration=null   userfunction_info    ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="178.5" cy="-72.5" rx="51.75" ry="17.5"/>
+<text text-anchor="middle" x="178.5" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.ScanInfo</text>
 </a>
 </g>
 </g>
 <!-- vm.Scan&#45;&gt;vm.ScanInfo -->
-<g id="edge4" class="edge">
+<g id="edge2" class="edge">
 <title>vm.Scan-&gt;vm.ScanInfo</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M212.55,-126.07C191.42,-114.57 163.7,-99.48 143.62,-88.56"/>
-</g>
-<!-- vm.Scan&#45;&gt;vm.ScanLocation -->
-<g id="edge5" class="edge">
-<title>vm.Scan-&gt;vm.ScanLocation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M243.38,-126.24C243.38,-115.46 243.38,-101.47 243.38,-90.72"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M178.5,-125.8C178.5,-114.95 178.5,-100.87 178.5,-90.05"/>
 </g>
 <!-- vm.ScanPath -->
-<g id="node8" class="node">
+<g id="node6" class="node">
 <title>vm.ScanPath</title>
-<g id="a_node8"><a xlink:title="→ vm.Scan→ `roselab_subject`.`#user`path                 ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="403,-90.56 315.75,-90.56 315.75,-56 403,-56 403,-90.56"/>
-<text text-anchor="start" x="323.75" y="-70" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.ScanPath</text>
+<g id="a_node6"><a xlink:title="→ vm.Scan→ `roselab_subject`.`#user`path                 ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="336.5,-90 248.5,-90 248.5,-55 336.5,-55 336.5,-90"/>
+<text text-anchor="start" x="256.5" y="-70.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.ScanPath</text>
 </a>
 </g>
 </g>
 <!-- vm.Scan&#45;&gt;vm.ScanPath -->
-<g id="edge6" class="edge">
+<g id="edge3" class="edge">
 <title>vm.Scan-&gt;vm.ScanPath</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M271.75,-126.07C289.86,-115.36 313.24,-101.55 331.29,-90.88"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M205.81,-125.97C223.72,-115.13 247.07,-101 265.02,-90.13"/>
+</g>
+<!-- vm.Channel -->
+<g id="node2" class="node">
+<title>vm.Channel</title>
+<g id="a_node2"><a xlink:title="channel              ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="326,-232 257,-232 257,-197 326,-197 326,-232"/>
+<text text-anchor="start" x="265" y="-213" font-family="arial" text-decoration="underline" font-size="10.00">vm.Channel</text>
+</a>
+</g>
+</g>
+<!-- vm.ScanInfo.ScanFile -->
+<g id="node4" class="node">
+<title>vm.ScanInfo.ScanFile</title>
+<g id="a_node4"><a xlink:title="→ vm.ScanInfofile_path            ">
+<polygon fill="transparent" stroke="transparent" points="174,-19 61,-19 61,0 174,0 174,-19"/>
+<text text-anchor="start" x="69" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.ScanInfo.ScanFile</text>
+</a>
+</g>
+</g>
+<!-- vm.ScanInfo&#45;&gt;vm.ScanInfo.ScanFile -->
+<g id="edge4" class="edge">
+<title>vm.ScanInfo-&gt;vm.ScanInfo.ScanFile</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M162.79,-55.79C151.07,-44.07 135.51,-28.51 126.01,-19.01"/>
+</g>
+<!-- vm.ScanInfo.Field -->
+<g id="node7" class="node">
+<title>vm.ScanInfo.Field</title>
+<g id="a_node7"><a xlink:title="→ vm.ScanInfofield_idx            ------------------------------px_height            px_width             um_height=null       um_width=null        zoom                 power                field_x=null         field_y=null         field_z=null         delay_image=null     roi=null             ">
+<polygon fill="transparent" stroke="transparent" points="288.5,-19 192.5,-19 192.5,0 288.5,0 288.5,-19"/>
+<text text-anchor="start" x="200.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">vm.ScanInfo.Field</text>
+</a>
+</g>
+</g>
+<!-- vm.ScanInfo&#45;&gt;vm.ScanInfo.Field -->
+<g id="edge5" class="edge">
+<title>vm.ScanInfo-&gt;vm.ScanInfo.Field</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M194.47,-55.79C206.38,-44.07 222.2,-28.51 231.85,-19.01"/>
+</g>
+<!-- vm.AcquisitionSoftware -->
+<g id="node8" class="node">
+<title>vm.AcquisitionSoftware</title>
+<g id="a_node8"><a xlink:title="acq_software         ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="238.5,-232 118.5,-232 118.5,-197 238.5,-197 238.5,-232"/>
+<text text-anchor="start" x="126.5" y="-213" font-family="arial" text-decoration="underline" font-size="10.00">vm.AcquisitionSoftware</text>
+</a>
+</g>
+</g>
+<!-- vm.AcquisitionSoftware&#45;&gt;vm.Scan -->
+<g id="edge6" class="edge">
+<title>vm.AcquisitionSoftware-&gt;vm.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M178.5,-196.8C178.5,-185.95 178.5,-171.87 178.5,-161.05"/>
 </g>
 </g>
 </svg>

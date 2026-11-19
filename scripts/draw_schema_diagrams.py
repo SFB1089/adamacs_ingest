@@ -11,11 +11,12 @@ Writes, into ``outdir`` (default: ``notebooks/schema_diagrams`` of this checkout
 
 * ``<schema>.svg``              one ``dj.Diagram`` per pipeline schema, from the live database
 * ``overview.svg``              schema-level dependency graph from the live foreign keys
-* ``imaging_dff0_cascade.svg``  the dF/F0 -> CASCADE tables (element-calcium-imaging >= 0.1.0b1)
+* ``imaging_dff0_cascade.svg``  the dF/F0 -> CASCADE tables and ROI QC (element-calcium-imaging >= 0.1.0b2)
 * ``cell_registration_erd.svg`` / ``cell_registration_workflow.svg``  parsed from
   ``adamacs/schemas/cell_registration.py`` (scripts/draw_cell_registration_diagrams.py)
+* ``responsiveness.svg``        standard view of the piloted schema, from its test schema (``PILOT_SCHEMAS``)
 * ``responsiveness_erd.svg``    parsed from ``adamacs/schemas/responsiveness.py`` (not deployed yet)
-* ``responsiveness_v7.svg``  parsed from the ```python blocks of ``docs/RESPONSIVENESS_SCHEMA_PROPOSAL.md``
+* ``responsiveness_v8.svg``  parsed from the ```python blocks of ``docs/RESPONSIVENESS_SCHEMA_PROPOSAL.md``
 """
 from __future__ import annotations
 
@@ -38,16 +39,21 @@ PIPELINE_SCHEMAS = ["subject", "surgery", "session", "equipment", "scan", "imagi
                     "event", "trial", "behavior", "analysis", "pupil_tracking", "denoising", "mocap",
                     "virtual_markers_optitrack", "disk", "wfield", "cell_registration", "ingest"]
 
-#: Tables of the dF/F0 -> CASCADE focus diagram (imaging schema).
+#: Tables of the dF/F0 -> CASCADE (+ ROI QC) focus diagram (imaging schema).
 DFF0_TABLES = ["Fluorescence", "ActivityExtractionMethod", "ActivityCascadeModel", "ActivityCascadeTask",
-               "DffParamSet", "CascadeRecipe", "Dff0Task", "Dff0", "Activity"]
+               "DffParamSet", "CascadeRecipe", "Dff0Task", "Dff0", "Activity", "RoiQCCriterion", "RoiQC"]
 
 
-def schema_diagram(name, outdir):
-    sch = dj.Schema(PREFIX + name, create_schema=False, create_tables=False)
+#: Schemas that are piloted in a test schema but not deployed: standard view drawn from the test schema.
+PILOT_SCHEMAS = {"responsiveness": "tobiasr_responsiveness_v8"}
+
+
+def schema_diagram(name, outdir, database=None):
+    database = database or PREFIX + name
+    sch = dj.Schema(database, create_schema=False, create_tables=False)
     if not sch.list_tables():
         return None
-    vm = dj.create_virtual_module(name, PREFIX + name, create_schema=False, create_tables=False)
+    vm = dj.create_virtual_module(name, database, create_schema=False, create_tables=False)
     path = os.path.join(outdir, f"{name}.svg")
     dj.Diagram(vm).save(path, format="svg")
     return path
@@ -59,7 +65,7 @@ def dff0_diagram(outdir):
     for t in DFF0_TABLES:
         part = dj.Diagram(getattr(im, t))
         d = part if d is None else d + part
-    for t in (im.Dff0.Trace, im.Activity.Trace, im.Activity.CascadeInput, im.Fluorescence.Trace):
+    for t in (im.Dff0.Trace, im.Activity.Trace, im.Activity.CascadeInput, im.Fluorescence.Trace, im.RoiQC.Rejected):
         d = d + dj.Diagram(t)
     path = os.path.join(outdir, "imaging_dff0_cascade.svg")
     d.save(path, format="svg")
@@ -185,6 +191,9 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
         p = schema_diagram(name, outdir)
         print(("wrote " + os.path.relpath(p, REPO)) if p else f"skipped {name} (no tables)")
         written.append(p)
+    for name, database in PILOT_SCHEMAS.items():   # standard view of piloted schemas, from their test schema
+        p = schema_diagram(name, outdir, database)
+        print(("wrote " + os.path.relpath(p, REPO) + f" (from {database})") if p else f"skipped {name} ({database} empty)")
     for fn in (overview, dff0_diagram):
         p = fn(outdir)
         print("wrote", os.path.relpath(p, REPO))
@@ -201,12 +210,12 @@ def main(outdir=os.path.join(REPO, "notebooks", "schema_diagrams")):
     wf.render(os.path.join(outdir, "cell_registration_workflow"), cleanup=True)
     print("wrote cell_registration_erd.svg, cell_registration_workflow.svg")
     p = parsed_erd("responsiveness.py",
-                   "responsiveness v7 (adamacs/schemas/responsiveness.py, piloted, not deployed); "
+                   "responsiveness v8 (adamacs/schemas/responsiveness.py, piloted, not deployed); "
                    "amber dashed = pipeline tables it references", outdir, "responsiveness_erd")
     print("wrote", os.path.relpath(p, REPO))
     p = proposal_diagram(os.path.join(REPO, "docs", "RESPONSIVENESS_SCHEMA_PROPOSAL.md"),
-                         "responsiveness v7 (piloted in tobiasr_responsiveness_v7): solid = FK in primary key, dashed = secondary FK, "
-                         "thick grey = master-part, amber = existing production tables", outdir, "responsiveness_v7")
+                         "responsiveness v8 (piloted in tobiasr_responsiveness_v8): solid = FK in primary key, dashed = secondary FK, "
+                         "thick grey = master-part, amber = existing production tables", outdir, "responsiveness_v8")
     print("wrote", os.path.relpath(p, REPO))
     return 0
 

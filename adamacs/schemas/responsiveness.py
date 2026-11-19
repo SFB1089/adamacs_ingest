@@ -569,6 +569,15 @@ _READOUTS = {
          "for dF/F0, the slowest trace) and before CASCADE's non-causal pre-onset rise (from -7 frames); screen time; t-test",
          "display", "frames", "onset", 0, "offset", 0, "per_onset", "onset", -60, "onset", -10, "explicit",
          "mean", 0.0, "none", "ttest"),
+    17: ("v1-drift-audit ZETA window, gratings (t73/t140): [onset, onset + 7.016 s) = the median onset-to-onset interval of the "
+         "grating protocol; DataJoint event time; raw mean, no baseline (exists so that Zeta on it reproduces the audit's ZETA)",
+         "event", "s", "onset", 0.0, "onset", 7.016, "per_onset", None, None, None, None, "explicit", "mean", 0.0, "none", "ttest"),
+    18: ("v1-drift-audit ZETA window, natural images (t73/t140): [onset, onset + 3.517 s) = the median onset-to-onset interval; "
+         "DataJoint event time; raw mean, no baseline (exists so that Zeta on it reproduces the audit's ZETA)",
+         "event", "s", "onset", 0.0, "onset", 3.517, "per_onset", None, None, None, None, "explicit", "mean", 0.0, "none", "ttest"),
+    19: ("v1-drift-audit ZETA window, any paradigm (t73/t140): [onset, onset + the event set's median onset-to-onset interval); "
+         "DataJoint event time; raw mean, no baseline (Zeta on it reproduces the audit's ZETA; 17 / 18 fix the interval of one protocol)",
+         "event", "s", "onset", 0.0, "onset", 0.0, "median_ioi", None, None, None, None, "explicit", "mean", 0.0, "none", "ttest"),
 }
 
 
@@ -589,7 +598,9 @@ class ReadoutParamSet(dj.Lookup):
     resp_start              : float                         # ... + this (s or frames)
     resp_stop_ref           : enum('onset','offset')        # response window END (exclusive) = stimulus onset or offset ...
     resp_stop               : float                         # ... + this (e.g. 0 = at stimulus end; -0.2 = 200 ms before)
-    resp_length='per_onset' : enum('per_onset','first_onset')   # first_onset: every response window as long as the first one (Leon export)
+    resp_length='per_onset' : enum('per_onset','first_onset','median_ioi')   # first_onset: every response window as long as the first one
+                                                    # (Leon export); median_ioi: response end = start + the median onset-to-onset
+                                                    # interval of the REAL events (EventSet.median_ioi_s; the v1-drift-audit ZETA window)
     base_start_ref=null     : enum('onset','offset')        # baseline window START reference (NULL: no baseline; tests against 0)
     base_start=null         : float                         # ... + this
     base_stop_ref=null      : enum('onset','offset')        # baseline window END (exclusive) reference
@@ -605,28 +616,28 @@ class ReadoutParamSet(dj.Lookup):
                  **dict(zip(_RCOLS, v[1:]))} for i, v in _READOUTS.items()]
 
 
-_ZCOLS = ("time_ref", "zeta_anchor", "zeta_window_s", "zeta_resampling", "per_condition", "mask_type")
+_ZCOLS = ("zeta_span", "zeta_resampling", "per_condition", "mask_type")
 _ZETAS = {
-    1: ("v1-drift-audit t73/t140: DataJoint event time, window = median onset-to-onset interval, 100 resamples, pooled, soma masks",
-        "event", "onset", None, 100, 0, "soma"),
-    2: ("as 1 + one-sample ZETA per condition, soma masks only", "event", "onset", None, 100, 1, "soma"),
-    3: ("as 1, screen time (event + display latency), soma masks only", "display", "onset", None, 100, 0, "soma"),
+    1: ("epoch of the read-out: from its baseline start (its response start if it has no baseline) to its response end; "
+        "100 resamples; pooled; soma masks", "epoch", 100, 0, "soma"),
+    2: ("as 1 + one-sample ZETA per condition, soma masks", "epoch", 100, 1, "soma"),
+    3: ("response window of the read-out only (no baseline in the window); 100 resamples; pooled; soma masks",
+        "response", 100, 0, "soma"),
 }
 
 
 @schema
 class ZetaParamSet(dj.Lookup):
     definition = """
-    # Time-series ZETA settings (zetapy). Response shape free; only the analysis window is chosen. Never edited.
+    # Time-series ZETA settings (zetapy). The analysis window is NOT chosen here: it is the epoch of the ReadoutParamSet
+    # the ZETA is computed on (Zeta -> Readout), so ZETA results compare across stimulus-epoch settings. Never edited.
     zeta_idx                : smallint
     ---
     zeta_desc               : varchar(255)
     zeta_hash               : uuid
     unique index (zeta_hash)
-    time_ref='event'        : enum('display','event')       # as ReadoutParamSet.time_ref (shifts latencies, not p-values)
-    zeta_anchor='onset'     : enum('onset','offset')
-    zeta_window_s=null      : float                         # [s] analysis window; NULL = median onset-to-onset interval of the REAL
-                                                            # events (EventSet.median_ioi_s; random-onset sets keep the real window, as t73)
+    zeta_span='epoch'       : enum('epoch','response')      # epoch: [baseline start, response end) of the read-out (response start
+                                                            # when it has no baseline); response: [response start, response end)
     zeta_resampling=100     : smallint
     per_condition=0         : bool                          # also one-sample ZETA per condition
     mask_type=''            : varchar(16)                   # imaging.MaskClassification type to test ('soma'); '' = every mask
@@ -687,8 +698,8 @@ class ResponseTask(dj.Manual):
 
     class Zeta(dj.Part):
         definition = """
-        # ZETA variants to compute for this task
-        -> master
+        # ZETA variants to compute for this task: on the epoch of this read-out, with these settings
+        -> master.Readout
         -> ZetaParamSet
         """
 
@@ -705,7 +716,8 @@ def plan_tasks(restriction, trace_sources, selectors, readouts, zetas, owner, tu
 
     One ResponseTask per curation x trace source x selector whose events exist among the scan's
     trial events (trial.TrialEvent), with
-    the requested read-outs and ZETA variants; ``tunings`` = [(readout_idx, tuning_idx), ...] for the
+    the requested read-outs and ZETA variants; ``zetas`` = [(readout_idx, zeta_idx), ...] (ZETA on that read-out's
+    epoch); ``tunings`` = [(readout_idx, tuning_idx), ...] for the
     stimulus-specific follow-ups (only selectors that qualify, e.g. circular_period 360 for DirectionTuning). Deconvolved traces must already exist (no
     imaging.Activity -> skipped); dF/F0 sources get an imaging.Dff0Task so the worker computes them.
     Returns the number of new ResponseTasks.
@@ -728,7 +740,7 @@ def plan_tasks(restriction, trace_sources, selectors, readouts, zetas, owner, tu
                 tk = {**fk, "trace_source": ts, "event_selector": s}
                 tasks.append({**tk, "task_owner": owner})
                 rparts += [{**tk, "readout_idx": i} for i in readouts]
-                zparts += [{**tk, "zeta_idx": i} for i in zetas]
+                zparts += [{**tk, "readout_idx": r, "zeta_idx": z} for r, z in zetas if r in readouts]
                 tparts += [{**tk, "readout_idx": r, "tuning_idx": t} for r, t in tunings if r in readouts]
     if dff_tasks:
         imaging.Dff0Task.insert(dff_tasks, skip_duplicates=True)
@@ -788,7 +800,7 @@ def nearest_frame(ft, t):
     return _np.where(_np.abs(ft[i] - t) < _np.abs(ft[i - 1] - t), i, i - 1)
 
 
-def windows(t0, t1, ps, ft, latency_s=0.0):
+def windows(t0, t1, ps, ft, latency_s=0.0, ioi_s=None):
     """Resolve a ReadoutParamSet for every onset -> (r0, r1), (b0, b1) or None, all in session time [s].
 
     Reference times are the DataJoint onset / offset, plus ``latency_s`` when ps['time_ref'] == 'display'.
@@ -819,6 +831,10 @@ def windows(t0, t1, ps, ft, latency_s=0.0):
         def to_t(x):
             return x
     s = edge(ps["resp_start_ref"], ps["resp_start"]); e = edge(ps["resp_stop_ref"], ps["resp_stop"])
+    if ps["resp_length"] == "median_ioi":
+        if ioi_s is None or not _np.isfinite(ioi_s):
+            raise ValueError("resp_length 'median_ioi' needs the event set's median onset interval")
+        e = s + (ioi_s * _np.ones_like(s) if ps["window_unit"] == "s" else int(round(ioi_s / float(_np.median(_np.diff(ft))))))
     if ps["resp_length"] == "first_onset" and s.size:
         e = s + (e[0] - s[0])
     resp = (to_t(s), to_t(e))
@@ -872,6 +888,10 @@ class Readout(dj.Computed):
         resp=null               : float           # mean of trial_resp over all onsets
         effect_d=null           : float           # mean / SD of trial_resp
         resp_p=null             : float           # RESPONSIVE  ReadoutParamSet.test: response vs baseline (NULL: no baseline)
+        resp_delta=null         : float           # DIRECTION   mean over onsets of (response - baseline), same measure; > 0 = activated
+                                                  #             (NULL: no baseline)
+        resp_vs_trace=null      : float           # DIRECTION   mean response minus the mean of the whole trace; > 0 = above the cell's
+                                                  #             average (for read-outs without a baseline, e.g. natural images)
         cond_kw_p=null          : float           # SELECTIVE  Kruskal-Wallis of trial_resp across conditions (audit p_dir)
         pref_condition=null     : varchar(64)     # condition with the largest mean read-out (preferred orientation, image, RF position)
         pref_resp=null          : float           # mean read-out at pref_condition (chosen on the same onsets: biased up)
@@ -900,7 +920,7 @@ class Readout(dj.Computed):
         tk, X, ft, t0, t1, cond, info = _inputs(key)
         lat = info["latency_s"] if ps["time_ref"] == "display" else 0.0
         f = 1.0 / float(_np.median(_np.diff(ft)))
-        (r0, r1), base = windows(t0, t1, ps, ft, info["latency_s"])
+        (r0, r1), base = windows(t0, t1, ps, ft, info["latency_s"], info["ioi_s"])
         dt = 1.0 / f
         with _np.errstate(invalid="ignore"):
             inside = (r0 >= ft[0]) & (r1 <= ft[-1] + dt) & (r1 > r0)
@@ -937,6 +957,8 @@ class Readout(dj.Computed):
                    "effect_d": _none(_stats.effect_d(c, _np.zeros_like(c))),
                    "resp_p": _none(_stats.paired_test(R[i], Bm[i], ps["test"], seed=_zt.seed_for(key["scan_id"], k["mask"])))
                              if base is not None else None,          # no baseline: a level, not a test
+                   "resp_delta": _none(_np.nanmean(R[i] - Bm[i])) if base is not None and ii.size else None,
+                   "resp_vs_trace": _none(_np.nanmean(R[i]) - _np.nanmean(X[i])) if ii.size else None,
                    "cond_kw_p": _none(_stats.kruskal_p(c, cin)) if multi else None,
                    "pref_condition": None, "pref_resp": None, "pref_resp_cv": None, "pref_p": None,
                    "oracle_r": None, "response_snr": None}
@@ -982,17 +1004,15 @@ def trace_hashes(restriction, src):
 @schema
 class Zeta(dj.Computed):
     definition = """
-    # Time-series ZETA of every trace of one trace type, for one event set and one ZETA variant
-    -> imaging.Fluorescence
-    -> TraceSource
-    -> EventSet
+    # Time-series ZETA of every trace of one trace type, for one event set, on the epoch of one read-out
+    # (ReadoutParamSet: time reference, latency and window edges), with one ZETA variant
+    -> Readout
     -> ZetaParamSet
     ---
-    n_onsets                : int                 # onsets whose jitter window (-2w, +3w) lies inside the recording
+    n_onsets                : int                 # onsets whose epoch and jitter range (start - 2w, start + 3w) lie inside the recording
     n_reused=0              : int                 # cells copied from another curation of this scan with a byte-identical trace
-    window_s                : float               # [s] analysis window actually used
-    latency_s               : float               # [s] display latency added to the onsets (0 for time_ref 'event')
-    latency_source          : enum('photodiode','default','none')
+    epoch_start_s           : float               # [s] ZETA window start, median over onsets, relative to the DataJoint onset
+    window_s                : float               # [s] ZETA window length (zetapy max_duration), median over onsets
     software                : varchar(64)         # zetapy version | adamacs_ingest commit
     """
 
@@ -1003,7 +1023,7 @@ class Zeta(dj.Computed):
         ---
         zeta_p=null             : float           # RESPONSIVE  time-locked to the onsets, any response shape
         zeta_z=null             : float           # zetapy zeta_score
-        latency=null            : float           # [s] ZETA peak latency, relative to the (latency-corrected) onset
+        latency=null            : float           # [s] ZETA peak latency, relative to the epoch start
         condition_p=null        : float           # SPECIFIC  Holm-adjusted min of the per-condition p (per_condition only)
         source_curation_id=null : smallint        # NULL: computed here; else copied from this curation (identical trace, same events,
                                                   # same seed -> the same result a recomputation gives)
@@ -1021,28 +1041,32 @@ class Zeta(dj.Computed):
 
     @property
     def key_source(self):
-        return _key_source(ResponseTask.Zeta)
+        return (Readout.proj() * ZetaParamSet.proj()) & ResponseTask.Zeta
 
     def make(self, key):
         from importlib.metadata import version
         ps = (ZetaParamSet & key).fetch1()
+        rps = (ReadoutParamSet & key).fetch1()
         tk, X, ft, t0, t1, cond, info = _inputs(key)
         if ps["mask_type"]:
             keep = set((_up("imaging").MaskClassification.MaskType & _fluo_key(key) & {"mask_type": ps["mask_type"]}).fetch("mask").tolist())
             sel = [i for i, k in enumerate(tk) if k["mask"] in keep]
             tk, X = [tk[i] for i in sel], X[sel]
-        lat = info["latency_s"] if ps["time_ref"] == "display" else 0.0
-        t = (t0 if ps["zeta_anchor"] == "onset" else fill_offsets(t0, t1)) + lat
-        # window: the real events' median onset interval (t73: also for the random-onset null), unless set explicitly
-        w = float(ps["zeta_window_s"]) if not _isnull(ps["zeta_window_s"]) else info["ioi_s"]
-        inside = (t - 2 * w > ft[0]) & (t + 3 * w < ft[-1])
-        t, cond = t[inside], cond[inside]
+        # the epoch is the read-out's own: same time reference, latency and edges as Readout (one definition)
+        (r0, r1), base = windows(t0, t1, rps, ft, info["latency_s"], info["ioi_s"])
+        start = base[0] if (ps["zeta_span"] == "epoch" and base is not None) else r0
+        with _np.errstate(invalid="ignore"):
+            ok = _np.isfinite(start) & _np.isfinite(r1) & (r1 > start)
+        w = float(_np.median((r1 - start)[ok])) if ok.any() else _np.nan
+        with _np.errstate(invalid="ignore"):
+            inside = ok & (start - 2 * w > ft[0]) & (start + 3 * w < ft[-1])
+        t, cond, t0_in = start[inside], cond[inside], t0[inside]
         zp = {"resampling": int(ps["zeta_resampling"]),
               "per_condition": bool(ps["per_condition"]) and len(_np.unique(cond)) > 1}
         # reuse: cells of other curations of this scan (same paramset) with a byte-identical trace and the same task
         src = (TraceSource & key).fetch1()
         mine = trace_hashes(_fluo_key(key), src)
-        same = {kk: key[kk] for kk in ("session_id", "scan_id", "paramset_idx", "trace_source", "event_selector", "zeta_idx")}
+        same = {kk: key[kk] for kk in ("session_id", "scan_id", "paramset_idx", "trace_source", "event_selector", "readout_idx", "zeta_idx")}
         done = (Zeta.Cell & same & f"curation_id != {int(key['curation_id'])}" & "source_curation_id IS NULL")
         known = {}
         if done:
@@ -1073,8 +1097,8 @@ class Zeta(dj.Computed):
             else:
                 r_, pc = known[h]
                 res.append(((r_["zeta_p"], r_["zeta_z"], r_["latency"]), pc)); srcc.append(int(r_["curation_id"]))
-        self.insert1({**key, "n_onsets": int(t.size), "n_reused": int(sum(x is not None for x in srcc)), "window_s": float(w), "latency_s": lat,
-                      "latency_source": info["latency_source"] if ps["time_ref"] == "display" else "none",
+        self.insert1({**key, "n_onsets": int(t.size), "n_reused": int(sum(x is not None for x in srcc)),
+                      "epoch_start_s": float(_np.median(t - t0_in)) if t.size else 0.0, "window_s": float(w),
                       "software": f"zetapy {version('zetapy')} | {code_version()}"})
         self.Cell.insert({**key, **k, "zeta_p": _none(p), "zeta_z": _none(z), "latency": _none(lat_),
                           "condition_p": _none(_stats.holm_min(list(pc.values()))) if pc else None, "source_curation_id": sc}
@@ -1166,6 +1190,29 @@ _DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit")
 # Thresholds
 # ======================================================================================
 
+_STANDARD_RULES = [   # the four standard rules (v7 pilot); '<rule>_pos' = the same rule, activated cells only
+    {"cell_rule": "gratings_cascade25", "trace_source": "cascade25", "readout_idx": 16, "zeta_idx": None,
+     "mask_type": "soma", "max_trace_value": 50.0, "max_resp_p": 0.05, "min_oracle_r": 0.18,
+     "rule_note": "gratings standard: read-out 16 t-test p < 0.05 (two-sided: includes suppression); oracle >= 0.18; soma"},
+    {"cell_rule": "gratings_oasis", "trace_source": "oasis", "readout_idx": 16, "zeta_idx": None,
+     "mask_type": "soma", "max_resp_p": 0.05, "min_oracle_r": 0.18,
+     "rule_note": "gratings standard: read-out 16 t-test p < 0.05 (two-sided: includes suppression); oracle >= 0.18; soma"},
+    {"cell_rule": "images_cascade25", "trace_source": "cascade25", "readout_idx": 11, "zeta_idx": 1,
+     "mask_type": "soma", "max_trace_value": 50.0, "max_zeta_p": 0.05, "min_oracle_r": 0.08,
+     "rule_note": "natural images (repeated set): ZETA 1 on read-out 11's epoch p < 0.05; oracle on read-out 11 >= 0.08; soma"},
+    {"cell_rule": "images_oasis", "trace_source": "oasis", "readout_idx": 3, "zeta_idx": 1,
+     "mask_type": "soma", "max_zeta_p": 0.05, "min_oracle_r": 0.08,
+     "rule_note": "natural images (repeated set): ZETA 1 on read-out 3's epoch p < 0.05; oracle on read-out 3 >= 0.08; soma"},
+]
+_POSITIVE = [{**r, "cell_rule": r["cell_rule"] + "_pos", "direction": "positive",
+              "rule_note": (r["rule_note"].replace(" (two-sided: includes suppression)", "") + "; activated only")[:255]}
+             for r in _STANDARD_RULES]
+
+_RULE_DEFAULTS = dict(trace_source=None, readout_idx=None, zeta_idx=None, mask_type="", max_trace_value=None,
+                      min_kurtosis=None, min_photons_per_s=None, min_snr_s2p=None, max_zeta_p=None, max_resp_p=None,
+                      max_condition_p=None, min_oracle_r=None, direction="any")   # every rule row carries every column (DataJoint inserts need equal fields)
+
+
 @schema
 class CellRule(dj.Lookup):
     definition = """
@@ -1173,8 +1220,8 @@ class CellRule(dj.Lookup):
     cell_rule               : varchar(32)
     ---
     -> [nullable] TraceSource                     # trace type the ACTIVE / RESPONSIVE / RELIABLE criteria refer to (NULL: every one)
-    -> [nullable] ReadoutParamSet                 # read-out for resp_p / oracle_r
-    -> [nullable] ZetaParamSet                    # ZETA variant for zeta_p / condition_p
+    -> [nullable] ReadoutParamSet                 # read-out for resp_p / oracle_r / direction, and the epoch of the ZETA
+    -> [nullable] ZetaParamSet                    # ZETA variant for zeta_p / condition_p (on the read-out's epoch)
     mask_type=''            : varchar(16)         # QC          imaging.MaskClassification.MaskType (e.g. 'soma'); '' = any
     max_trace_value=null    : float               # QC          TraceQuality.Cell.max_value (audit: 50 for CASCADE)
     min_kurtosis=null       : float               # QC          Quality.Cell.kurtosis
@@ -1184,11 +1231,18 @@ class CellRule(dj.Lookup):
     max_resp_p=null         : float               # RESPONSIVE  Readout.Cell.resp_p
     max_condition_p=null    : float               # SPECIFIC    Zeta.Cell.condition_p
     min_oracle_r=null       : float               # RELIABLE    Readout.Cell.oracle_r
+    direction='any'         : enum('any','positive','negative')   # DIRECTION responsive only if the read-out's response is above
+                                                  #             (positive) / below (negative) its baseline: Readout.Cell.resp_delta,
+                                                  #             or resp_vs_trace where the read-out has no baseline
     rule_note               : varchar(255)
     """
-    contents = [{"cell_rule": "zeta05_dff0", "trace_source": "dff0_r2", "readout_idx": None, "zeta_idx": 2,
-                 "max_zeta_p": 0.05, "max_condition_p": 0.05,
-                 "rule_note": "dF/F0 recipe 2: ZETA p < 0.05 pooled; Holm per condition (ZETA variant 2); no QC cut"}]
+    # Standard rules (v7 pilot, 2026-11-18): the decided windows per paradigm and trace. min_oracle_r = 95th percentile
+    # of a condition-label-shuffle null of the same oracle (20 shuffles per soma cell, 8 recordings; per recording
+    # gratings 0.162-0.178, images 0.072-0.077), rounded up. The null depends on the number of conditions and
+    # repeats: re-derive it for a protocol other than 8 directions x ~20 repeats or 100 images x 10 repeats.
+    # max_trace_value 50 = the v1-drift-audit CASCADE cut. Rules are named after the event selector they belong to.
+    # (v8: the v6 rule 'zeta05_dff0' had no read-out; ZETA is now computed per read-out epoch, so it is not carried over)
+    contents = [{**_RULE_DEFAULTS, **r} for r in _STANDARD_RULES + _POSITIVE]
 
 
 def _flags(r, *crit):
@@ -1198,25 +1252,36 @@ def _flags(r, *crit):
 
 def cells(rule, restriction=None):
     """One CellRule applied on both levels, per trace x trace source x event set: is_qc, is_active,
-    is_responsive, is_specific, is_reliable (NULL where the rule sets no threshold). Joined on the
-    inherited keys to the rule's own variants. A query, nothing stored."""
+    is_responsive, is_specific, is_reliable (NULL where the rule sets no threshold), and is_positive (response above
+    baseline, or above the trace mean without a baseline; with a read-out only). CellRule.direction restricts
+    is_responsive to activated or suppressed cells. Joined on the
+    inherited keys to the rule's own variants. ROIs in imaging.RoiQC.Rejected (any criterion) are left out
+    where the imaging schema has that table. A query, nothing stored."""
     r = (CellRule & {"cell_rule": rule}).fetch1()
     src = {"trace_source": r["trace_source"]} if r["trace_source"] is not None else {}
     q = Quality.Cell.proj("kurtosis", "photons_per_s") * (TraceQuality.Cell & src).proj("snr_s2p", "max_value")
     if r["mask_type"]:
         q = q & (_up("imaging").MaskClassification.MaskType & {"mask_type": r["mask_type"]})
+    if hasattr(_up("imaging"), "RoiQC"):            # element >= roselab-0.1.0b2: ROIs rejected by any QC criterion
+        q = q - _up("imaging").RoiQC.Rejected.proj()   # (e.g. 'empty_f': no fluorescence, traces are neuropil only)
     resp, spec, rel = [], [], []
-    if r["zeta_idx"] is not None:
-        q = q * (Zeta.Cell & src & {"zeta_idx": r["zeta_idx"]}).proj("zeta_p", "condition_p")
-        resp.append(("max_zeta_p", "zeta_p", "<")); spec.append(("max_condition_p", "condition_p", "<"))
     if r["readout_idx"] is not None:
-        q = q * (Readout.Cell & src & {"readout_idx": r["readout_idx"]}).proj("resp_p", "oracle_r")
+        q = q * (Readout.Cell & src & {"readout_idx": r["readout_idx"]}).proj(
+            "resp_p", "oracle_r", resp_dir="COALESCE(resp_delta, resp_vs_trace)")
         resp.append(("max_resp_p", "resp_p", "<")); rel.append(("min_oracle_r", "oracle_r", ">="))
+    if r["zeta_idx"] is not None:                    # ZETA on the epoch of the rule's read-out (Zeta -> Readout)
+        zk = {"zeta_idx": r["zeta_idx"]} if r["readout_idx"] is None else {"zeta_idx": r["zeta_idx"], "readout_idx": r["readout_idx"]}
+        q = q * (Zeta.Cell & src & zk).proj("zeta_p", "condition_p")
+        resp.append(("max_zeta_p", "zeta_p", "<")); spec.append(("max_condition_p", "condition_p", "<"))
     q = q & restriction if restriction is not None else q
-    return q.proj(is_qc=_flags(r, ("min_kurtosis", "kurtosis", ">="), ("min_photons_per_s", "photons_per_s", ">="),
+    is_resp = _flags(r, *resp)
+    if r["readout_idx"] is not None and r["direction"] != "any" and is_resp != "NULL":
+        is_resp = f"({is_resp} AND (resp_dir {'>' if r['direction'] == 'positive' else '<'} 0))"
+    extra = {"is_positive": "(resp_dir > 0)"} if r["readout_idx"] is not None else {}
+    return q.proj(**extra, is_qc=_flags(r, ("min_kurtosis", "kurtosis", ">="), ("min_photons_per_s", "photons_per_s", ">="),
                                ("max_trace_value", "max_value", "<=")),
                   is_active=_flags(r, ("min_snr_s2p", "snr_s2p", ">=")),
-                  is_responsive=_flags(r, *resp), is_specific=_flags(r, *spec), is_reliable=_flags(r, *rel))
+                  is_responsive=is_resp, is_specific=_flags(r, *spec), is_reliable=_flags(r, *rel))
 
 
 # ======================================================================================
