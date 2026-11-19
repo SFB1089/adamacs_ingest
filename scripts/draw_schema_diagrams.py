@@ -11,7 +11,7 @@ Writes, into ``outdir`` (default: ``notebooks/schema_diagrams`` of this checkout
 
 * ``<schema>.svg``              one ``dj.Diagram`` per pipeline schema, from the live database
 * ``overview.svg``              schema-level dependency graph from the live foreign keys
-* ``imaging_dff0_cascade.svg``  the dF/F0 -> CASCADE tables (element-calcium-imaging >= 0.1.0b1)
+* ``imaging_dff0_cascade.svg``  the dF/F0 -> CASCADE tables and ROI QC (element-calcium-imaging >= 0.1.0b2)
 * ``cell_registration_erd.svg`` / ``cell_registration_workflow.svg``  parsed from
   ``adamacs/schemas/cell_registration.py`` (scripts/draw_cell_registration_diagrams.py)
 * ``responsiveness_erd.svg``    parsed from ``adamacs/schemas/responsiveness.py`` (not deployed yet)
@@ -38,9 +38,9 @@ PIPELINE_SCHEMAS = ["subject", "surgery", "session", "equipment", "scan", "imagi
                     "event", "trial", "behavior", "analysis", "pupil_tracking", "denoising", "mocap",
                     "virtual_markers_optitrack", "disk", "wfield", "cell_registration", "ingest"]
 
-#: Tables of the dF/F0 -> CASCADE focus diagram (imaging schema).
+#: Tables of the dF/F0 -> CASCADE (+ ROI QC) focus diagram (imaging schema).
 DFF0_TABLES = ["Fluorescence", "ActivityExtractionMethod", "ActivityCascadeModel", "ActivityCascadeTask",
-               "DffParamSet", "CascadeRecipe", "Dff0Task", "Dff0", "Activity"]
+               "DffParamSet", "CascadeRecipe", "Dff0Task", "Dff0", "Activity", "RoiQCCriterion", "RoiQC"]
 
 
 def schema_diagram(name, outdir):
@@ -59,7 +59,7 @@ def dff0_diagram(outdir):
     for t in DFF0_TABLES:
         part = dj.Diagram(getattr(im, t))
         d = part if d is None else d + part
-    for t in (im.Dff0.Trace, im.Activity.Trace, im.Activity.CascadeInput, im.Fluorescence.Trace):
+    for t in (im.Dff0.Trace, im.Activity.Trace, im.Activity.CascadeInput, im.Fluorescence.Trace, im.RoiQC.Rejected):
         d = d + dj.Diagram(t)
     path = os.path.join(outdir, "imaging_dff0_cascade.svg")
     d.save(path, format="svg")

@@ -48,6 +48,7 @@ UNIVERSAL, event-independent
   scan.Scan ─► ScanQuality             detector gain / offset from the raw TIFF (per scan, curation-independent)
   imaging.Fluorescence ─► Quality(.Cell)        neuropil sweep; per cell kurtosis, r(F, Fneu), photons/s
                      └─► TraceQuality(.Cell)   per trace type (TraceSource): SNR, CASCADE noise, event rate, max
+  imaging.RoiQC(.Rejected)  (element roselab-0.1.0b2)   ROIs rejected per QC criterion (empty_f: no fluorescence); cells() excludes them
 PARADIGM (trial schema)
   trial.TrialEvent ─► EventSet(.Onset) ◄─ EventSelector       onsets + condition labels; random-onset controls
                       └─► ScreenTiming(.Onset)                 photodiode (LED) onsets, per-recording latency
@@ -1179,20 +1180,26 @@ In this pilot:
 * ROS-2328 has 498 such ROIs, 41 of them classified as cells;
 * every other recording has 0–7.
 
-From element `roselab-0.1.0b2` on:
+**Released 2026-11-19 (element `roselab-0.1.0b2`):**
 
-* `imaging.RoiQC` lists these ROIs (criterion `empty_f`);
-* `Dff0` and CASCADE store NaN for them;
+* `imaging.RoiQC` lists these ROIs per curation and criterion; `RoiQC.Rejected` holds one row per rejected ROI.
+  The first criterion, `empty_f`, is this one. A new QC reason is a new `RoiQCCriterion` row.
+* `RoiQC` is filled for every curation (the TATCHU3 worker keeps it current).
+* `Dff0` and CASCADE computed from now on store NaN for these ROIs.
 * `cells()` leaves them out.
 
-The traces stored earlier still contain the neuropil signal.
+**Traces stored before 2026-11-19 still contain the neuropil signal: exclude `imaging.RoiQC.Rejected` in every query.**
+The table below compares the notebook's own check (F = 0 in every frame) with the production `RoiQC`.
 """)
 
 code(r"""
 cnt = []
 for _, rw in REC.iterrows():
     kk = key(rw); Fx = (imaging.Fluorescence.Trace & kk & "fluo_channel=0").fetch("fluorescence")
-    e = np.array([not np.any(np.asarray(f)) for f in Fx]); cnt.append(dict(recording=f"{rw.subject} {rw.paradigm}", rois=len(e), empty_f=int(e.sum())))
+    e = np.array([not np.any(np.asarray(f)) for f in Fx])
+    q_ = (imaging.RoiQC & kk & {"roi_qc_criterion": "empty_f"}).fetch("n_rejected")
+    cnt.append(dict(recording=f"{rw.subject} {rw.paradigm}", rois=len(e), empty_f=int(e.sum()),
+                    RoiQC_rejected=int(q_[0]) if len(q_) else "not yet"))
 display(pd.DataFrame(cnt))
 je = np.where(empty & S)[0]; jn = j49
 ex = je[0]
@@ -1231,8 +1238,9 @@ decrease in dF/F0 and vice versa. Below, one empty ROI over one minute shows thi
 For an empty ROI the inversion happens twice. dF is the *inverted* neuropil, and dividing by the negative F0
 inverts it back, so its dF/F0 follows the neuropil (section 12.3): it looks like a responsive cell.
 
-`Dff0.Trace.f0_nonpositive` flags such rows. In production, 4.2 % of all dF/F0 traces have F0 ≤ 0 somewhere; in the
-pilot these are almost all empty ROIs.
+`Dff0.Trace.f0_nonpositive` flags such rows. In production, 42,923 dF/F0 recipe-2 traces (4.2 %) have F0 ≤ 0
+somewhere. In this pilot they are almost all empty ROIs, but across production only 6,945 are; the other 36,074 have
+another cause and are not in `RoiQC`. Exclude both: `- imaging.RoiQC.Rejected.proj()` and `& "f0_nonpositive = 0"`.
 """)
 
 code(r"""
@@ -1328,8 +1336,20 @@ tr = (r.Readout.Cell & cell & {"readout_idx": 16}).fetch1("trial_resp")      # g
 on = (r.EventSet.Onset * trial.Trial * event.Event * r.ScreenTiming.Onset & cell).fetch(
      "onset_idx", "trial_id", "event_type", "event_start_time", "diode_on", order_by="onset_idx")
 
-# a window of your own: baseline 1.0-0.1 s before, response 0.1-2.0 s after onset (screen time), peak = read-out 9
-resp.plan_tasks(curations, ["cascade25", "oasis"], ["gratings"], readouts=[9], zetas=[1], owner="me")
+# a window of your own: baseline 1.0-0.1 s before, response 0.1-2.0 s after onset (screen time), peak = read-out 9;
+# ZETA on that read-out's epoch (zetas = [(readout_idx, zeta_idx), ...])
+resp.plan_tasks(curations, ["cascade25", "oasis"], ["gratings"], readouts=[9], zetas=[(9, 1)], owner="me")
+
+# activated cells only: a '_pos' rule, or is_positive from any rule with a read-out
+pos = resp.cells("gratings_cascade25_pos", {"event_selector": "gratings"}) & "is_responsive AND is_reliable"
+act = r.Readout.Cell & {"readout_idx": 16} & "resp_delta > 0"            # the same sign, straight from the read-out
+
+# ZETA of the same cells on two epoch settings: read-out 16's epoch vs the audit window (read-out 19)
+z = r.Zeta.Cell & {"event_selector": "gratings", "trace_source": "cascade25", "zeta_idx": 1}
+both = (z & {"readout_idx": 16}).proj(p16="zeta_p", r16="readout_idx") * (z & {"readout_idx": 19}).proj(p19="zeta_p", r19="readout_idx")
+
+# leave out ROIs rejected by ROI QC (element roselab-0.1.0b2); needed for traces stored before 2026-11-19
+clean = (r.Readout.Cell & {"readout_idx": 16}) - imaging.RoiQC.Rejected.proj()
 ```
 """)
 

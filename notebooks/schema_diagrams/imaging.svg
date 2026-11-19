@@ -1,483 +1,531 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1555pt" height="584pt" viewBox="0.00 0.00 1555.00 583.84">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 579.84)">
-<polygon fill="white" stroke="none" points="-4,4 -4,-579.84 1551,-579.84 1551,4 -4,4"/>
-<!-- vm.Fluorescence -->
-<g id="node1" class="node">
-<title>vm.Fluorescence</title>
-<g id="a_node1"><a xlink:title="→ vm.Segmentation">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1107.25" cy="-143.84" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1107.25" y="-139.56" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Fluorescence</text>
-</a>
-</g>
-</g>
-<!-- vm.Activity -->
-<g id="node7" class="node">
-<title>vm.Activity</title>
-<g id="a_node7"><a xlink:title="→ vm.Fluorescence→ vm.ActivityExtractionMethod">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="819.25" cy="-73.28" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="819.25" y="-69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Activity</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence&#45;&gt;vm.Activity -->
-<g id="edge1" class="edge">
-<title>vm.Fluorescence-&gt;vm.Activity</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1095.22,-139.52C1082.58,-136.08 1062.09,-130.65 1044.25,-126.56 964.72,-108.35 942.83,-112.5 864.25,-90.56 852.57,-87.3 839.57,-82.46 830.56,-78.91"/>
-</g>
-<!-- vm.ActivityCascadeTask -->
-<g id="node10" class="node">
-<title>vm.ActivityCascadeTask</title>
-<g id="a_node10"><a xlink:title="→ vm.Fluorescence→ vm.ActivityExtractionMethod------------------------------→ vm.ActivityCascadeModel">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="527.12,-90.56 381.38,-90.56 381.38,-56 527.12,-56 527.12,-90.56"/>
-<text text-anchor="middle" x="454.25" y="-69" font-family="arial" font-size="12.00" fill="darkgreen">vm.ActivityCascadeTask</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence&#45;&gt;vm.ActivityCascadeTask -->
-<g id="edge2" class="edge">
-<title>vm.Fluorescence-&gt;vm.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1095.31,-139.06C1082.74,-135.24 1062.31,-129.51 1044.25,-126.56 820.86,-90.09 760.58,-120.66 536.25,-90.56 533.37,-90.17 530.45,-89.75 527.49,-89.29"/>
-</g>
-<!-- vm.Dff0Task -->
-<g id="node11" class="node">
-<title>vm.Dff0Task</title>
-<g id="a_node11"><a xlink:title="→ vm.Fluorescence→ vm.DffParamSet------------------------------task_owner           task_note=&quot;&quot;         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="954.88,-90.56 873.62,-90.56 873.62,-56 954.88,-56 954.88,-90.56"/>
-<text text-anchor="middle" x="914.25" y="-69" font-family="arial" font-size="12.00" fill="darkgreen">vm.Dff0Task</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence&#45;&gt;vm.Dff0Task -->
-<g id="edge3" class="edge">
-<title>vm.Fluorescence-&gt;vm.Dff0Task</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1095.47,-138.65C1068.21,-128.97 999.75,-104.65 955.22,-88.83"/>
-</g>
-<!-- vm.Dff0 -->
-<g id="node20" class="node">
-<title>vm.Dff0</title>
-<g id="a_node20"><a xlink:title="→ vm.Fluorescence→ vm.DffParamSet------------------------------fps                  n_masks              n_frames             dark_signal          dark_frame_start=null dark_frame_stop=null dark_source          n_f0_nonpositive     element_version      compute_seconds      ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1001.25" cy="-73.28" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1001.25" y="-69" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Dff0</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence&#45;&gt;vm.Dff0 -->
-<g id="edge4" class="edge">
-<title>vm.Fluorescence-&gt;vm.Dff0</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1097.09,-136.27C1076.88,-123.2 1031.85,-94.07 1011.54,-80.93"/>
-</g>
-<!-- vm.Fluorescence.Trace -->
-<g id="node25" class="node">
-<title>vm.Fluorescence.Trace</title>
-<g id="a_node25"><a xlink:title="→ vm.Fluorescence→ vm.Segmentation.Mask→ `roselab_scan`.`#channel`.proj(fluo_channel=&quot;channel&quot;)------------------------------fluorescence         neuropil_fluorescence=null INDEX (fluorescence)INDEX (neuropil_fluorescence)">
-<polygon fill="none" stroke="none" points="1166.62,-83.28 1047.88,-83.28 1047.88,-63.28 1166.62,-63.28 1166.62,-83.28"/>
-<text text-anchor="middle" x="1107.25" y="-69.78" font-family="arial" font-size="10.00">vm.Fluorescence.Trace</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence&#45;&gt;vm.Fluorescence.Trace -->
-<g id="edge5" class="edge">
-<title>vm.Fluorescence-&gt;vm.Fluorescence.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1107.25,-130.9C1107.25,-117.24 1107.25,-95.2 1107.25,-83.04"/>
-</g>
-<!-- vm.MotionCorrection.Summary -->
-<g id="node2" class="node">
-<title>vm.MotionCorrection.Summary</title>
-<g id="a_node2"><a xlink:title="→ vm.MotionCorrection→ `roselab_scan`.`_scan_info__field`------------------------------ref_image            average_image        correlation_image=null max_proj_image=null  ">
-<polygon fill="none" stroke="none" points="1035.12,-153.84 883.38,-153.84 883.38,-133.84 1035.12,-133.84 1035.12,-153.84"/>
-<text text-anchor="middle" x="959.25" y="-140.34" font-family="arial" font-size="10.00">vm.MotionCorrection.Summary</text>
-</a>
-</g>
-</g>
-<!-- vm.Processing -->
-<g id="node3" class="node">
-<title>vm.Processing</title>
-<g id="a_node3"><a xlink:title="→ vm.ProcessingTask------------------------------processing_time      package_version=&quot;&quot;   ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="985.25" cy="-351.2" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="985.25" y="-346.93" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Processing</text>
-</a>
-</g>
-</g>
-<!-- vm.Curation -->
-<g id="node21" class="node">
-<title>vm.Curation</title>
-<g id="a_node21"><a xlink:title="→ vm.Processingcuration_id          ------------------------------curation_time        curation_output_dir  manual_curation      curation_note=&quot;&quot;     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1025.5,-302.24 945,-302.24 945,-267.68 1025.5,-267.68 1025.5,-302.24"/>
-<text text-anchor="start" x="953" y="-281.69" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Curation</text>
-</a>
-</g>
-</g>
-<!-- vm.Processing&#45;&gt;vm.Curation -->
-<g id="edge6" class="edge">
-<title>vm.Processing-&gt;vm.Curation</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M985.25,-338.42C985.25,-328.28 985.25,-313.54 985.25,-302.26"/>
-</g>
-<!-- vm.MotionCorrection.Block -->
-<g id="node4" class="node">
-<title>vm.MotionCorrection.Block</title>
-<g id="a_node4"><a xlink:title="→ vm.MotionCorrection.NonRigidMotionCorrectionblock_id             ------------------------------block_y              block_x              block_z              y_shifts             x_shifts             z_shifts=null        y_std                x_std                z_std=null           ">
-<polygon fill="none" stroke="none" points="179.5,-83.28 45,-83.28 45,-63.28 179.5,-63.28 179.5,-83.28"/>
-<text text-anchor="start" x="53" y="-70.78" font-family="arial" text-decoration="underline" font-size="10.00">vm.MotionCorrection.Block</text>
-</a>
-</g>
-</g>
-<!-- vm.Segmentation.Mask -->
-<g id="node5" class="node">
-<title>vm.Segmentation.Mask</title>
-<g id="a_node5"><a xlink:title="→ vm.Segmentationmask                 ------------------------------roi_group            → `roselab_scan`.`#channel`.proj(segmentation_channel=&quot;channel&quot;)mask_npix            mask_center_x        mask_center_y        mask_center_z        mask_xpix            mask_ypix            mask_zpix            mask_weights         ">
-<polygon fill="none" stroke="none" points="1299,-153.84 1179.5,-153.84 1179.5,-133.84 1299,-133.84 1299,-153.84"/>
-<text text-anchor="start" x="1187.5" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.Segmentation.Mask</text>
-</a>
-</g>
-</g>
-<!-- vm.Segmentation.Mask&#45;&gt;vm.Fluorescence.Trace -->
-<g id="edge7" class="edge">
-<title>vm.Segmentation.Mask-&gt;vm.Fluorescence.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1221.99,-133.88C1196.7,-120.74 1149.81,-96.39 1124.51,-83.25"/>
-</g>
-<!-- vm.MaskClassification.MaskType -->
-<g id="node26" class="node">
-<title>vm.MaskClassification.MaskType</title>
-<g id="a_node26"><a xlink:title="→ vm.MaskClassification→ vm.Segmentation.Mask------------------------------→ vm.MaskTypeconfidence=null      ">
-<polygon fill="none" stroke="none" points="1466.12,-83.28 1302.38,-83.28 1302.38,-63.28 1466.12,-63.28 1466.12,-83.28"/>
-<text text-anchor="middle" x="1384.25" y="-69.78" font-family="arial" font-size="10.00">vm.MaskClassification.MaskType</text>
-</a>
-</g>
-</g>
-<!-- vm.Segmentation.Mask&#45;&gt;vm.MaskClassification.MaskType -->
-<g id="edge8" class="edge">
-<title>vm.Segmentation.Mask-&gt;vm.MaskClassification.MaskType</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1258.21,-133.88C1286,-120.74 1337.5,-96.39 1365.29,-83.25"/>
-</g>
-<!-- vm.CascadeRecipe -->
-<g id="node6" class="node">
-<title>vm.CascadeRecipe</title>
-<g id="a_node6"><a xlink:title="→ vm.ActivityExtractionMethod------------------------------→ vm.DffParamSet">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="647.38,-90.56 545.12,-90.56 545.12,-56 647.38,-56 647.38,-90.56"/>
-<text text-anchor="middle" x="596.25" y="-69.78" font-family="arial" font-size="10.00">vm.CascadeRecipe</text>
-</a>
-</g>
-</g>
-<!-- vm.Activity.CascadeInput -->
-<g id="node19" class="node">
-<title>vm.Activity.CascadeInput</title>
-<g id="a_node19"><a xlink:title="→ vm.Activity------------------------------→ vm.Dff0→ vm.ActivityCascadeModelcascade_commit       element_version      computed_at          ">
-<polygon fill="none" stroke="none" points="883.12,-20 755.38,-20 755.38,0 883.12,0 883.12,-20"/>
-<text text-anchor="middle" x="819.25" y="-6.5" font-family="arial" font-size="10.00">vm.Activity.CascadeInput</text>
-</a>
-</g>
-</g>
-<!-- vm.Activity&#45;&gt;vm.Activity.CascadeInput -->
-<g id="edge9" class="edge">
-<title>vm.Activity-&gt;vm.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M819.25,-60.46C819.25,-48.64 819.25,-30.71 819.25,-19.99"/>
-</g>
-<!-- vm.Activity.Trace -->
-<g id="node28" class="node">
-<title>vm.Activity.Trace</title>
-<g id="a_node28"><a xlink:title="→ vm.Activity→ vm.Fluorescence.Trace------------------------------activity_trace       INDEX (activity_trace)">
-<polygon fill="none" stroke="none" points="1021.12,-20 929.38,-20 929.38,0 1021.12,0 1021.12,-20"/>
-<text text-anchor="middle" x="975.25" y="-6.5" font-family="arial" font-size="10.00">vm.Activity.Trace</text>
-</a>
-</g>
-</g>
-<!-- vm.Activity&#45;&gt;vm.Activity.Trace -->
-<g id="edge10" class="edge">
-<title>vm.Activity-&gt;vm.Activity.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M830.72,-67.77C856.33,-57.71 918.58,-33.26 952.42,-19.97"/>
-</g>
-<!-- vm.MaskClassification -->
-<g id="node8" class="node">
-<title>vm.MaskClassification</title>
-<g id="a_node8"><a xlink:title="→ vm.Segmentation→ vm.MaskClassificationMethod">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1384.25" cy="-143.84" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1384.25" y="-139.56" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MaskClassification</text>
-</a>
-</g>
-</g>
-<!-- vm.MaskClassification&#45;&gt;vm.MaskClassification.MaskType -->
-<g id="edge11" class="edge">
-<title>vm.MaskClassification-&gt;vm.MaskClassification.MaskType</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1384.25,-130.9C1384.25,-117.24 1384.25,-95.2 1384.25,-83.04"/>
-</g>
-<!-- vm.MotionCorrection.NonRigidMotionCorrection -->
-<g id="node9" class="node">
-<title>vm.MotionCorrection.NonRigidMotionCorrection</title>
-<g id="a_node9"><a xlink:title="→ vm.MotionCorrection------------------------------outlier_frames=null  block_height         block_width          block_depth          block_count_y        block_count_x        block_count_z        ">
-<polygon fill="none" stroke="none" points="224.5,-153.84 0,-153.84 0,-133.84 224.5,-133.84 224.5,-153.84"/>
-<text text-anchor="middle" x="112.25" y="-140.34" font-family="arial" font-size="10.00">vm.MotionCorrection.NonRigidMotionCorrection</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCorrection.NonRigidMotionCorrection&#45;&gt;vm.MotionCorrection.Block -->
-<g id="edge12" class="edge">
-<title>vm.MotionCorrection.NonRigidMotionCorrection-&gt;vm.MotionCorrection.Block</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112.25,-133.88C112.25,-120.66 112.25,-96.12 112.25,-83.03"/>
-</g>
-<!-- vm.MaskType -->
-<g id="node12" class="node">
-<title>vm.MaskType</title>
-<g id="a_node12"><a xlink:title="mask_type            ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1547,-161.12 1469.5,-161.12 1469.5,-126.56 1547,-126.56 1547,-161.12"/>
-<text text-anchor="start" x="1477.5" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.MaskType</text>
-</a>
-</g>
-</g>
-<!-- vm.MaskType&#45;&gt;vm.MaskClassification.MaskType -->
-<g id="edge13" class="edge">
-<title>vm.MaskType-&gt;vm.MaskClassification.MaskType</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1478.86,-126.59C1454.37,-113.05 1420.38,-94.26 1400.51,-83.27"/>
-</g>
-<!-- vm.Dff0.Trace -->
-<g id="node13" class="node">
-<title>vm.Dff0.Trace</title>
-<g id="a_node13"><a xlink:title="→ vm.Dff0→ vm.Fluorescence.Trace------------------------------dff                  f0_median            f0_min               f0_nonpositive       INDEX (dff)">
-<polygon fill="none" stroke="none" points="1131.75,-20 1052.75,-20 1052.75,0 1131.75,0 1131.75,-20"/>
-<text text-anchor="middle" x="1092.25" y="-6.5" font-family="arial" font-size="10.00">vm.Dff0.Trace</text>
-</a>
-</g>
-</g>
-<!-- vm.DffParamSet -->
-<g id="node14" class="node">
-<title>vm.DffParamSet</title>
-<g id="a_node14"><a xlink:title="dff_paramset_idx     ------------------------------dff_desc             dff_hash             dark_method          dark_frame_start=null dark_frame_stop=null dark_margin_s=null   neuropil_factor      neuropil_offset      detrend_method       detrend_window_s=null baseline_method      baseline_percentile=null baseline_window_s=null baseline_smooth_s=null baseline_step=1      f0_floor_method      f0_floor_value=null  extra=null           UNIQUE INDEX (dff_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="641,-161.12 551.5,-161.12 551.5,-126.56 641,-126.56 641,-161.12"/>
-<text text-anchor="start" x="559.5" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.DffParamSet</text>
-</a>
-</g>
-</g>
-<!-- vm.DffParamSet&#45;&gt;vm.CascadeRecipe -->
-<g id="edge14" class="edge">
-<title>vm.DffParamSet-&gt;vm.CascadeRecipe</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M596.25,-126.59C596.25,-115.66 596.25,-101.32 596.25,-90.41"/>
-</g>
-<!-- vm.DffParamSet&#45;&gt;vm.Dff0Task -->
-<g id="edge15" class="edge">
-<title>vm.DffParamSet-&gt;vm.Dff0Task</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M640.92,-128.9C644.07,-128.06 647.2,-127.27 650.25,-126.56 744.6,-104.53 771.22,-113.9 865.25,-90.56 867.86,-89.91 870.53,-89.19 873.21,-88.43"/>
-</g>
-<!-- vm.DffParamSet&#45;&gt;vm.Dff0 -->
-<g id="edge16" class="edge">
-<title>vm.DffParamSet-&gt;vm.Dff0</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M640.88,-128.71C644.04,-127.92 647.18,-127.19 650.25,-126.56 787.82,-98.17 828.66,-127.26 964.25,-90.56 973.46,-88.07 983.33,-83.63 990.56,-80.01"/>
-</g>
-<!-- vm.MotionCorrection -->
-<g id="node15" class="node">
-<title>vm.MotionCorrection</title>
-<g id="a_node15"><a xlink:title="→ vm.Curation------------------------------→ `roselab_scan`.`#channel`.proj(motion_correct_channel=&quot;channel&quot;)">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="908.25" cy="-214.4" rx="82.5" ry="17.28"/>
-<text text-anchor="middle" x="908.25" y="-210.12" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.MotionCorrection</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.Summary -->
-<g id="edge17" class="edge">
-<title>vm.MotionCorrection-&gt;vm.MotionCorrection.Summary</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M920.34,-197.15C930.47,-183.53 944.55,-164.6 952.7,-153.64"/>
-</g>
-<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.NonRigidMotionCorrection -->
-<g id="edge18" class="edge">
-<title>vm.MotionCorrection-&gt;vm.MotionCorrection.NonRigidMotionCorrection</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M829.77,-208.72C703.93,-200.91 449.3,-183.79 234.25,-161.12 214.81,-159.07 193.68,-156.41 174.55,-153.83"/>
-</g>
-<!-- vm.MotionCorrection.RigidMotionCorrection -->
-<g id="node16" class="node">
-<title>vm.MotionCorrection.RigidMotionCorrection</title>
-<g id="a_node16"><a xlink:title="→ vm.MotionCorrection------------------------------outlier_frames=null  y_shifts             x_shifts             z_shifts=null        y_std                x_std                z_std=null           ">
-<polygon fill="none" stroke="none" points="865.5,-153.84 659,-153.84 659,-133.84 865.5,-133.84 865.5,-153.84"/>
-<text text-anchor="middle" x="762.25" y="-140.34" font-family="arial" font-size="10.00">vm.MotionCorrection.RigidMotionCorrection</text>
-</a>
-</g>
-</g>
-<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.RigidMotionCorrection -->
-<g id="edge19" class="edge">
-<title>vm.MotionCorrection-&gt;vm.MotionCorrection.RigidMotionCorrection</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M875.85,-198.18C846.78,-184.53 805.12,-164.97 781.16,-153.72"/>
-</g>
-<!-- vm.ProcessingTask -->
-<g id="node17" class="node">
-<title>vm.ProcessingTask</title>
-<g id="a_node17"><a xlink:title="→ `roselab_scan`.`scan`→ vm.ProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1045,-434.72 925.5,-434.72 925.5,-400.16 1045,-400.16 1045,-434.72"/>
-<text text-anchor="middle" x="985.25" y="-413.17" font-family="arial" font-size="12.00" fill="darkgreen">vm.ProcessingTask</text>
-</a>
-</g>
-</g>
-<!-- vm.ProcessingTask&#45;&gt;vm.Processing -->
-<g id="edge20" class="edge">
-<title>vm.ProcessingTask-&gt;vm.Processing</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M985.25,-399.9C985.25,-388.6 985.25,-373.9 985.25,-363.82"/>
-</g>
-<!-- vm.ActivityCascadeModel -->
-<g id="node18" class="node">
-<title>vm.ActivityCascadeModel</title>
-<g id="a_node18"><a xlink:title="model_name           ------------------------------model_path           model_description=&quot;&quot; ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="373.62,-161.12 242.88,-161.12 242.88,-126.56 373.62,-126.56 373.62,-161.12"/>
-<text text-anchor="start" x="250.88" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.ActivityCascadeModel</text>
-</a>
-</g>
-</g>
-<!-- vm.ActivityCascadeModel&#45;&gt;vm.ActivityCascadeTask -->
-<g id="edge21" class="edge">
-<title>vm.ActivityCascadeModel-&gt;vm.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M342.85,-126.59C365.7,-115.86 395.57,-101.83 418.63,-91.01"/>
-</g>
-<!-- vm.ActivityCascadeModel&#45;&gt;vm.Activity.CascadeInput -->
-<g id="edge22" class="edge">
-<title>vm.ActivityCascadeModel-&gt;vm.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M315.03,-126.78C324.55,-106.45 343.94,-72.14 372.25,-56 436.12,-19.6 648.28,-12.41 755.73,-11.14"/>
-</g>
-<!-- vm.Dff0&#45;&gt;vm.Dff0.Trace -->
-<g id="edge23" class="edge">
-<title>vm.Dff0-&gt;vm.Dff0.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1011.34,-65.49C1027.9,-54.33 1060.86,-32.14 1079.19,-19.8"/>
-</g>
-<!-- vm.Dff0&#45;&gt;vm.Activity.CascadeInput -->
-<g id="edge24" class="edge">
-<title>vm.Dff0-&gt;vm.Activity.CascadeInput</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M990.05,-66.96C982.78,-63.6 973.06,-59.29 964.25,-56 926.23,-41.79 881.48,-28.39 851.86,-19.97"/>
-</g>
-<!-- vm.Curation&#45;&gt;vm.MotionCorrection -->
-<g id="edge25" class="edge">
-<title>vm.Curation-&gt;vm.MotionCorrection</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M966.61,-267.36C954.42,-256.5 938.56,-242.39 926.45,-231.61"/>
-</g>
-<!-- vm.Segmentation -->
-<g id="node22" class="node">
-<title>vm.Segmentation</title>
-<g id="a_node22"><a xlink:title="→ vm.Curation">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="1158.25" cy="-214.4" rx="12.96" ry="12.96"/>
-<text text-anchor="middle" x="1158.25" y="-210.12" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Segmentation</text>
-</a>
-</g>
-</g>
-<!-- vm.Curation&#45;&gt;vm.Segmentation -->
-<g id="edge26" class="edge">
-<title>vm.Curation-&gt;vm.Segmentation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1025.81,-267.89C1065.16,-252.29 1122.38,-229.62 1146.66,-219.99"/>
-</g>
-<!-- vm.Segmentation&#45;&gt;vm.Fluorescence -->
-<g id="edge27" class="edge">
-<title>vm.Segmentation-&gt;vm.Fluorescence</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1151.16,-203.87C1141.41,-190.77 1123.99,-167.35 1114.28,-154.29"/>
-</g>
-<!-- vm.Segmentation&#45;&gt;vm.Segmentation.Mask -->
-<g id="edge28" class="edge">
-<title>vm.Segmentation-&gt;vm.Segmentation.Mask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1167.54,-205.54C1182.75,-192.66 1212.86,-167.18 1228.79,-153.69"/>
-</g>
-<!-- vm.Segmentation&#45;&gt;vm.MaskClassification -->
-<g id="edge29" class="edge">
-<title>vm.Segmentation-&gt;vm.MaskClassification</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1170.08,-209.81C1209.05,-197.99 1333.07,-160.37 1372.26,-148.48"/>
-</g>
-<!-- vm.MaskClassificationMethod -->
-<g id="node23" class="node">
-<title>vm.MaskClassificationMethod</title>
-<g id="a_node23"><a xlink:title="mask_classification_method ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1458.25,-231.68 1310.25,-231.68 1310.25,-197.12 1458.25,-197.12 1458.25,-231.68"/>
-<text text-anchor="start" x="1318.25" y="-211.9" font-family="arial" text-decoration="underline" font-size="10.00">vm.MaskClassificationMethod</text>
-</a>
-</g>
-</g>
-<!-- vm.MaskClassificationMethod&#45;&gt;vm.MaskClassification -->
-<g id="edge30" class="edge">
-<title>vm.MaskClassificationMethod-&gt;vm.MaskClassification</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1384.25,-197.15C1384.25,-184.64 1384.25,-167.65 1384.25,-156.47"/>
-</g>
-<!-- vm.CellCompartment -->
-<g id="node24" class="node">
-<title>vm.CellCompartment</title>
-<g id="a_node24"><a xlink:title="cell_compartment     ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1274.75,-575.84 1165.75,-575.84 1165.75,-541.28 1274.75,-541.28 1274.75,-575.84"/>
-<text text-anchor="start" x="1173.75" y="-556.06" font-family="arial" text-decoration="underline" font-size="10.00">vm.CellCompartment</text>
-</a>
-</g>
-</g>
-<!-- vm.Fluorescence.Trace&#45;&gt;vm.Dff0.Trace -->
-<g id="edge31" class="edge">
-<title>vm.Fluorescence.Trace-&gt;vm.Dff0.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1105.1,-63.5C1102.25,-51.85 1097.24,-31.4 1094.4,-19.76"/>
-</g>
-<!-- vm.Fluorescence.Trace&#45;&gt;vm.Activity.Trace -->
-<g id="edge32" class="edge">
-<title>vm.Fluorescence.Trace-&gt;vm.Activity.Trace</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1088.06,-63.37C1063.03,-51.75 1019.5,-31.54 994.47,-19.92"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1685pt" height="586pt" viewBox="0.00 0.00 1685.00 586.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 582)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-582 1681,-582 1681,4 -4,4"/>
 <!-- vm.ProcessingMethod -->
-<g id="node27" class="node">
+<g id="node1" class="node">
 <title>vm.ProcessingMethod</title>
-<g id="a_node27"><a xlink:title="processing_method    ------------------------------processing_method_desc ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="963,-575.84 849.5,-575.84 849.5,-541.28 963,-541.28 963,-575.84"/>
-<text text-anchor="start" x="857.5" y="-556.06" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingMethod</text>
+<g id="a_node1"><a xlink:title="processing_method    ------------------------------processing_method_desc ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="632.5,-578 518.5,-578 518.5,-543 632.5,-543 632.5,-578"/>
+<text text-anchor="start" x="526.5" y="-559" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingMethod</text>
 </a>
 </g>
 </g>
 <!-- vm.ProcessingParamSet -->
-<g id="node31" class="node">
+<g id="node33" class="node">
 <title>vm.ProcessingParamSet</title>
-<g id="a_node31"><a xlink:title="paramset_idx         ------------------------------→ vm.ProcessingMethod→ vm.ProcessingScanConcatenationparamset_desc        param_set_hash       params               UNIQUE INDEX (param_set_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1047.62,-505.28 922.88,-505.28 922.88,-470.72 1047.62,-470.72 1047.62,-505.28"/>
-<text text-anchor="start" x="930.88" y="-485.5" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingParamSet</text>
+<g id="a_node33"><a xlink:title="paramset_idx         ------------------------------→ vm.ProcessingMethod→ vm.ProcessingScanConcatenationparamset_desc        param_set_hash       params               UNIQUE INDEX (param_set_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="717,-507 592,-507 592,-472 717,-472 717,-507"/>
+<text text-anchor="start" x="600" y="-488" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingParamSet</text>
 </a>
 </g>
 </g>
 <!-- vm.ProcessingMethod&#45;&gt;vm.ProcessingParamSet -->
-<g id="edge33" class="edge">
+<g id="edge1" class="edge">
 <title>vm.ProcessingMethod-&gt;vm.ProcessingParamSet</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M924.97,-541.31C937.57,-530.38 954.1,-516.04 966.66,-505.13"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M594.62,-542.8C607.04,-531.95 623.17,-517.87 635.55,-507.05"/>
 </g>
-<!-- vm.CascadeModel -->
-<g id="node29" class="node">
-<title>vm.CascadeModel</title>
-<g id="a_node29"><a xlink:title="cascade_model_name   ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1390.12,-575.84 1292.38,-575.84 1292.38,-541.28 1390.12,-541.28 1390.12,-575.84"/>
-<text text-anchor="start" x="1300.38" y="-556.06" font-family="arial" text-decoration="underline" font-size="10.00">vm.CascadeModel</text>
+<!-- vm.RoiQC.Rejected -->
+<g id="node2" class="node">
+<title>vm.RoiQC.Rejected</title>
+<g id="a_node2"><a xlink:title="→ vm.RoiQC→ vm.Fluorescence.Trace">
+<polygon fill="transparent" stroke="transparent" points="521,-19 416,-19 416,0 521,0 521,-19"/>
+<text text-anchor="middle" x="468.5" y="-7" font-family="arial" font-size="10.00">vm.RoiQC.Rejected</text>
 </a>
 </g>
 </g>
-<!-- vm.ActivityExtractionMethod -->
-<g id="node30" class="node">
-<title>vm.ActivityExtractionMethod</title>
-<g id="a_node30"><a xlink:title="extraction_method    ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="533.25,-161.12 391.25,-161.12 391.25,-126.56 533.25,-126.56 533.25,-161.12"/>
-<text text-anchor="start" x="399.25" y="-141.34" font-family="arial" text-decoration="underline" font-size="10.00">vm.ActivityExtractionMethod</text>
+<!-- vm.Activity -->
+<g id="node3" class="node">
+<title>vm.Activity</title>
+<g id="a_node3"><a xlink:title="→ vm.Fluorescence→ vm.ActivityExtractionMethod">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="856.5" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="856.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Activity</text>
 </a>
 </g>
 </g>
-<!-- vm.ActivityExtractionMethod&#45;&gt;vm.CascadeRecipe -->
-<g id="edge34" class="edge">
-<title>vm.ActivityExtractionMethod-&gt;vm.CascadeRecipe</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M494.01,-126.59C515.37,-115.66 543.41,-101.32 564.72,-90.41"/>
+<!-- vm.Activity.CascadeInput -->
+<g id="node6" class="node">
+<title>vm.Activity.CascadeInput</title>
+<g id="a_node6"><a xlink:title="→ vm.Activity------------------------------→ vm.Dff0→ vm.ActivityCascadeModelcascade_commit       element_version      computed_at          ">
+<polygon fill="transparent" stroke="transparent" points="921,-19 792,-19 792,0 921,0 921,-19"/>
+<text text-anchor="middle" x="856.5" y="-7" font-family="arial" font-size="10.00">vm.Activity.CascadeInput</text>
+</a>
 </g>
-<!-- vm.ActivityExtractionMethod&#45;&gt;vm.Activity -->
-<g id="edge35" class="edge">
-<title>vm.ActivityExtractionMethod-&gt;vm.Activity</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M532.91,-128.4C536.07,-127.78 539.19,-127.16 542.25,-126.56 644.3,-106.55 767.79,-83.74 806.81,-76.56"/>
 </g>
-<!-- vm.ActivityExtractionMethod&#45;&gt;vm.ActivityCascadeTask -->
-<g id="edge36" class="edge">
-<title>vm.ActivityExtractionMethod-&gt;vm.ActivityCascadeTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M460.35,-126.59C459.1,-115.82 457.45,-101.73 456.19,-90.89"/>
+<!-- vm.Activity&#45;&gt;vm.Activity.CascadeInput -->
+<g id="edge2" class="edge">
+<title>vm.Activity-&gt;vm.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M856.5,-59.45C856.5,-47.64 856.5,-29.93 856.5,-19.36"/>
 </g>
-<!-- vm.ProcessingParamSet&#45;&gt;vm.ProcessingTask -->
-<g id="edge37" class="edge">
-<title>vm.ProcessingParamSet-&gt;vm.ProcessingTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M985.25,-470.75C985.25,-459.98 985.25,-445.89 985.25,-435.05"/>
+<!-- vm.Activity.Trace -->
+<g id="node21" class="node">
+<title>vm.Activity.Trace</title>
+<g id="a_node21"><a xlink:title="→ vm.Activity→ vm.Fluorescence.Trace------------------------------activity_trace       INDEX (activity_trace)">
+<polygon fill="transparent" stroke="transparent" points="746,-19 653,-19 653,0 746,0 746,-19"/>
+<text text-anchor="middle" x="699.5" y="-7" font-family="arial" font-size="10.00">vm.Activity.Trace</text>
+</a>
+</g>
+</g>
+<!-- vm.Activity&#45;&gt;vm.Activity.Trace -->
+<g id="edge3" class="edge">
+<title>vm.Activity-&gt;vm.Activity.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M844.7,-66.92C818.53,-56.75 755.27,-32.17 721.54,-19.06"/>
+</g>
+<!-- vm.Segmentation.Mask -->
+<g id="node4" class="node">
+<title>vm.Segmentation.Mask</title>
+<g id="a_node4"><a xlink:title="→ vm.Segmentationmask                 ------------------------------roi_group            → `roselab_scan`.`#channel`.proj(segmentation_channel=&quot;channel&quot;)mask_npix            mask_center_x        mask_center_y        mask_center_z        mask_xpix            mask_ypix            mask_zpix            mask_weights         ">
+<polygon fill="transparent" stroke="transparent" points="494.5,-153 374.5,-153 374.5,-134 494.5,-134 494.5,-153"/>
+<text text-anchor="start" x="382.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.Segmentation.Mask</text>
+</a>
+</g>
+</g>
+<!-- vm.MaskClassification.MaskType -->
+<g id="node8" class="node">
+<title>vm.MaskClassification.MaskType</title>
+<g id="a_node8"><a xlink:title="→ vm.MaskClassification→ vm.Segmentation.Mask------------------------------→ vm.MaskTypeconfidence=null      ">
+<polygon fill="transparent" stroke="transparent" points="281.5,-82 117.5,-82 117.5,-63 281.5,-63 281.5,-82"/>
+<text text-anchor="middle" x="199.5" y="-70" font-family="arial" font-size="10.00">vm.MaskClassification.MaskType</text>
+</a>
+</g>
+</g>
+<!-- vm.Segmentation.Mask&#45;&gt;vm.MaskClassification.MaskType -->
+<g id="edge4" class="edge">
+<title>vm.Segmentation.Mask-&gt;vm.MaskClassification.MaskType</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M405.21,-133.9C360.06,-120.64 273.94,-95.36 228.79,-82.1"/>
+</g>
+<!-- vm.Fluorescence.Trace -->
+<g id="node23" class="node">
+<title>vm.Fluorescence.Trace</title>
+<g id="a_node23"><a xlink:title="→ vm.Fluorescence→ vm.Segmentation.Mask→ `roselab_scan`.`#channel`.proj(fluo_channel=&quot;channel&quot;)------------------------------fluorescence         neuropil_fluorescence=null INDEX (fluorescence)INDEX (neuropil_fluorescence)">
+<polygon fill="transparent" stroke="transparent" points="626,-82 507,-82 507,-63 626,-63 626,-82"/>
+<text text-anchor="middle" x="566.5" y="-70" font-family="arial" font-size="10.00">vm.Fluorescence.Trace</text>
+</a>
+</g>
+</g>
+<!-- vm.Segmentation.Mask&#45;&gt;vm.Fluorescence.Trace -->
+<g id="edge5" class="edge">
+<title>vm.Segmentation.Mask-&gt;vm.Fluorescence.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M450.95,-133.9C476.25,-120.68 524.42,-95.5 549.84,-82.21"/>
 </g>
 <!-- vm.ProcessingScanConcatenation -->
-<g id="node32" class="node">
+<g id="node5" class="node">
 <title>vm.ProcessingScanConcatenation</title>
-<g id="a_node32"><a xlink:title="concatenation_method ------------------------------concatenation_method_desc ">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="none" points="1147.62,-575.84 980.88,-575.84 980.88,-541.28 1147.62,-541.28 1147.62,-575.84"/>
-<text text-anchor="start" x="988.88" y="-556.06" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingScanConcatenation</text>
+<g id="a_node5"><a xlink:title="concatenation_method ------------------------------concatenation_method_desc ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="818,-578 651,-578 651,-543 818,-543 818,-578"/>
+<text text-anchor="start" x="659" y="-559" font-family="arial" text-decoration="underline" font-size="10.00">vm.ProcessingScanConcatenation</text>
 </a>
 </g>
 </g>
 <!-- vm.ProcessingScanConcatenation&#45;&gt;vm.ProcessingParamSet -->
-<g id="edge38" class="edge">
+<g id="edge6" class="edge">
 <title>vm.ProcessingScanConcatenation-&gt;vm.ProcessingParamSet</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1045.53,-541.31C1032.93,-530.38 1016.4,-516.04 1003.84,-505.13"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M715.13,-542.8C702.56,-531.95 686.23,-517.87 673.69,-507.05"/>
+</g>
+<!-- vm.MotionCorrection.Block -->
+<g id="node7" class="node">
+<title>vm.MotionCorrection.Block</title>
+<g id="a_node7"><a xlink:title="→ vm.MotionCorrection.NonRigidMotionCorrectionblock_id             ------------------------------block_y              block_x              block_z              y_shifts             x_shifts             z_shifts=null        y_std                x_std                z_std=null           ">
+<polygon fill="transparent" stroke="transparent" points="1632,-82 1497,-82 1497,-63 1632,-63 1632,-82"/>
+<text text-anchor="start" x="1505" y="-71" font-family="arial" text-decoration="underline" font-size="10.00">vm.MotionCorrection.Block</text>
+</a>
+</g>
+</g>
+<!-- vm.Dff0.Trace -->
+<g id="node9" class="node">
+<title>vm.Dff0.Trace</title>
+<g id="a_node9"><a xlink:title="→ vm.Dff0→ vm.Fluorescence.Trace------------------------------dff                  f0_median            f0_min               f0_nonpositive       INDEX (dff)">
+<polygon fill="transparent" stroke="transparent" points="620,-19 541,-19 541,0 620,0 620,-19"/>
+<text text-anchor="middle" x="580.5" y="-7" font-family="arial" font-size="10.00">vm.Dff0.Trace</text>
+</a>
+</g>
+</g>
+<!-- vm.RoiQC -->
+<g id="node10" class="node">
+<title>vm.RoiQC</title>
+<g id="a_node10"><a xlink:title="→ vm.Fluorescence→ vm.RoiQCCriterion------------------------------n_rois               n_rejected           ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="452.5" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="452.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.RoiQC</text>
+</a>
+</g>
+</g>
+<!-- vm.RoiQC&#45;&gt;vm.RoiQC.Rejected -->
+<g id="edge7" class="edge">
+<title>vm.RoiQC-&gt;vm.RoiQC.Rejected</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M455.58,-59.74C458.71,-47.83 463.47,-29.7 466.25,-19.08"/>
+</g>
+<!-- vm.MotionCorrection.RigidMotionCorrection -->
+<g id="node11" class="node">
+<title>vm.MotionCorrection.RigidMotionCorrection</title>
+<g id="a_node11"><a xlink:title="→ vm.MotionCorrection------------------------------outlier_frames=null  y_shifts             x_shifts             z_shifts=null        y_std                x_std                z_std=null           ">
+<polygon fill="transparent" stroke="transparent" points="846,-153 639,-153 639,-134 846,-134 846,-153"/>
+<text text-anchor="middle" x="742.5" y="-141" font-family="arial" font-size="10.00">vm.MotionCorrection.RigidMotionCorrection</text>
+</a>
+</g>
+</g>
+<!-- vm.MaskClassificationMethod -->
+<g id="node12" class="node">
+<title>vm.MaskClassificationMethod</title>
+<g id="a_node12"><a xlink:title="mask_classification_method ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="149,-232 0,-232 0,-197 149,-197 149,-232"/>
+<text text-anchor="start" x="8" y="-213" font-family="arial" text-decoration="underline" font-size="10.00">vm.MaskClassificationMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.MaskClassification -->
+<g id="node25" class="node">
+<title>vm.MaskClassification</title>
+<g id="a_node25"><a xlink:title="→ vm.Segmentation→ vm.MaskClassificationMethod">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="74.5" cy="-143.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="74.5" y="-140.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.MaskClassification</text>
+</a>
+</g>
+</g>
+<!-- vm.MaskClassificationMethod&#45;&gt;vm.MaskClassification -->
+<g id="edge8" class="edge">
+<title>vm.MaskClassificationMethod-&gt;vm.MaskClassification</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M74.5,-196.8C74.5,-184.35 74.5,-167.66 74.5,-156.51"/>
+</g>
+<!-- vm.ActivityCascadeModel -->
+<g id="node13" class="node">
+<title>vm.ActivityCascadeModel</title>
+<g id="a_node13"><a xlink:title="model_name           ------------------------------model_path           model_description=&quot;&quot; ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1434,-161 1303,-161 1303,-126 1434,-126 1434,-161"/>
+<text text-anchor="start" x="1311" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.ActivityCascadeModel</text>
+</a>
+</g>
+</g>
+<!-- vm.ActivityCascadeModel&#45;&gt;vm.Activity.CascadeInput -->
+<g id="edge9" class="edge">
+<title>vm.ActivityCascadeModel-&gt;vm.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1361.59,-125.97C1352.06,-105.43 1332.77,-71.15 1304.5,-55 1240.71,-18.55 1029,-11.64 921.03,-10.54"/>
+</g>
+<!-- vm.ActivityCascadeTask -->
+<g id="node19" class="node">
+<title>vm.ActivityCascadeTask</title>
+<g id="a_node19"><a xlink:title="→ vm.Fluorescence→ vm.ActivityExtractionMethod------------------------------→ vm.ActivityCascadeModel">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1295.5,-90 1149.5,-90 1149.5,-55 1295.5,-55 1295.5,-90"/>
+<text text-anchor="middle" x="1222.5" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ActivityCascadeTask</text>
+</a>
+</g>
+</g>
+<!-- vm.ActivityCascadeModel&#45;&gt;vm.ActivityCascadeTask -->
+<g id="edge10" class="edge">
+<title>vm.ActivityCascadeModel-&gt;vm.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1333.53,-125.97C1310.5,-115.09 1280.46,-100.89 1257.44,-90.01"/>
+</g>
+<!-- vm.CascadeModel -->
+<g id="node14" class="node">
+<title>vm.CascadeModel</title>
+<g id="a_node14"><a xlink:title="cascade_model_name   ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="933.5,-578 835.5,-578 835.5,-543 933.5,-543 933.5,-578"/>
+<text text-anchor="start" x="843.5" y="-559" font-family="arial" text-decoration="underline" font-size="10.00">vm.CascadeModel</text>
+</a>
+</g>
+</g>
+<!-- vm.DffParamSet -->
+<g id="node15" class="node">
+<title>vm.DffParamSet</title>
+<g id="a_node15"><a xlink:title="dff_paramset_idx     ------------------------------dff_desc             dff_hash             dark_method          dark_frame_start=null dark_frame_stop=null dark_margin_s=null   neuropil_factor      neuropil_offset      detrend_method       detrend_window_s=null baseline_method      baseline_percentile=null baseline_window_s=null baseline_smooth_s=null baseline_step=1      f0_floor_method      f0_floor_value=null  extra=null           UNIQUE INDEX (dff_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1124,-161 1035,-161 1035,-126 1124,-126 1124,-161"/>
+<text text-anchor="start" x="1043" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.DffParamSet</text>
+</a>
+</g>
+</g>
+<!-- vm.Dff0 -->
+<g id="node18" class="node">
+<title>vm.Dff0</title>
+<g id="a_node18"><a xlink:title="→ vm.Fluorescence→ vm.DffParamSet------------------------------fps                  n_masks              n_frames             dark_signal          dark_frame_start=null dark_frame_stop=null dark_source          n_f0_nonpositive     element_version      compute_seconds      ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="672.5" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="672.5" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Dff0</text>
+</a>
+</g>
+</g>
+<!-- vm.DffParamSet&#45;&gt;vm.Dff0 -->
+<g id="edge11" class="edge">
+<title>vm.DffParamSet-&gt;vm.Dff0</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1034.87,-128.18C1031.72,-127.38 1028.57,-126.64 1025.5,-126 887.54,-97.29 846.61,-126.46 710.5,-90 701.19,-87.51 691.22,-83.1 683.82,-79.47"/>
+</g>
+<!-- vm.Dff0Task -->
+<g id="node20" class="node">
+<title>vm.Dff0Task</title>
+<g id="a_node20"><a xlink:title="→ vm.Fluorescence→ vm.DffParamSet------------------------------task_owner           task_note=&quot;&quot;         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="801.5,-90 719.5,-90 719.5,-55 801.5,-55 801.5,-90"/>
+<text text-anchor="middle" x="760.5" y="-69.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.Dff0Task</text>
+</a>
+</g>
+</g>
+<!-- vm.DffParamSet&#45;&gt;vm.Dff0Task -->
+<g id="edge12" class="edge">
+<title>vm.DffParamSet-&gt;vm.Dff0Task</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1034.83,-128.36C1031.69,-127.52 1028.55,-126.72 1025.5,-126 931.19,-103.8 904.56,-113.25 810.5,-90 807.57,-89.28 804.57,-88.46 801.56,-87.6"/>
+</g>
+<!-- vm.CascadeRecipe -->
+<g id="node30" class="node">
+<title>vm.CascadeRecipe</title>
+<g id="a_node30"><a xlink:title="→ vm.ActivityExtractionMethod------------------------------→ vm.DffParamSet">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1131,-90 1028,-90 1028,-55 1131,-55 1131,-90"/>
+<text text-anchor="middle" x="1079.5" y="-70" font-family="arial" font-size="10.00">vm.CascadeRecipe</text>
+</a>
+</g>
+</g>
+<!-- vm.DffParamSet&#45;&gt;vm.CascadeRecipe -->
+<g id="edge13" class="edge">
+<title>vm.DffParamSet-&gt;vm.CascadeRecipe</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1079.5,-125.8C1079.5,-114.95 1079.5,-100.87 1079.5,-90.05"/>
+</g>
+<!-- vm.MotionCorrection -->
+<g id="node16" class="node">
+<title>vm.MotionCorrection</title>
+<g id="a_node16"><a xlink:title="→ vm.Curation------------------------------→ `roselab_scan`.`#channel`.proj(motion_correct_channel=&quot;channel&quot;)">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="841.5" cy="-214.5" rx="79.25" ry="17.5"/>
+<text text-anchor="middle" x="841.5" y="-211.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">vm.MotionCorrection</text>
+</a>
+</g>
+</g>
+<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.RigidMotionCorrection -->
+<g id="edge14" class="edge">
+<title>vm.MotionCorrection-&gt;vm.MotionCorrection.RigidMotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M818.54,-197.5C798.66,-183.64 770.68,-164.14 754.79,-153.06"/>
+</g>
+<!-- vm.MotionCorrection.Summary -->
+<g id="node27" class="node">
+<title>vm.MotionCorrection.Summary</title>
+<g id="a_node27"><a xlink:title="→ vm.MotionCorrection→ `roselab_scan`.`_scan_info__field`------------------------------ref_image            average_image        correlation_image=null max_proj_image=null  ">
+<polygon fill="transparent" stroke="transparent" points="1016.5,-153 864.5,-153 864.5,-134 1016.5,-134 1016.5,-153"/>
+<text text-anchor="middle" x="940.5" y="-141" font-family="arial" font-size="10.00">vm.MotionCorrection.Summary</text>
+</a>
+</g>
+</g>
+<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.Summary -->
+<g id="edge15" class="edge">
+<title>vm.MotionCorrection-&gt;vm.MotionCorrection.Summary</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M864.46,-197.5C884.34,-183.64 912.32,-164.14 928.21,-153.06"/>
+</g>
+<!-- vm.MotionCorrection.NonRigidMotionCorrection -->
+<g id="node29" class="node">
+<title>vm.MotionCorrection.NonRigidMotionCorrection</title>
+<g id="a_node29"><a xlink:title="→ vm.MotionCorrection------------------------------outlier_frames=null  block_height         block_width          block_depth          block_count_y        block_count_x        block_count_z        ">
+<polygon fill="transparent" stroke="transparent" points="1677,-153 1452,-153 1452,-134 1677,-134 1677,-153"/>
+<text text-anchor="middle" x="1564.5" y="-141" font-family="arial" font-size="10.00">vm.MotionCorrection.NonRigidMotionCorrection</text>
+</a>
+</g>
+</g>
+<!-- vm.MotionCorrection&#45;&gt;vm.MotionCorrection.NonRigidMotionCorrection -->
+<g id="edge16" class="edge">
+<title>vm.MotionCorrection-&gt;vm.MotionCorrection.NonRigidMotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M915.76,-208.19C1029.53,-199.79 1253.74,-182.2 1443.5,-161 1464.04,-158.7 1486.49,-155.76 1506.41,-153"/>
+</g>
+<!-- vm.Curation -->
+<g id="node17" class="node">
+<title>vm.Curation</title>
+<g id="a_node17"><a xlink:title="→ vm.Processingcuration_id          ------------------------------curation_time        curation_output_dir  manual_curation      curation_note=&quot;&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="695,-303 614,-303 614,-268 695,-268 695,-303"/>
+<text text-anchor="start" x="622" y="-283.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">vm.Curation</text>
+</a>
+</g>
+</g>
+<!-- vm.Curation&#45;&gt;vm.MotionCorrection -->
+<g id="edge17" class="edge">
+<title>vm.Curation-&gt;vm.MotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M695.08,-269.53C726.98,-257.76 771.14,-241.46 802.6,-229.85"/>
+</g>
+<!-- vm.Segmentation -->
+<g id="node32" class="node">
+<title>vm.Segmentation</title>
+<g id="a_node32"><a xlink:title="→ vm.Curation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="500.5" cy="-214.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="500.5" y="-211.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Segmentation</text>
+</a>
+</g>
+</g>
+<!-- vm.Curation&#45;&gt;vm.Segmentation -->
+<g id="edge18" class="edge">
+<title>vm.Curation-&gt;vm.Segmentation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M617.61,-267.97C583.27,-252.58 534.14,-230.57 512.05,-220.67"/>
+</g>
+<!-- vm.Dff0&#45;&gt;vm.Activity.CascadeInput -->
+<g id="edge19" class="edge">
+<title>vm.Dff0-&gt;vm.Activity.CascadeInput</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M684,-66.1C691.47,-62.69 701.46,-58.33 710.5,-55 749.29,-40.72 795.02,-27.32 824.83,-19.03"/>
+</g>
+<!-- vm.Dff0&#45;&gt;vm.Dff0.Trace -->
+<g id="edge20" class="edge">
+<title>vm.Dff0-&gt;vm.Dff0.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M661.95,-64.5C645.05,-53.3 611.96,-31.36 593.59,-19.18"/>
+</g>
+<!-- vm.Processing -->
+<g id="node22" class="node">
+<title>vm.Processing</title>
+<g id="a_node22"><a xlink:title="→ vm.ProcessingTask------------------------------processing_time      package_version=&quot;&quot;   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="654.5" cy="-352" rx="13" ry="13"/>
+<text text-anchor="middle" x="654.5" y="-348.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Processing</text>
+</a>
+</g>
+</g>
+<!-- vm.Processing&#45;&gt;vm.Curation -->
+<g id="edge21" class="edge">
+<title>vm.Processing-&gt;vm.Curation</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M654.5,-338.87C654.5,-328.8 654.5,-314.37 654.5,-303.2"/>
+</g>
+<!-- vm.Fluorescence.Trace&#45;&gt;vm.RoiQC.Rejected -->
+<g id="edge22" class="edge">
+<title>vm.Fluorescence.Trace-&gt;vm.RoiQC.Rejected</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M552.46,-62.76C533.72,-51.1 500.76,-30.58 482.2,-19.03"/>
+</g>
+<!-- vm.Fluorescence.Trace&#45;&gt;vm.Dff0.Trace -->
+<g id="edge23" class="edge">
+<title>vm.Fluorescence.Trace-&gt;vm.Dff0.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M568.51,-62.76C571.17,-51.16 575.84,-30.81 578.5,-19.22"/>
+</g>
+<!-- vm.Fluorescence.Trace&#45;&gt;vm.Activity.Trace -->
+<g id="edge24" class="edge">
+<title>vm.Fluorescence.Trace-&gt;vm.Activity.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M585.27,-62.89C610.62,-51.26 655.52,-30.67 680.82,-19.07"/>
+</g>
+<!-- vm.MaskType -->
+<g id="node24" class="node">
+<title>vm.MaskType</title>
+<g id="a_node24"><a xlink:title="mask_type            ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="238.5,-161 160.5,-161 160.5,-126 238.5,-126 238.5,-161"/>
+<text text-anchor="start" x="168.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.MaskType</text>
+</a>
+</g>
+</g>
+<!-- vm.MaskType&#45;&gt;vm.MaskClassification.MaskType -->
+<g id="edge25" class="edge">
+<title>vm.MaskType-&gt;vm.MaskClassification.MaskType</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M199.5,-125.8C199.5,-112.08 199.5,-93.19 199.5,-82.27"/>
+</g>
+<!-- vm.MaskClassification&#45;&gt;vm.MaskClassification.MaskType -->
+<g id="edge26" class="edge">
+<title>vm.MaskClassification-&gt;vm.MaskClassification.MaskType</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M85.59,-136.38C107.94,-124.04 158.42,-96.18 184.01,-82.05"/>
+</g>
+<!-- vm.ActivityExtractionMethod -->
+<g id="node26" class="node">
+<title>vm.ActivityExtractionMethod</title>
+<g id="a_node26"><a xlink:title="extraction_method    ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1285,-161 1142,-161 1142,-126 1285,-126 1285,-161"/>
+<text text-anchor="start" x="1150" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.ActivityExtractionMethod</text>
+</a>
+</g>
+</g>
+<!-- vm.ActivityExtractionMethod&#45;&gt;vm.Activity -->
+<g id="edge27" class="edge">
+<title>vm.ActivityExtractionMethod-&gt;vm.Activity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1141.98,-127.69C1139.12,-127.12 1136.28,-126.55 1133.5,-126 1031.71,-105.86 908.54,-83.07 869.21,-75.83"/>
+</g>
+<!-- vm.ActivityExtractionMethod&#45;&gt;vm.ActivityCascadeTask -->
+<g id="edge28" class="edge">
+<title>vm.ActivityExtractionMethod-&gt;vm.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1215.68,-125.8C1217.09,-114.95 1218.93,-100.87 1220.34,-90.05"/>
+</g>
+<!-- vm.ActivityExtractionMethod&#45;&gt;vm.CascadeRecipe -->
+<g id="edge29" class="edge">
+<title>vm.ActivityExtractionMethod-&gt;vm.CascadeRecipe</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1181.4,-125.97C1160.34,-115.13 1132.9,-101 1111.8,-90.13"/>
+</g>
+<!-- vm.Fluorescence -->
+<g id="node28" class="node">
+<title>vm.Fluorescence</title>
+<g id="a_node28"><a xlink:title="→ vm.Segmentation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="566.5" cy="-143.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="566.5" y="-140.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">vm.Fluorescence</text>
+</a>
+</g>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.Activity -->
+<g id="edge30" class="edge">
+<title>vm.Fluorescence-&gt;vm.Activity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M579,-138.99C591.67,-135.49 611.87,-130.06 629.5,-126 709.43,-107.6 731.46,-111.91 810.5,-90 822.27,-86.74 835.36,-81.92 844.55,-78.34"/>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.RoiQC -->
+<g id="edge31" class="edge">
+<title>vm.Fluorescence-&gt;vm.RoiQC</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M555.57,-135.88C533.72,-122.66 484.91,-93.12 463.23,-80"/>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.Dff0 -->
+<g id="edge32" class="edge">
+<title>vm.Fluorescence-&gt;vm.Dff0</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M577.05,-135.63C597.37,-122.41 641.71,-93.54 661.99,-80.34"/>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.ActivityCascadeTask -->
+<g id="edge33" class="edge">
+<title>vm.Fluorescence-&gt;vm.ActivityCascadeTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M578.9,-138.52C591.5,-134.65 611.65,-128.94 629.5,-126 854.15,-89 914.88,-120.52 1140.5,-90 1143.38,-89.61 1146.31,-89.18 1149.26,-88.72"/>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.Dff0Task -->
+<g id="edge34" class="edge">
+<title>vm.Fluorescence-&gt;vm.Dff0Task</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M578.64,-138.18C606.26,-128.36 674.88,-103.95 719.49,-88.09"/>
+</g>
+<!-- vm.Fluorescence&#45;&gt;vm.Fluorescence.Trace -->
+<g id="edge35" class="edge">
+<title>vm.Fluorescence-&gt;vm.Fluorescence.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M566.5,-130.48C566.5,-116.74 566.5,-94.56 566.5,-82.32"/>
+</g>
+<!-- vm.MotionCorrection.NonRigidMotionCorrection&#45;&gt;vm.MotionCorrection.Block -->
+<g id="edge36" class="edge">
+<title>vm.MotionCorrection.NonRigidMotionCorrection-&gt;vm.MotionCorrection.Block</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1564.5,-133.76C1564.5,-120.56 1564.5,-95.67 1564.5,-82.39"/>
+</g>
+<!-- vm.RoiQCCriterion -->
+<g id="node31" class="node">
+<title>vm.RoiQCCriterion</title>
+<g id="a_node31"><a xlink:title="roi_qc_criterion     ------------------------------criterion_desc       ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="356.5,-161 256.5,-161 256.5,-126 356.5,-126 356.5,-161"/>
+<text text-anchor="start" x="264.5" y="-142" font-family="arial" text-decoration="underline" font-size="10.00">vm.RoiQCCriterion</text>
+</a>
+</g>
+</g>
+<!-- vm.RoiQCCriterion&#45;&gt;vm.RoiQC -->
+<g id="edge37" class="edge">
+<title>vm.RoiQCCriterion-&gt;vm.RoiQC</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M341.47,-125.97C373.7,-110.74 419.64,-89.03 440.89,-78.99"/>
+</g>
+<!-- vm.Segmentation&#45;&gt;vm.Segmentation.Mask -->
+<g id="edge38" class="edge">
+<title>vm.Segmentation-&gt;vm.Segmentation.Mask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M491.87,-204.48C479.15,-191.18 455.52,-166.48 442.92,-153.3"/>
+</g>
+<!-- vm.Segmentation&#45;&gt;vm.MaskClassification -->
+<g id="edge39" class="edge">
+<title>vm.Segmentation-&gt;vm.MaskClassification</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M487.46,-211.83C441.38,-205.89 282.01,-184.78 151.5,-161 128.63,-156.83 102.18,-150.93 86.99,-147.42"/>
+</g>
+<!-- vm.Segmentation&#45;&gt;vm.Fluorescence -->
+<g id="edge40" class="edge">
+<title>vm.Segmentation-&gt;vm.Fluorescence</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M509.13,-204.48C521.71,-191.33 544.96,-167.02 557.66,-153.74"/>
+</g>
+<!-- vm.ProcessingTask -->
+<g id="node34" class="node">
+<title>vm.ProcessingTask</title>
+<g id="a_node34"><a xlink:title="→ `roselab_scan`.`scan`→ vm.ProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="714.5,-436 594.5,-436 594.5,-401 714.5,-401 714.5,-436"/>
+<text text-anchor="middle" x="654.5" y="-415.4" font-family="arial" font-size="12.00" fill="darkgreen">vm.ProcessingTask</text>
+</a>
+</g>
+</g>
+<!-- vm.ProcessingParamSet&#45;&gt;vm.ProcessingTask -->
+<g id="edge41" class="edge">
+<title>vm.ProcessingParamSet-&gt;vm.ProcessingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M654.5,-471.8C654.5,-460.95 654.5,-446.87 654.5,-436.05"/>
+</g>
+<!-- vm.ProcessingTask&#45;&gt;vm.Processing -->
+<g id="edge42" class="edge">
+<title>vm.ProcessingTask-&gt;vm.Processing</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M654.5,-400.89C654.5,-389.69 654.5,-375.17 654.5,-365.07"/>
+</g>
+<!-- vm.CellCompartment -->
+<g id="node35" class="node">
+<title>vm.CellCompartment</title>
+<g id="a_node35"><a xlink:title="cell_compartment     ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1061.5,-578 951.5,-578 951.5,-543 1061.5,-543 1061.5,-578"/>
+<text text-anchor="start" x="959.5" y="-559" font-family="arial" text-decoration="underline" font-size="10.00">vm.CellCompartment</text>
+</a>
+</g>
 </g>
 </g>
 </svg>

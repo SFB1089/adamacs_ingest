@@ -297,6 +297,15 @@ imaging.DffParamSet.insert_new_params(11, "my variant ...", **params)       # a 
 
 Design and decisions: `docs/DFF0_IN_ACTIVITY_MAKE_PROPOSAL.md`.
 
+#### ROI QC (element-calcium-imaging `roselab-0.1.0b2`, live since 2026-11-19)
+
+`RoiQCCriterion` (Lookup: one row per reason to reject an ROI) and `RoiQC` (+ part `Rejected`: per curation × criterion,
+the rejected ROIs). The first criterion, `empty_f`, marks ROIs whose fluorescence is 0 in every frame: suite2p leaves
+pixels shared with other ROIs out of F, so a fully overlapped ROI has no signal of its own and its dF/F0, CASCADE and
+suite2p traces are neuropil. 61,511 of 3.65 M ROIs (1.7 %) in 1,615 of 3,250 curations. New `Dff0` / CASCADE rows are
+NaN for them; **rows stored before 2026-11-19 are not, so exclude `imaging.RoiQC.Rejected.proj()` in queries.**
+Usage: `docs/ROI_QC.md`.
+
 ### `train` and `model` (DeepLabCut)
 Model training (`train`) and pose estimation (`model`). Only the scan-keyed `*New` chain
 (`VideoRecordingNew → PoseEstimationTaskNew → PoseEstimationNew`) is worker-populated and feeds `pupil_tracking`. The
