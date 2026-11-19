@@ -5,7 +5,9 @@ computation `adamacs/responsiveness/` · tour notebook `notebooks/responsiveness
 `scripts/make_responsiveness_tour.py`) · diagram `notebooks/schema_diagrams/responsiveness_v8.svg`.
 Status: piloted in the test schema `tobiasr_responsiveness_v7` on 10 recordings of 8 animals (2026-11-16/17; dropped 2026-11-19).
 v8 (2026-11-18) keys ZETA on the read-out epoch and adds the response direction; it is being piloted on the same
-recordings in `tobiasr_responsiveness_v8`. **Not deployed** to `roselab_`.
+recordings in `tobiasr_responsiveness_v8`. **Deployed 2026-11-19** as `roselab_responsiveness`: latest curation per scan
+for gratings, natural images and the checkerboard, standard windows, one random-onset control per subject and paradigm
+(README, `responsiveness` section).
 
 ![responsiveness v8](../notebooks/schema_diagrams/responsiveness_v8.svg)
 

@@ -30,7 +30,7 @@ Students use it directly for day-to-day ingest; no routine fork is needed.
 5. [Schemas](#schemas): overview, the core chain, then every schema with its diagram
    - [imaging and the stored dF/F0](#imaging): new since November 2026
    - [cell_registration](#cell_registration): cross-session cell identity
-   - [responsiveness](#responsiveness-not-yet-deployed): not yet deployed
+   - [responsiveness](#responsiveness-deployed-2026-11-19): deployed 2026-11-19
 6. [Servers, environments and workers](#servers-environments-and-workers)
 7. [Releasing changes to the SFB1089 element fork](#releasing-changes-to-the-sfb1089-element-fork)
 8. [Rules for working on the production database](#rules-for-working-on-the-production-database)
@@ -152,8 +152,8 @@ notebook's parameter cell:
 
 All production schemas use the prefix `roselab_`.
 * Every schema is shown in the **standard DataJoint view**, generated from the **live database**, read-only, by
-  `scripts/draw_schema_diagrams.py`. `responsiveness` is not deployed; its standard view comes from its pilot schema
-  `tobiasr_responsiveness_v8`. `cell_registration` and `responsiveness` also have diagrams parsed from their source.
+  `scripts/draw_schema_diagrams.py`. `cell_registration` and `responsiveness` also have diagrams parsed from their
+  source.
 * `notebooks/21_schema_dependency_diagrams.ipynb` shows the same schemas with one level of neighbouring tables and a
   description of each.
 * In the per-schema diagrams:
@@ -195,7 +195,7 @@ subject.Subject ─► session.Session (session_id) ─► scan.Scan (scan_id) �
 | `wfield` | `adamacs/schemas/wfield.py` | widefield imaging: registration, SVD, CCF alignment, region activity |
 | `cell_registration` | `adamacs/schemas/cell_registration.py` | **cross-session cell identity (CellReg)**, live since 2026-10-20 |
 | `ingest` | `adamacs/schemas/ingest.py` | ingest run log |
-| `responsiveness` | `adamacs/schemas/responsiveness.py` | QC, stimulus timing, PSTH read-outs, ZETA per read-out epoch, grating tuning, cell rules. **Piloted (`tobiasr_responsiveness_v8`), not deployed.** |
+| `responsiveness` | `adamacs/schemas/responsiveness.py` | QC, stimulus timing, PSTH read-outs, ZETA per read-out epoch, grating tuning, cell rules. **Live since 2026-11-19** (worker on ibehaveGPU1). |
 
 Project schemas that live elsewhere (for example `roselab_leondrift`, the drift project) are not documented here.
 Several empty `roselab_*` schemas with truncated names (`roselab_imagin`, `roselab_imaging__activit`, …) are
@@ -431,7 +431,7 @@ parse → verify → curate.
   * Declaring a task, exporting, registering and ingesting are all writes.
 * **Full workflow and traps:** `skills/cellreg/SKILL.md`.
 
-### `responsiveness` (not yet deployed)
+### `responsiveness` (deployed 2026-11-19)
 
 Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream modules passed in) · worker
 `adamacs/workers/responsiveness_worker.py` (ibehaveGPU1, env `datajoint_ingest`) · design
@@ -462,8 +462,19 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
 * **Pilot:** `tobiasr_responsiveness_v8` (v7 dropped 2026-11-19), 10 recordings of 8 animals; ZETA agrees with the v1-drift-audit (rank r
   0.955–0.991), read-out 2 and `DirectionTuning` reproduce the audit's grating export and tuning.
 * **`activate()` refuses** an `imaging` schema that lacks `Dff0`.
+* **Production (`roselab_responsiveness`, since 2026-11-19):**
+  * **Scope:** the latest curation of every scan with moving gratings (259), natural images (269) or the checkerboard
+    (33), on CASCADE 25 ms and OASIS where the activity exists, and on dF/F0 recipe 2 only where `Dff0` is stored.
+    That is 1,554 tasks.
+  * **Windows:** the standard read-outs (gratings 16, 15, 2; images 3, 11, 14, 1; checkerboard 1), ZETA on read-out
+    16 / 11 / 3 / 1, and tuning on read-out 16.
+  * **Calibration:** one random-onset control per subject and paradigm.
+  * **Worker:** `adamacs/workers/responsiveness_worker.py` on ibehaveGPU1, env `datajoint_ingest`, CPU only, polling
+    every 600 s. Cron watchdog: `SOPs/Serverscripts/check_and_start_population_process_responsiveness.sh`; log
+    `populate_tables_responsiveness.crash.log`.
+  * **More data:** stage new curations with `plan_tasks(...)`; the worker picks them up.
 
-Standard view, from the pilot schema `tobiasr_responsiveness_v8`:
+Standard view (`roselab_responsiveness`):
 
 ![responsiveness](notebooks/schema_diagrams/responsiveness.svg)
 
