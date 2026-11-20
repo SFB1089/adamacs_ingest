@@ -286,3 +286,124 @@ def kruskal_p(values, groups):
     if len(parts) < 2 or np.ptp(np.concatenate(parts)) == 0:
         return np.nan
     return float(_st.kruskal(*parts).pvalue)
+
+
+# --- vectorised group tests across cells (Readout: responsiveness and selectivity families) ----------------
+
+def _group_masks(labels):
+    lab = np.asarray(labels)
+    return [lab == u for u in np.unique(lab)]
+
+
+def kw_rows(X, labels):
+    """Kruskal-Wallis p per row of X (cells x observations) across the groups in labels, with the tie correction of
+    scipy.stats.kruskal (CASCADE traces have many ties at 0). NaN observations are dropped per row. NaN where a row
+    has fewer than two non-empty groups or no variance (all values tied)."""
+    X = np.atleast_2d(np.asarray(X, float)); masks = _group_masks(labels)
+    out = np.full(X.shape[0], np.nan)
+    if len(masks) < 2:
+        return out
+    rows_nan = np.isnan(X).any(1)
+    full = np.where(~rows_nan)[0]
+    if full.size:
+        Y = X[full]; N = Y.shape[1]
+        R = _st.rankdata(Y, axis=1)
+        H = np.zeros(full.size)
+        for m in masks:
+            n = m.sum()
+            if n:
+                H += n * (R[:, m].mean(1) - (N + 1) / 2.0) ** 2
+        H *= 12.0 / (N * (N + 1))
+        S = np.sort(Y, 1)
+        ties = np.zeros(full.size)
+        for i in range(full.size):                                   # tie correction: sum(t^3 - t) over tied runs
+            _, c = np.unique(S[i], return_counts=True)
+            ties[i] = np.sum(c.astype(float) ** 3 - c)
+        corr = 1.0 - ties / (N ** 3 - N)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            Hc = np.where(corr > 0, H / corr, np.nan)
+        k = sum(1 for m in masks if m.any())
+        out[full] = np.where(np.isfinite(Hc), _st.chi2.sf(Hc, k - 1), np.nan)
+    for i in np.where(rows_nan)[0]:                                    # rows with NaN: drop them per row
+        out[i] = kruskal_p(X[i], np.asarray(labels))
+    return out
+
+
+def anova_rows(X, labels):
+    """One-way ANOVA p per row of X across the groups in labels (scipy.stats.f_oneway), NaN-aware. NaN where a
+    row has fewer than two non-empty groups, no within-group degrees of freedom or no variance."""
+    X = np.atleast_2d(np.asarray(X, float)); masks = _group_masks(labels)
+    ok = np.isfinite(X)
+    ns = np.stack([(ok & m).sum(1) for m in masks], 1).astype(float)                    # rows x groups
+    sums = np.stack([np.where(ok & m, X, 0).sum(1) for m in masks], 1)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        means = sums / ns
+        N = ns.sum(1); grand = sums.sum(1) / N
+        ssb = np.nansum(ns * (means - grand[:, None]) ** 2, 1)
+        ssw = np.zeros(X.shape[0])
+        for j, m in enumerate(masks):
+            d = np.where(ok & m, X - means[:, j:j + 1], 0.0)
+            ssw += (d ** 2).sum(1)
+        k = (ns > 0).sum(1)
+        dfb, dfw = k - 1, N - k
+        F = (ssb / dfb) / (ssw / dfw)
+        p = _st.f.sf(F, dfb, dfw)
+    bad = (k < 2) | (dfw < 1) | ~np.isfinite(F) | (ssw + ssb == 0)
+    p[bad] = np.nan
+    return p
+
+
+# --- reliability, sparseness and effect size (literature-defined; see Readout.Cell for the column definitions) ----
+
+def reliability_components(r):
+    """r: (I conditions, K repeats), balanced. Variance components of the condition responses and the measures built on them.
+
+    signal_var  = Var_I(mean over repeats) - noise_var / K, unclipped (negative = no stimulus-locked signal): the
+                  signal power of Sahani & Linden 2003 (NIPS 15) for conditions instead of time bins; equal to the
+                  cross-repeat covariance used by Stringer et al. 2019 (Nature 571:361, doi:10.1038/s41586-019-1346-5)
+    noise_var   = mean over conditions of the across-repeat variance
+    fev         = (Var_total - noise_var) / Var_total, Var_total over all single-trial responses: fraction of explainable
+                  variance, Cadena et al. 2019 (PLoS Comput Biol 15:e1006897, doi:10.1371/journal.pcbi.1006897)
+    cc_max      = 1 / sqrt(1 + NP / (K * SP)), SP = [Var(sum_n R_n) - sum_n Var(R_n)] / (K (K - 1)), NP = mean_n Var(R_n) - SP:
+                  the largest correlation any model of the condition means can reach, Schoppe et al. 2016 (Front Comput
+                  Neurosci 10:10, doi:10.3389/fncom.2016.00010; Hsu, Borst & Theunissen 2004); NaN when SP <= 0
+    """
+    r = np.asarray(r, float)
+    I, K = r.shape
+    if I < 2 or K < 2 or not np.all(np.isfinite(r)):
+        return dict(signal_var=np.nan, noise_var=np.nan, fev=np.nan, cc_max=np.nan)
+    noise = float(r.var(1, ddof=1).mean())
+    signal = float(r.mean(1).var(ddof=1) - noise / K)
+    tot = float(r.var(ddof=1))
+    fev = (tot - noise) / tot if tot > 0 else np.nan
+    v_sum = float(r.sum(1).var(ddof=1)); v_each = r.var(0, ddof=1)        # Var across conditions of each repeat
+    sp = (v_sum - float(v_each.sum())) / (K * (K - 1))
+    npow = float(v_each.mean()) - sp
+    cc = 1.0 / np.sqrt(1.0 + npow / (K * sp)) if sp > 0 and npow >= 0 else np.nan
+    return dict(signal_var=signal, noise_var=noise, fev=fev, cc_max=cc)
+
+
+def lifetime_sparseness(means):
+    """Vinje & Gallant 2000 (Science 287:1273, doi:10.1126/science.287.5456.1273), after Rolls & Tovee 1995 (J Neurophysiol
+    73:713): S = [1 - (sum r/n)^2 / sum(r^2/n)] / (1 - 1/n) over the n condition means r >= 0 (negative means are
+    clipped to 0). 0 = equal response to every stimulus, 1 = response to a single stimulus. Biased towards 1 for noisy,
+    sparse cells: read it together with the reliability measures. NaN if fewer than 2 conditions or no positive mean."""
+    r = np.clip(np.asarray(means, float), 0, None)
+    r = r[np.isfinite(r)]; n = r.size
+    if n < 2 or np.sum(r ** 2) <= 0:
+        return np.nan
+    return float((1.0 - (r.sum() / n) ** 2 / np.sum(r ** 2 / n)) / (1.0 - 1.0 / n))
+
+
+def auroc_rows(A, B):
+    """Area under the ROC curve between each row of A (responses) and B (baselines), unpaired, ties counted as 1/2:
+    AUC = U / (n_A n_B), the Mann-Whitney U (Green & Swets 1966; Britten et al. 1992, J Neurosci 12:4745,
+    doi:10.1523/JNEUROSCI.12-12-04745.1992). 0.5 = no difference, > 0.5 = responses larger. NaN-aware per row."""
+    A = np.atleast_2d(np.asarray(A, float)); B = np.atleast_2d(np.asarray(B, float))
+    out = np.full(A.shape[0], np.nan)
+    for i in range(A.shape[0]):
+        a, b = A[i][np.isfinite(A[i])], B[i][np.isfinite(B[i])]
+        if a.size and b.size:
+            r = _st.rankdata(np.r_[a, b])
+            out[i] = (r[:a.size].sum() - a.size * (a.size + 1) / 2.0) / (a.size * b.size)
+    return out

@@ -210,6 +210,31 @@ def to_angle(labels, convention):
     return ANGLE_CONVENTIONS[convention](np.asarray(labels, float))
 
 
+def cv_selectivity(v, c, ang, rectify_mode):
+    """Cross-validated (split-half) orientation and direction selectivity: the trials of each direction are split into
+    odd and even presentations, the Fourier components F2 = sum R e^(2i theta), F1 = sum R e^(i theta) are computed on
+    each half's (rectified) means, and osi_cv = sign(c2) sqrt(|c2|) / F0, c2 = Re(F2_odd conj(F2_even)); dsi_cv the
+    same with F1; F0 = sum of the (rectified) means over all trials. The product of two independent halves has no
+    noise bias, unlike |F2| / F0 (1 - CirVar), which is biased upward with few trials (Mazurek et al. 2014). The
+    estimator is the v1-drift-audit's (figures_fable/scripts/gratings/gr_common.py: osi_cv / dsi_cv), with one fixed
+    odd/even split. It can be negative (no reliable tuning); it is not clipped."""
+    th = np.deg2rad(ang)
+    halves = []
+    for h in (0, 1):
+        mh = []
+        for a in ang:
+            x = v[c.astype(float) == a]
+            mh.append(x[h::2].mean() if x[h::2].size else np.nan)
+        halves.append(rectify(np.array(mh), rectify_mode))
+    full = rectify(np.array([v[c.astype(float) == a].mean() for a in ang]), rectify_mode)
+    F0 = np.nansum(full)
+    if not np.all(np.isfinite(halves[0])) or not np.all(np.isfinite(halves[1])) or not F0 > 0:
+        return dict(osi_cv=np.nan, dsi_cv=np.nan)
+    f = lambda m, k: np.sum(m * np.exp(1j * k * th))
+    c2 = np.real(f(halves[0], 2) * np.conj(f(halves[1], 2))); c1 = np.real(f(halves[0], 1) * np.conj(f(halves[1], 1)))
+    return dict(osi_cv=float(np.sign(c2) * np.sqrt(abs(c2)) / F0), dsi_cv=float(np.sign(c1) * np.sqrt(abs(c1)) / F0))
+
+
 def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1000, n_boot=200, seed=0,
                      angle_convention="90_minus_label"):
     """All measures for one cell. values: per-onset read-outs; conditions: direction labels [deg] as in the stimulus
@@ -231,6 +256,7 @@ def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1
                hotelling_p=p_ori, dir_dot_p=p_dir,
                pref_dir_dot=(po if dsign > 0 else (po + 180) % 360) if np.isfinite(dsign) else np.nan)
     out.update(point_indices(ang, raw))
+    out.update(cv_selectivity(v, c, ang, rectify_mode))
     pp = permutation_p(v, c, n_perm, rectify_mode, seed) if n_perm else (np.nan, np.nan)
     out.update(ori_vec_perm_p=pp[0], dir_vec_perm_p=pp[1],
                pref_ori_ci=bootstrap_pref_ori_ci(v, c, n_boot, rectify_mode, seed) if n_boot else np.nan)
