@@ -892,7 +892,31 @@ class Readout(dj.Computed):
                                                   #             (NULL: no baseline)
         resp_vs_trace=null      : float           # DIRECTION   mean response minus the mean of the whole trace; > 0 = above the cell's
                                                   #             average (for read-outs without a baseline, e.g. natural images)
-        cond_kw_p=null          : float           # SELECTIVE  Kruskal-Wallis of trial_resp across conditions (audit p_dir)
+        cond_kw_p=null          : float           # SELECTIVE  Kruskal-Wallis of trial_resp across conditions (audit p_dir; Leon get_selectives)
+        cond_anova_p=null       : float           # SELECTIVE  one-way ANOVA of trial_resp across conditions (normality assumed; KW preferred)
+        cond_kw_delta_p=null    : float           # SELECTIVE  Kruskal-Wallis across conditions of per-trial (response - baseline)
+        cond_anova_delta_p=null : float           # SELECTIVE  one-way ANOVA of the same (Nataliya's selectivity test); NULL: no baseline
+        resp_kw_p=null          : float           # RESPONSIVE Kruskal-Wallis, all response vs all baseline values pooled over trials,
+                                                  #            unpaired (Leon get_responsives). Only for EQUAL response and baseline
+                                                  #            lengths, else NULL (unequal windows: 13-100 % false positives).
+                                                  #            Equal windows: 8 % on random onsets (paired t: 3 %)
+        resp_anova_p=null       : float           # RESPONSIVE one-way ANOVA of the same two groups (= unpaired Student t-test on
+                                                  #            means; calibrated for any window lengths: 2-7 % on random onsets)
+        cond_resp_kw_p=null     : float           # SPECIFIC   Holm-adjusted min over conditions of the per-condition KW, response vs
+                                                  #            baseline (Readout.Condition.resp_kw_p; Holm 1979); equal windows only
+        cond_resp_anova_p=null  : float           # SPECIFIC   the same for the per-condition ANOVA
+        resp_auroc=null         : float           # STRENGTH   area under the ROC curve, all responses vs all baselines (Mann-Whitney
+                                                  #            U / n1 n2; Britten et al. 1992): 0.5 = none, > 0.5 = larger. Effect
+                                                  #            size, not a test; unpaired. Equal windows only, else NULL (unequal
+                                                  #            windows shift it to 0.52-0.69 on random onsets)
+        lifetime_sparseness=null : float          # SELECTIVE  Vinje & Gallant 2000 on the condition means (clipped at 0): 0 = all
+                                                  #            stimuli alike, 1 = one stimulus. Raw read-outs only (correction 'none').
+                                                  #            Biased to 1 when noisy: read with fev
+        signal_var=null         : float           # RELIABLE   stimulus-locked variance of the condition means, unclipped (Sahani &
+                                                  #            Linden 2003; Stringer et al. 2019); <= 0 = no reliable signal
+        fev=null                : float           # RELIABLE   fraction of explainable variance (Cadena et al. 2019; they kept > 0.15)
+        cc_max=null             : float           # RELIABLE   largest attainable model correlation with the condition means
+                                                  #            (Schoppe et al. 2016); NULL when the signal power is <= 0
         pref_condition=null     : varchar(64)     # condition with the largest mean read-out (preferred orientation, image, RF position)
         pref_resp=null          : float           # mean read-out at pref_condition (chosen on the same onsets: biased up)
         pref_resp_cv=null       : float           # cross-validated: chosen on odd presentations, read on even, and reverse
@@ -909,6 +933,8 @@ class Readout(dj.Computed):
         n_onsets                : smallint
         resp=null               : float           # mean read-out over this condition
         resp_sem=null           : float
+        resp_kw_p=null          : float           # Kruskal-Wallis, this condition's response vs baseline values (unpaired; equal windows only)
+        resp_anova_p=null       : float           # one-way ANOVA of the same two groups
         """
 
     @property
@@ -945,6 +971,37 @@ class Readout(dj.Computed):
         cin = cond[ii]
         levels = _np.unique(cin)
         multi = len(levels) > 1
+        # pooled and per-condition group tests, vectorised over cells (stats.kw_rows / anova_rows match scipy):
+        #   responsiveness: all response vs all baseline values (Leon's get_responsives: Kruskal & Wallis 1952);
+        #   selectivity: across conditions on trial_resp and on response - baseline (Nataliya's ANOVA);
+        #   specificity: each condition's response vs baseline, Holm-adjusted minimum over conditions (Holm 1979;
+        #   per-condition tests need the correction: Montijn et al. 2021, eLife 10:e71969)
+        nan_ = _np.full(len(tk), _np.nan)
+        cond_an = _stats.anova_rows(C, cin) if multi and ii.size else nan_
+        rkw = ran = ckw_d = can_d = nan_
+        per_kw, per_an = {}, {}
+        # rank-based comparisons of response vs baseline (KW, AUROC) are only valid for equally long windows: a shorter
+        # window's mean has a different spread (more exact zeros on sparse traces). Pilot v10, random onsets: KW 8 %
+        # for equal windows, 13-17 % (read-out 16), 41-46 % (15) and 99-100 % (14) for unequal ones. Means (ANOVA)
+        # stay calibrated. Unequal windows -> NULL.
+        equal_len = bool(base is not None and ii.size and
+                         _np.nanmax(_np.abs((r1 - r0)[ii] - (base[1] - base[0])[ii])) <= 1.5 / f)
+        if base is not None and ii.size:
+            two = _np.r_[_np.ones(R.shape[1]), _np.zeros(Bm.shape[1])]
+            ran = _stats.anova_rows(_np.hstack([R, Bm]), two)
+            if equal_len:
+                rkw = _stats.kw_rows(_np.hstack([R, Bm]), two)
+            if multi:
+                Dl = R - Bm
+                ckw_d, can_d = _stats.kw_rows(Dl, cin), _stats.anova_rows(Dl, cin)
+                for lv in levels:
+                    m = cin == lv
+                    two_c = _np.r_[_np.ones(int(m.sum())), _np.zeros(int(m.sum()))]
+                    Xc = _np.hstack([R[:, m], Bm[:, m]])
+                    per_an[lv] = _stats.anova_rows(Xc, two_c)
+                    if equal_len:
+                        per_kw[lv] = _stats.kw_rows(Xc, two_c)
+        auc = _stats.auroc_rows(R, Bm) if equal_len else nan_
         _, idx = _stats.balanced_repeats(cin, _np.arange(ii.size), min_k=2)
         K = int(idx.shape[1]) if idx.size and multi else 0
 
@@ -960,6 +1017,16 @@ class Readout(dj.Computed):
                    "resp_delta": _none(_np.nanmean(R[i] - Bm[i])) if base is not None and ii.size else None,
                    "resp_vs_trace": _none(_np.nanmean(R[i]) - _np.nanmean(X[i])) if ii.size else None,
                    "cond_kw_p": _none(_stats.kruskal_p(c, cin)) if multi else None,
+                   "cond_anova_p": _none(cond_an[i]), "cond_kw_delta_p": _none(ckw_d[i]), "cond_anova_delta_p": _none(can_d[i]),
+                   "resp_kw_p": _none(rkw[i]), "resp_anova_p": _none(ran[i]),
+                   "cond_resp_kw_p": _none(_stats.holm_min([per_kw[lv][i] for lv in per_kw])) if per_kw else None,
+                   "cond_resp_anova_p": _none(_stats.holm_min([per_an[lv][i] for lv in per_an])) if per_an else None,
+                   "resp_auroc": _none(auc[i]),
+                   # sparseness needs non-negative responses: raw read-outs only (clipping baseline-subtracted means
+                   # near 0 fakes selectivity: pilot v10 images 0.6-0.7 on read-outs 1/14 vs 0.2 on raw 3/11)
+                   "lifetime_sparseness": _none(_stats.lifetime_sparseness([_np.nanmean(c[cin == lv]) for lv in levels]))
+                                          if multi and ps["correction"] == "none" else None,
+                   "signal_var": None, "fev": None, "cc_max": None,
                    "pref_condition": None, "pref_resp": None, "pref_resp_cv": None, "pref_p": None,
                    "oracle_r": None, "response_snr": None}
             if multi:
@@ -969,12 +1036,16 @@ class Readout(dj.Computed):
             if K >= 2 and _np.all(_np.isfinite(c[idx])):
                 s_, nv = _stats.signal_noise_var(c[idx])
                 row.update(oracle_r=_none(_stats.loo_oracle(c[idx])), response_snr=_none(s_ / nv) if nv > 0 else None)
+                rc = _stats.reliability_components(c[idx])
+                row.update(signal_var=_none(rc["signal_var"]), fev=_none(rc["fev"]), cc_max=_none(rc["cc_max"]))
             cells.append(row)
             if multi:
                 for lv in levels:
                     v = c[cin == lv]
                     conds.append({**key, **k, "condition": str(lv), "n_onsets": int(v.size), "resp": _none(_np.nanmean(v)),
-                                  "resp_sem": _none(_np.nanstd(v, ddof=1) / _np.sqrt(v.size)) if v.size > 1 else None})
+                                  "resp_sem": _none(_np.nanstd(v, ddof=1) / _np.sqrt(v.size)) if v.size > 1 else None,
+                                  "resp_kw_p": _none(per_kw[lv][i]) if lv in per_kw else None,
+                                  "resp_anova_p": _none(per_an[lv][i]) if lv in per_an else None})
         rel = lambda x: float(_np.median(x[ii] - t0[ii])) if ii.size else _np.nan     # edges relative to the DataJoint onset
         self.insert1({**key, "n_onsets": int(ii.size), "n_repeats": K, "latency_s": lat,
                       "latency_source": info["latency_source"] if ps["time_ref"] == "display" else "none",
@@ -1148,6 +1219,9 @@ class DirectionTuning(dj.Computed):
         di=null                 : float           # (Rp - Rn)/Rp
         osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve)
         dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
+        osi_cv=null             : float           # cross-validated |F2|/F0: odd/even split product, no small-sample bias (as the
+                                                  # v1-drift-audit's osi_cv); can be negative (no reliable tuning)
+        dsi_cv=null             : float           # the same for |F1|/F0
         fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction (report only if hotelling_p small)
         fit_sigma=null          : float           # [deg]
         fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
@@ -1181,7 +1255,7 @@ class DirectionTuning(dj.Computed):
 
 _DT_COLS = {c: c for c in ("ori_kw_p", "dir_kw_p", "ori_vec", "dir_vec", "pref_ori_vec", "pref_dir_vec", "hotelling_p", "dir_dot_p",
                            "pref_dir_dot", "ori_vec_perm_p", "dir_vec_perm_p", "pref_ori_ci", "r_pref", "r_null",
-                           "r_orth", "oi", "di", "osi", "dsi", "fit_pref_dir", "fit_sigma", "fit_hwhh", "fit_rp",
+                           "r_orth", "oi", "di", "osi", "dsi", "osi_cv", "dsi_cv", "fit_pref_dir", "fit_sigma", "fit_hwhh", "fit_rp",
                            "fit_rn", "fit_c", "fit_r2")}
 _DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit")
 
