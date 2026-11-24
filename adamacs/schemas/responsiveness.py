@@ -105,9 +105,32 @@ def _fluo_key(key):
     return {k: key[k] for k in _up("imaging").Fluorescence.primary_key}
 
 
+def volume_times(ft, ndepths, nframes):
+    """One time per sample of the traces, from the 2P frame-trigger times.
+
+    The DAQ records one trigger per imaged plane, so a scan with ``ndepths`` planes has about ``ndepths`` triggers per
+    trace sample (suite2p traces hold one value per volume). Mapping trigger i to sample i would compress the trace's
+    time axis by that factor: onsets in the second half of a two-plane recording would fall outside the trace and the
+    rest would be read at the wrong times (found 2026-11-24 on 9 two-plane scans). Each volume gets the mean of its
+    plane triggers: the usual volume timestamp, at most a quarter of a frame period from either plane's own time for
+    two planes, and no resampling of trace values.
+
+    Single-plane scans, and scans whose trigger count does not exceed the frame count by the plane factor (triggers
+    recorded per volume), are returned unchanged.
+    """
+    ft = _np.asarray(ft, float)
+    nd = int(ndepths or 1)
+    if nd <= 1 or ft.size <= 1.5 * int(nframes or 0):
+        return ft
+    m = ft.size // nd
+    return ft[:m * nd].reshape(m, nd).mean(axis=1)
+
+
 def frame_times(key):
-    return (_up("event").Event & _scan_key(key) & 'event_type LIKE "%%2p_frames%%"').fetch(
+    ft = (_up("event").Event & _scan_key(key) & 'event_type LIKE "%%2p_frames%%"').fetch(
         "event_start_time", order_by="event_start_time").astype(float)
+    nd, nf = (_up("scan").ScanInfo & _scan_key(key)).fetch1("ndepths", "nframes")
+    return volume_times(ft, nd, nf)
 
 
 def fps(key):
