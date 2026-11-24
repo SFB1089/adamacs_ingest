@@ -456,6 +456,11 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
   16's epoch is calibrated (≈ 4 % on random onsets) where the audit's window (onset to next onset) gives 13 %.
 * **Direction.** `Readout.Cell.resp_delta` (response − baseline) and `resp_vs_trace` (response − trace mean);
   `CellRule.direction` and the `<rule>_pos` rules keep activated cells only; `cells()` returns `is_positive`.
+* **More measures per cell (2026-11-20):** unpaired ANOVA and Kruskal–Wallis of all response vs all baseline values
+  (Leon's test), per-condition tests with Holm correction, selectivity ANOVA / KW on raw and baseline-corrected
+  trials (Nataliya's test), AUROC effect size, lifetime sparseness, explainable variance (`signal_var`, `fev`,
+  `cc_max`) and cross-validated `osi_cv` / `dsi_cv`. Rank-based columns (KW, AUROC) are NULL unless response and
+  baseline windows are equally long; on unequal windows they are not calibrated. Design doc section 2.5.
 * **Thresholds are rows** (`CellRule`) applied by query (`cells(rule)`). Standard rules: `gratings_cascade25`,
   `gratings_oasis` (read-out 16 p < 0.05, oracle >= 0.18) and `images_cascade25`, `images_oasis` (ZETA p < 0.05,
   oracle >= 0.08); oracle thresholds = 95th percentile of a label-shuffle null.

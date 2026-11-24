@@ -7,7 +7,8 @@ Status: piloted in the test schema `tobiasr_responsiveness_v7` on 10 recordings 
 v8 (2026-11-18) keys ZETA on the read-out epoch and adds the response direction; it is being piloted on the same
 recordings in `tobiasr_responsiveness_v8`. **Deployed 2026-11-19** as `roselab_responsiveness`: latest curation per scan
 for gratings, natural images and the checkerboard, standard windows, one random-onset control per subject and paradigm
-(README, `responsiveness` section).
+(README, `responsiveness` section). 2026-11-20: group tests, effect size, reliability and sparseness added
+(section 2.5); production tables declared again with them while empty.
 
 ![responsiveness v8](../notebooks/schema_diagrams/responsiveness_v8.svg)
 
@@ -194,6 +195,65 @@ Leon 2024 3 s on / 4 s off; Natalia 2023 12 directions x 0.52 s sweeps). Natural
 number (labels carry corrupted spellings of the same number). Checkerboard positions form a cross
 (azimuth sweep at elevation 15 deg, elevation sweep at azimuth 0 deg).
 
+### 2.5 Group tests, effect size, reliability and sparseness (added 2026-11-20, PR #32)
+
+Fourteen nullable columns on `Readout.Cell`, `Readout.Condition` and `DirectionTuning.Cell`. Nothing was removed or
+changed: the existing columns were identical to v8 for 17,946 soma cells in the pilot (`tobiasr_responsiveness_v10` /
+`_v11`), and the new p-values equal scipy's on 239 of 240 sampled cells. Production tables were declared again with
+these columns on 2026-11-20, while they were still empty. Every column definition names its source and its
+calibration (appendix).
+
+| question | column | what it is | source |
+|---|---|---|---|
+| responsive? | `resp_anova_p` | one-way ANOVA, all response vs all baseline values pooled over trials (= unpaired t on means) | Leon's `get_responsives`, parametric |
+| responsive? | `resp_kw_p` | Kruskal–Wallis of the same two groups; **equal window lengths only**, else NULL | Leon's `get_responsives`; Kruskal & Wallis 1952 |
+| responsive to one condition? | `Readout.Condition.resp_kw_p` / `resp_anova_p` | the same tests per condition | |
+| ... corrected | `cond_resp_kw_p` / `cond_resp_anova_p` | Holm-adjusted minimum of the per-condition p | Holm 1979; Montijn et al. 2021 |
+| selective? | `cond_anova_p` | ANOVA of the trial read-outs across conditions (next to the existing `cond_kw_p`) | v1-drift-audit `p_dir` |
+| selective, baseline-corrected? | `cond_kw_delta_p` / `cond_anova_delta_p` | KW / ANOVA across conditions of per-trial (response − baseline) | Nataliya's selectivity test |
+| how strong? | `resp_auroc` | Mann–Whitney AUROC, responses vs baselines: 0.5 none, 1 perfectly separable; **equal windows only** | Britten et al. 1992 |
+| how sparse? | `lifetime_sparseness` | Vinje–Gallant sparseness of the condition means (clipped at 0); raw read-outs only | Vinje & Gallant 2000 |
+| how reliable? | `signal_var` | stimulus-locked variance of the condition means, bias-corrected; <= 0 = no reliable signal | Sahani & Linden 2003; Stringer et al. 2019 |
+| how reliable? | `fev` | fraction of explainable variance (signal variance / total variance) | Cadena et al. 2019 (kept FEV > 0.15) |
+| how well could a model do? | `cc_max` | largest attainable correlation of any model with the condition means | Schoppe et al. 2016 |
+| tuned, unbiased? | `DirectionTuning.Cell.osi_cv` / `dsi_cv` | split-half cross-validated \|F2\|/F0 and \|F1\|/F0; can be negative | v1-drift-audit `osi_cv` |
+
+**Why some columns are NULL by design.**
+
+* **KW and AUROC compare ranks, so the two windows must hold the same kind of value.** Response and baseline
+  windows of different lengths give means with different variances, and a rank test then reports a difference where
+  there is none. On random onsets in the pilot, KW gave:
+
+  | read-out (response vs baseline windows) | false positives on random onsets |
+  |---|---|
+  | 2 (equal lengths) | 8 % |
+  | 16 | 13–17 % |
+  | 15 | 41–46 % |
+  | 14 | 99–100 % |
+
+  AUROC shifted to 0.52–0.69 on unequal windows. Both are therefore stored only when the windows differ by at most
+  1.5 frames. The ANOVA on means stays calibrated on any windows (2–7 % on random onsets) and is always stored where
+  there is a baseline.
+* **Sparseness needs raw read-outs.** After baseline subtraction the condition means change sign and the measure is
+  undefined, so it is stored only for read-outs with correction 'none'.
+* **Single-condition read-outs** have no selectivity, sparseness or reliability; those columns stay NULL.
+
+**How to use them.**
+
+* **Responsiveness on standard read-outs:** keep `resp_p` (paired t) or ZETA (section 2.2). `resp_anova_p` is the
+  unpaired equivalent and is the better choice when trials are not paired one-to-one with baselines. `resp_kw_p` is
+  for comparison with Leon's exports on equal windows; it is more liberal (8 % vs 3 % for the paired t on random
+  onsets).
+* **Effect size:** `resp_auroc`, not the p-value, when comparing cells or recordings with different trial numbers.
+* **Reliability:** `fev` and `oracle_r` answer the same question on different scales; Cadena's FEV > 0.15 is the
+  published cut. `cc_max` is the ceiling for any encoding model of that cell.
+* **Sparseness** is biased towards 1 when the cell is noisy: read it only together with `fev`.
+
+**Considered and not added.** The Allen Brain Observatory criterion (significant response on 25 % of trials) selects
+on the same trials it then describes and has no calibrated null window here. Response latency is limited by the
+frame rate and by CASCADE's non-causal kernel (section 2.2). Fano factor needs spike counts, which deconvolved
+calcium traces are not. Kurtosis is already in `Quality` as a trace property and is not a stimulus sparseness.
+
 ## 3. Population
 
 ```python
@@ -239,15 +299,18 @@ baseline). 117 `Readout` and 24 `DirectionTuning` rows of the test schema were r
 | ROIs without fluorescence | suite2p F = 0 in every frame when all of an ROI's pixels overlap other ROIs (498 / 3,185 in ROS-2328, 41 classified soma); dF/F0 = neuropil on a negative F0, CASCADE on it; 38 of 41 passed the CASCADE grating rule; production: 4.2 % of dF/F0 traces have F0 ≤ 0; 39 / 12,438 drift-audit grating cell-sessions | element `roselab-0.1.0b2`: `RoiQC` criterion `empty_f`, NaN dF/F0 and CASCADE; `cells()` excludes; stored rows keep the neuropil traces |
 | Test baseline on a slow OFF tail | mask 49: −19.5 % against [on − 60, on − 10), −14.5 % against the last 10 frames, ≈ 0 against its level in the previous stimulus; the OFF-peaking responsive population is flat in the baseline | single slow OFF cells look suppressed under read-out 16; not a population bias; with 3 s on / 4 s off a slow OFF cell and a stimulus-suppressed cell cannot be separated by a baseline |
 
-## 5. Open before production
+## 5. Open items
 
-1. Release element `roselab-0.1.0b2` (`RoiQC`, NaN for empty ROIs) and populate `RoiQC` for all curations.
+Done: element `roselab-0.1.0b2` released and `RoiQC` populated for all curations (2026-11-19); production schema
+`roselab_responsiveness` and its cron entry (2026-11-19); the measures of section 2.5 (2026-11-20).
+
+1. ~~Release element `roselab-0.1.0b2` and populate `RoiQC`~~ (done).
 2. A calibrated OFF read-out for gratings (response [off, off + 1 s), raw, baseline [on − 60, on − 10)).
 3. Checkerboard window evaluation (read-out 1 is a placeholder; deferred).
 4. Read-out 5 (OFF) is miscalibrated on deconvolved traces (10–14 % on random onsets).
 5. ROS-2147's low detector gain (24 grey levels/photon) is unexplained.
 6. Grating ingest gap: one 2023 protocol has 27 of 324 Bonsai presentations in `event.Event` (separate audit proposed).
-7. Production schema `roselab_responsiveness` and its cron entry: not created.
+7. ~~Production schema `roselab_responsiveness` and its cron entry~~ (done).
 
 Done on 2026-11-18: standard `CellRule` rows (section 2.3); the test schema `tobiasr_responsiveness_v6` dropped;
 `ScanQuality` of the RF scan without shutter frames recomputed (gain NULL instead of the v6 code's negative value).
@@ -265,6 +328,11 @@ both = (z & {"readout_idx": 16}).proj(p16="zeta_p", r16="readout_idx") * (z & {"
 # with the tuning on the same window
 std = {"event_selector": "gratings", "trace_source": "cascade25", "readout_idx": 16, "tuning_idx": 1}
 tuned = good.proj() * (resp.DirectionTuning.Cell & std)
+# section 2.5: reliable by explainable variance, with effect size and unbiased tuning (gratings standard window)
+g16 = resp.Readout.Cell & {"event_selector": "gratings", "trace_source": "cascade25", "readout_idx": 16}
+reliable = g16 & "fev > 0.15"                                # Cadena et al. 2019
+strength = g16.proj("resp_auroc", "resp_anova_p", "lifetime_sparseness", "fev")   # AUROC NULL: unequal windows
+tuned_cv = resp.DirectionTuning.Cell & std & "osi_cv > 0"
 ```
 
 ## 7. References
@@ -277,6 +345,19 @@ tuned = good.proj() * (resp.DirectionTuning.Cell & std)
 - Rupprecht P et al. (2021) A database and deep learning toolbox for noise-optimized, generalized spike inference
   from calcium imaging (CASCADE). Nat Neurosci 24:1324-1337
 - Niell CM, Stryker MP (2008) Highly selective receptive fields in mouse visual cortex. J Neurosci 28:7520-7536
+- Kruskal WH, Wallis WA (1952) Use of ranks in one-criterion variance analysis. J Am Stat Assoc 47:583-621
+- Holm S (1979) A simple sequentially rejective multiple test procedure. Scand J Stat 6:65-70
+- Britten KH, Shadlen MN, Newsome WT, Movshon JA (1992) The analysis of visual motion: a comparison of neuronal and
+  psychophysical performance. J Neurosci 12:4745-4765
+- Vinje WE, Gallant JL (2000) Sparse coding and decorrelation in primary visual cortex during natural vision.
+  Science 287:1273-1276
+- Sahani M, Linden JF (2003) How linear are auditory cortical responses? Adv Neural Inf Process Syst 15:301-308
+- Schoppe O, Harper NS, Willmore BDB, King AJ, Schnupp JWH (2016) Measuring the performance of neural models.
+  Front Comput Neurosci 10:10
+- Stringer C, Pachitariu M, Steinmetz N, Carandini M, Harris KD (2019) High-dimensional geometry of population
+  responses in visual cortex. Nature 571:361-365
+- Cadena SA et al. (2019) Deep convolutional models improve predictions of macaque V1 responses to natural images.
+  PLoS Comput Biol 15:e1006897
 - Labrigger (2026) 2P calcium imaging fidelity. labrigger.com/blog/2026/07/25/2p-calcium-imaging-fidelity
 - v1-drift-audit: `figures_fable/tables/export_audit/GRATINGS_AUDIT.md`, `EXPORT_AUDIT_FINDINGS.md`, `artefacts/t73`,
   `artefacts/q1/summary.json` (CASCADE image window, leave-one-animal-out), notebook 04 (photodiode latency)
@@ -566,7 +647,31 @@ class Readout(dj.Computed):
                                                   #             (NULL: no baseline)
         resp_vs_trace=null      : float           # DIRECTION   mean response minus the mean of the whole trace; > 0 = above the cell's
                                                   #             average (for read-outs without a baseline, e.g. natural images)
-        cond_kw_p=null          : float           # SELECTIVE  Kruskal-Wallis of trial_resp across conditions (audit p_dir)
+        cond_kw_p=null          : float           # SELECTIVE  Kruskal-Wallis of trial_resp across conditions (audit p_dir; Leon get_selectives)
+        cond_anova_p=null       : float           # SELECTIVE  one-way ANOVA of trial_resp across conditions (normality assumed; KW preferred)
+        cond_kw_delta_p=null    : float           # SELECTIVE  Kruskal-Wallis across conditions of per-trial (response - baseline)
+        cond_anova_delta_p=null : float           # SELECTIVE  one-way ANOVA of the same (Nataliya's selectivity test); NULL: no baseline
+        resp_kw_p=null          : float           # RESPONSIVE Kruskal-Wallis, all response vs all baseline values pooled over trials,
+                                                  #            unpaired (Leon get_responsives). Only for EQUAL response and baseline
+                                                  #            lengths, else NULL (unequal windows: 13-100 % false positives).
+                                                  #            Equal windows: 8 % on random onsets (paired t: 3 %)
+        resp_anova_p=null       : float           # RESPONSIVE one-way ANOVA of the same two groups (= unpaired Student t-test on
+                                                  #            means; calibrated for any window lengths: 2-7 % on random onsets)
+        cond_resp_kw_p=null     : float           # SPECIFIC   Holm-adjusted min over conditions of the per-condition KW, response vs
+                                                  #            baseline (Readout.Condition.resp_kw_p; Holm 1979); equal windows only
+        cond_resp_anova_p=null  : float           # SPECIFIC   the same for the per-condition ANOVA
+        resp_auroc=null         : float           # STRENGTH   area under the ROC curve, all responses vs all baselines (Mann-Whitney
+                                                  #            U / n1 n2; Britten et al. 1992): 0.5 = none, > 0.5 = larger. Effect
+                                                  #            size, not a test; unpaired. Equal windows only, else NULL (unequal
+                                                  #            windows shift it to 0.52-0.69 on random onsets)
+        lifetime_sparseness=null : float          # SELECTIVE  Vinje & Gallant 2000 on the condition means (clipped at 0): 0 = all
+                                                  #            stimuli alike, 1 = one stimulus. Raw read-outs only (correction 'none').
+                                                  #            Biased to 1 when noisy: read with fev
+        signal_var=null         : float           # RELIABLE   stimulus-locked variance of the condition means, unclipped (Sahani &
+                                                  #            Linden 2003; Stringer et al. 2019); <= 0 = no reliable signal
+        fev=null                : float           # RELIABLE   fraction of explainable variance (Cadena et al. 2019; they kept > 0.15)
+        cc_max=null             : float           # RELIABLE   largest attainable model correlation with the condition means
+                                                  #            (Schoppe et al. 2016); NULL when the signal power is <= 0
         pref_condition=null     : varchar(64)     # condition with the largest mean read-out (preferred orientation, image, RF position)
         pref_resp=null          : float           # mean read-out at pref_condition (chosen on the same onsets: biased up)
         pref_resp_cv=null       : float           # cross-validated: chosen on odd presentations, read on even, and reverse
@@ -583,6 +688,8 @@ class Readout(dj.Computed):
         n_onsets                : smallint
         resp=null               : float           # mean read-out over this condition
         resp_sem=null           : float
+        resp_kw_p=null          : float           # Kruskal-Wallis, this condition's response vs baseline values (unpaired; equal windows only)
+        resp_anova_p=null       : float           # one-way ANOVA of the same two groups
         """
 ```
 
@@ -660,6 +767,9 @@ class DirectionTuning(dj.Computed):
         di=null                 : float           # (Rp - Rn)/Rp
         osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve)
         dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
+        osi_cv=null             : float           # cross-validated |F2|/F0: odd/even split product, no small-sample bias (as the
+                                                  # v1-drift-audit's osi_cv); can be negative (no reliable tuning)
+        dsi_cv=null             : float           # the same for |F1|/F0
         fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction (report only if hotelling_p small)
         fit_sigma=null          : float           # [deg]
         fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
