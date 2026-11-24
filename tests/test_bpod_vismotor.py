@@ -53,3 +53,13 @@ def test_reference_is_dot_exit_not_trial_start():
     bi, ai = bv.match_pulses_to_trials(pulses, ref)
     coeffs, keep, resid = bv.fit_clock(ref, pulses, bi, ai)
     assert keep.all() and abs(coeffs[0] + 28.2) < 1e-6   # no trial is an outlier, no +5 s shift
+
+
+def test_regular_spacing_prefers_full_alignment_over_edge_overlap():
+    # Codex review on PR #29: with regular trial spacing every lag fits, and a 2-pair edge overlap
+    # with a slightly smaller median error used to win and then fail the coverage check.
+    rng = np.random.default_rng(1)
+    starts = np.arange(40) * 15.0 + 35.0
+    pulses = starts - 28.25 + rng.uniform(0, 31e-6, 40)
+    bi, ai = bv.match_pulses_to_trials(pulses, starts)
+    assert len(bi) == 40 and bi[0] == 0 and ai[0] == 0

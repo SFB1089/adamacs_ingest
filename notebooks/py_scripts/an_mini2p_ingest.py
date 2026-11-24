@@ -9,7 +9,8 @@ STAGE=optitrack: optitrack_frames from the 'OPTI gated frames' DI line (Anh-only
 STAGE=bpod     : VisMotor Bpod trials/events (DotIsOn-exit sync)
 STAGE=events   : OptiTrack .tak (notebook 07), left-eye OCR + CameraTimestamps + topcam CSV (notebook 09)
 STAGE=bpodcheck: read-only comparison of the Bpod clock fit against trial.Trial
-Env: DJ_PASS (Anh's DB password), AN_SCANS=scanA,scanB to restrict, AN_EYES (default mini2p1_eye_left)
+Env: DJ_PASS (Anh's DB password), AN_SCANS=scanA,scanB to restrict every stage, AN_EYES (default mini2p1_eye_left),
+     AN_DEN_ROOT (suite2p output root for 1203, default /datajoint-data/data/anhn_denoised)
 """
 import os, sys, json, contextlib, traceback, configparser
 import numpy as np
@@ -37,11 +38,17 @@ conn = dj.conn(reset=True)
 print("connected as", conn.conn_info["user"], "prefix", dj.config["custom"]["database.prefix"])
 
 SESSIONS = sorted(d for d in os.listdir(ROOT) if d.startswith("AN_ROS-235") and d.split("_")[2] >= "2026-11-11")
+SCAN_FILTER = [s for s in os.environ.get("AN_SCANS", "").split(",") if s]
+if SCAN_FILTER:                                       # applies to every stage, including ingest/denoise/s2pden
+    missing = [s for s in SCAN_FILTER if not any(f"_{s}_" in d for d in SESSIONS)]
+    assert not missing, f"AN_SCANS not found among the session folders: {missing}"
+    SESSIONS = [d for d in SESSIONS if any(f"_{s}_" in d for s in SCAN_FILTER)]
 print(len(SESSIONS), "session folders")
 SAME_SITE = {"ROS-2356": "sess9G3608N1", "ROS-2359": "sess9G361E8C"}   # first Anh session per mouse
 TOP = "NK; Topcam_Bodyparts-NK-2025-08-01; top_video"
 EYE = "NK; General_eye_fullsize-NK-2025-08-25; eye1_video"        # camera 3 search swaps eye1->eye2 (dlc_search_name)
 RAW_IDX, DEN_IDX, SRC_IDX, DENOISE_IDX = 203, 1203, 2048, 2
+DEN_ROOT = os.environ.get("AN_DEN_ROOT", "/datajoint-data/data/anhn_denoised")   # suite2p output for 1203, outside the scan folders
 
 if STAGE == "lookups":
     from adamacs.pipeline import subject, imaging
@@ -117,9 +124,13 @@ if STAGE in ("dry", "ingest"):
 elif STAGE == "denoise":
     from adamacs.pipeline import denoising
     keys = (scan.Scan & [{"session_id": s["session_id"]} for s in selections]).fetch("KEY")
+    import glob
     for k in keys:
+        p = (scan.ScanPath() & k).fetch1("path")
+        if glob.glob(os.path.join(p, "support", "*.tif")) and not len(denoising.DenoisingTask & k):
+            print("skip (support/ already holds a stack, a new run would overwrite it):", k["scan_id"]); continue
         denoising.DenoisingTask.insert1({**k, "denoise_paramset_idx": DENOISE_IDX,
-            "processing_output_dir": (scan.ScanPath() & k).fetch1("path"), "task_mode": "trigger"}, skip_duplicates=True)
+            "processing_output_dir": p, "task_mode": "trigger"}, skip_duplicates=True)
     print("DenoisingTask rows:", len(denoising.DenoisingTask & keys & {"denoise_paramset_idx": DENOISE_IDX}), "/", len(keys))
 
 elif STAGE == "s2pden":
@@ -128,7 +139,11 @@ elif STAGE == "s2pden":
     done = (denoising.Denoising & keys & {"denoise_paramset_idx": DENOISE_IDX}).fetch("KEY")
     for k in done:
         kk = {"session_id": k["session_id"], "scan_id": k["scan_id"]}
-        imaging.ProcessingTask.insert1((kk["session_id"], kk["scan_id"], DEN_IDX, (scan.ScanPath() & kk).fetch1("path"), "trigger"), skip_duplicates=True)
+        # never the scan folder: Processing.make writes <output_dir>/suite2p/ for paramsets >= 1000 too and
+        # would overwrite the raw run; the suite2p loader also reads every ops.npy below the output folder
+        out = os.path.join(DEN_ROOT, os.path.basename((scan.ScanPath() & kk).fetch1("path").rstrip("/")))
+        os.makedirs(out, exist_ok=True)
+        imaging.ProcessingTask.insert1((kk["session_id"], kk["scan_id"], DEN_IDX, out, "trigger"), skip_duplicates=True)
     print("denoised scans:", len(done), "/", len(keys), "  ProcessingTask 1203:", len(imaging.ProcessingTask & keys & {"paramset_idx": DEN_IDX}))
 
 elif STAGE == "optitrack":

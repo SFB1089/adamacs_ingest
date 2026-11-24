@@ -31,10 +31,16 @@ Everything below runs on TATCHU3 with DataJoint calls only. Code lives on branch
    (model_200.pth, Natasha's model, same as Shan's).
 2. Wait until `denoising.Denoising` is filled by the worker, then insert `ProcessingTask` with `paramset_idx = 1203`.
    Any paramset ≥ 1000 makes suite2p read `<scan>/support/`. 1203 = 203 with suite2p `denoise = False`.
-3. **Known element bug:** the 1203 run writes into the same `<scan>/suite2p/` folder as 203 and overwrites
-   the raw registration on disk. The DB rows of 203 survive if 203 finished first. If you need raw
-   registered movies, make them **before** inserting 1203, or copy `suite2p/` **outside** the scan folder.
-   Do not keep a copy inside the scan folder: the loader reads every `ops.npy` below it.
+3. **Known element bug:** for any paramset, `imaging.Processing` writes into `<processing_output_dir>/suite2p/`.
+   If 1203 used the scan folder, it would overwrite the raw 203 run on disk (this happened to the
+   November sessions). `STAGE=s2pden` therefore sets the 1203 output to
+   `/datajoint-data/data/anhn_denoised/<scan folder>/` (override with `AN_DEN_ROOT`). Never keep a second
+   suite2p copy inside a scan folder: the loader reads every `ops.npy` below the output folder.
+   `STAGE=denoise` skips scans whose `support/` already holds a stack; a new run would overwrite it,
+   because the stack's file name does not contain the denoising set.
+4. Denoising runs on the GPU server and must not use GPU 0. For batches, ask Tobias or use the pinned runner
+   (`~/adamacs/notebooks/tobiasr/Claude/shan_denoising_2026-11/sm_denoise_gpu.py`).
+
 
 ## 3. Behaviour and sync (driver script, same DataJoint calls as notebooks 07/09)
 Run from your own clone, as yourself (`DJ_PASS` = your DB password in the environment):
@@ -46,7 +52,7 @@ conda activate datajoint
 export PYTHONPATH=$PWD
 export DJ_HOST=<lab DB host, see lab wiki>   # the script never reads another user's dj_local_conf.json
 read -s DJ_PASS && export DJ_PASS            # your own DB password
-export AN_SCANS=scan9G4XXXXX,scan9G4YYYYY        # optional: only the new scans
+export AN_SCANS=scan9G4XXXXX,scan9G4YYYYY        # optional: restricts every stage to these scans
 STAGE=optitrack python notebooks/py_scripts/an_mini2p_ingest.py   # 1. OptiTrack clock (must run first)
 STAGE=bpod      python notebooks/py_scripts/an_mini2p_ingest.py   # 2. VisMotor Bpod trials + events
 STAGE=events    python notebooks/py_scripts/an_mini2p_ingest.py   # 3. .tak, left-eye OCR, CameraTimestamps, topcam CSV

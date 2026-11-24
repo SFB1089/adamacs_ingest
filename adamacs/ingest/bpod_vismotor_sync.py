@@ -31,29 +31,35 @@ def find_vismotor_file(scan_dir):
 def match_pulses_to_trials(pulses, starts, max_residual=MAX_RESIDUAL_S):
     """Return (bpod_idx, aux_idx) pairs aligning AUX pulses to Bpod trial starts.
 
-    Tries every lag between the two trains and keeps the one whose interval sequences agree
-    best; raises VisMotorPulseMismatch if none agrees within ``max_residual``.
+    Tries every lag that pairs at least 80 % of the shorter train; among the lags whose interval
+    sequences agree within ``max_residual`` (median), keeps the one with the most pairs, then the
+    smallest error. Raises VisMotorPulseMismatch if no such lag exists.
     """
     pulses, starts = np.asarray(pulses, float), np.asarray(starts, float)
     if len(pulses) < 2 or len(starts) < 2:
         raise VisMotorPulseMismatch(
             f"{len(pulses)} AUX trial pulses for {len(starts)} Bpod trials - Bpod did not run "
             "during this scan (stale .mat in the folder?)")
-    best = None
+    # Coverage first: only lags that pair at least 80 % of the shorter train are candidates. Ranking
+    # short edge overlaps together with full alignments lets a 2-pair overlap with a slightly smaller
+    # median error win (regular trial spacing makes every lag fit), and the session is then rejected.
+    min_n = max(2, int(np.ceil(0.8 * min(len(starts), len(pulses)))))
+    cands = []
     for lag in range(-(len(starts) - 2), len(pulses) - 1):
         b0, a0 = max(0, -lag), max(0, lag)
         n = min(len(starts) - b0, len(pulses) - a0)
-        if n < 2:
+        if n < min_n:
             continue
         err = np.abs(np.diff(pulses[a0:a0 + n]) - np.diff(starts[b0:b0 + n]))
-        score = (np.median(err), -n)
-        if best is None or score < best[0]:
-            best = (score, b0, a0, n)
-    (med_err, _), b0, a0, n = best
-    if med_err > max_residual or n < max(2, 0.8 * min(len(starts), len(pulses))):
+        cands.append((float(np.median(err)), n, b0, a0))
+    good = [c for c in cands if c[0] <= max_residual]
+    if not good:
+        best_err = min(c[0] for c in cands) if cands else float("nan")
         raise VisMotorPulseMismatch(
-            f"AUX pulse intervals do not match Bpod trial intervals (median error "
-            f"{med_err*1000:.1f} ms over {n} pairs) - wrong .mat for this scan?")
+            f"AUX pulse intervals do not match Bpod trial intervals (best median error "
+            f"{best_err*1000:.1f} ms with >= {min_n} pairs) - wrong .mat for this scan?")
+    # within tolerance: most pairs first, then smallest interval error
+    med_err, n, b0, a0 = min(good, key=lambda c: (-c[1], c[0]))
     return np.arange(b0, b0 + n), np.arange(a0, a0 + n)
 
 
