@@ -254,6 +254,56 @@ on the same trials it then describes and has no calibrated null window here. Res
 frame rate and by CASCADE's non-causal kernel (section 2.2). Fano factor needs spike counts, which deconvolved
 calcium traces are not. Kurtosis is already in `Quality` as a trace property and is not a stimulus sparseness.
 
+### 2.6 Tuning: fixes and goodness of fit (2026-11-25)
+
+An adversarial review of `DirectionTuning` before its production run: an independent read against Mazurek et al.
+2014 with simulations of known tuning, plus the production code on real read-out 16 cells (4,500 grating cells and
+2,160 cells on random onsets with the real direction labels).
+
+**Correct and kept.** 1-CirVar / 1-DirCirVar, preferred angles (within 0.1 deg, also across 0/360), Hotelling T²
+(F = (K−2)/(2(K−1))·T², df 2, K−2), the direction dot-product test, OI / DI / OSI / DSI formulas, the column map,
+and the onset order between `trial_resp` and the labels. False positives at p < 0.05:
+
+| | simulated null | random onsets (CASCADE / OASIS) |
+|---|---|---|
+| `hotelling_p` | 4.8–5.4 % | 3.0–5.8 % |
+| `dir_dot_p` | 4.2–5.2 % | 3.3–5.4 % |
+| Kruskal-Wallis, label shuffles | 3–6 % | 2.6–5.5 % |
+
+**Fixed.**
+* The double-Gaussian fit could name the smaller peak as preferred (no Rp ≥ Rn): `fit_pref_dir` 180° off,
+  `fit_rp` / `fit_rn` swapped, `fit_dsi` negative in 9–12 % of real cells. Now reported with Rp the larger peak
+  (the same curve); 0 % after the fix.
+* Flat curves (e.g. all-zero cells) got fit values (preferred direction 337.5°, `fit_osi` 0.80): all fit columns
+  are now NULL.
+* OI / DI / OSI / DSI used the unrectified means, unlike the vector measures and the `TuningParamSet.rectify`
+  text (OSI down to −4.3 on dF/F0): now the same rectified means; in [0, 1] for tuning 1.
+* A direction without any finite trial silently dropped out (Hotelling 98 % false positives in that case): every
+  measure that uses the geometry of the directions is NULL then; only the Kruskal-Wallis tests remain.
+* `pref_ori_vec` could be exactly 180.0 (and directions 360.0): wrapped to 0.
+* Documentation: `osi_cv` / `dsi_cv` are unbiased in |F|², slightly low after the square root for weak tuning;
+  `pref_ori_ci` is a symmetric interval with 91–95 % coverage; read-out 16 is the raw response mean, so
+  selectivity is relative to the total response including spontaneous activity.
+
+**Goodness of fit (four new columns).** The in-sample `fit_r2` is not a criterion: its median is 0.41–0.44 on
+random onsets and 0.60–0.63 on real cells (5 parameters on 12 means).
+
+| column | random onsets | real cells |
+|---|---|---|
+| `fit_r2_cv` (fit on odd trials, R² on even, and reverse) | median −0.80 to −0.85; > 0.5 in 0–0.1 % | median −0.34 to −0.15; > 0.5 in 11–15 % |
+| `fit_chi2_p` < 0.05 (pooled-SEM chi², D − 5 df) | 1.1–1.3 % (conservative on noise) | 11–13 % |
+| `fit_at_bound` | 69–71 % | 49–59 % |
+| `hotelling_p` < 0.05 and `fit_r2_cv` > 0.5 and `fit_chi2_p` > 0.05 | 0 % | 8–11 % |
+
+Report fit parameters (`fit_pref_dir`, `fit_hwhh`, `fit_osi`, `fit_dsi`) only for cells that pass a criterion
+like the last row. On simulated cells drawn from the model, `fit_chi2_p` < 0.05 in 2–9 %. The fit now runs three
+times per cell (all trials, odd, even): about 0.5 s per cell without shuffles.
+
+**NULL tuning values.** No grating cell of 15 recordings lost a whole direction. The NULL `hotelling_p` (and
+Kruskal-Wallis) on CASCADE comes from silent cells: all trials exactly 0 (Hotelling's covariance is singular,
+Kruskal-Wallis has no ranks). They cluster in single recordings (in 15 sampled recordings: 14 with ≤ 0.3 %,
+one with 77 %), so the NULL rate depends on which recordings a sample contains (3.6 % and 7 % in two samples).
+
 ## 3. Population
 
 ```python
@@ -333,6 +383,8 @@ g16 = resp.Readout.Cell & {"event_selector": "gratings", "trace_source": "cascad
 reliable = g16 & "fev > 0.15"                                # Cadena et al. 2019
 strength = g16.proj("resp_auroc", "resp_anova_p", "lifetime_sparseness", "fev")   # AUROC NULL: unequal windows
 tuned_cv = resp.DirectionTuning.Cell & std & "osi_cv > 0"
+# section 2.6: fit parameters only where the fit describes the curve
+well_fit = resp.DirectionTuning.Cell & std & "hotelling_p < 0.05 AND fit_r2_cv > 0.5 AND fit_chi2_p > 0.05"
 ```
 
 ## 7. References
@@ -760,17 +812,19 @@ class DirectionTuning(dj.Computed):
         ori_vec_perm_p=null     : float           # label-shuffle p of ori_vec
         dir_vec_perm_p=null     : float           # label-shuffle p of dir_vec
         pref_ori_ci=null        : float           # [deg] width of the 95-percent bootstrap interval of pref_ori_vec
-        r_pref=null             : float           # measured mean at the best direction
+        r_pref=null             : float           # mean at the best direction (after TuningParamSet.rectify)
         r_null=null             : float           # ... at best + 180
         r_orth=null             : float           # ... mean of best +/- 90
         oi=null                 : float           # (Rp - Ro)/Rp      (biased at low selectivity; for comparison)
         di=null                 : float           # (Rp - Rn)/Rp
-        osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve)
+        osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve; condition
+                                                  # means rectified as TuningParamSet.rectify, like r_pref / r_null / r_orth)
         dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
         osi_cv=null             : float           # cross-validated |F2|/F0: odd/even split product, no small-sample bias (as the
                                                   # v1-drift-audit's osi_cv); can be negative (no reliable tuning)
         dsi_cv=null             : float           # the same for |F1|/F0
-        fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction (report only if hotelling_p small)
+        fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction = the larger peak (fit_rp >= fit_rn);
+                                                  # use with hotelling_p and the goodness of fit below
         fit_sigma=null          : float           # [deg]
         fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
         fit_rp=null             : float           # response above offset at preferred
@@ -779,6 +833,14 @@ class DirectionTuning(dj.Computed):
         fit_r2=null             : float
         fit_osi=null            : float           # OSI from the fitted curve
         fit_dsi=null            : float           # DSI from the fitted curve
+        fit_r2_cv=null          : float           # GOF  cross-validated R2: fit on the odd trials' means, R2 on the even trials'
+                                                  #      means, and reverse; mean. ~0 or below = the fit predicts nothing
+                                                  #      (in-sample fit_r2 is 0.41-0.44 median on random onsets: not a criterion)
+        fit_chi2_red=null       : float           # GOF  reduced chi2 of the fit vs the condition means, SEM from the pooled
+                                                  #      within-direction variance; n_directions - 5 degrees of freedom
+        fit_chi2_p=null         : float           # GOF  chi2 upper tail: small = the double Gaussian does not describe the curve
+        fit_at_bound=null       : bool            # GOF  1: width at step/2 or 180 deg, an amplitude or the offset at its bound, or
+                                                  #      no convergence. All fit columns NULL for a flat curve
         """
 ```
 
