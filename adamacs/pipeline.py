@@ -2,7 +2,7 @@ from . import db_prefix
 
 __all__ = ['subject', 'surgery', 'session', 'behavior', 'equipment', 'scan', 'imaging',
            'train', 'model', 'trial', 'event', 'analysis', 'mocap', 'virtual_markers_optitrack', 
-           'pupil_tracking', 'denoising', 'disk', 'wfield', 'cell_registration',
+           'pupil_tracking', 'pupil_glint', 'denoising', 'disk', 'wfield', 'cell_registration',
            'Equipment', 'Location', 'Subject', 'Project', 'Lab', 'User', 
            'Session',
            'get_session_dir', 'get_bpod_root_data_dir', 'get_dlc_root_data_dir',
@@ -67,6 +67,7 @@ from adamacs.schemas import analysis
 
 # Analysis table
 from adamacs.schemas import pupil_tracking
+from adamacs.schemas import pupil_glint  # corrected corneal glint (CorrectedGlint)
 
 # Optional denoising extension (requires torch stack)
 try:
@@ -83,6 +84,14 @@ from adamacs.schemas import virtual_markers_optitrack
 
 # DISK (Deep Imputation of SKeleton data) table
 from adamacs.schemas import disk
+
+# Activate "disk" -----------------------------------------------------------
+# DISK tables live in roselab_disk; the pupil-side ones (PupilFrameQuality, HeadfixedFrameQuality,
+# the imputed fits) in roselab_pupil_tracking. This module is the linking module: it already carries
+# model, pupil_tracking, subject, session, event and virtual_markers_optitrack, which is everything
+# disk.activate resolves. PupilEllipseFitting's DISK guide (image rim fit, sets 10-12) reads
+# disk.HeadfixedImputation, so the schema has to be bound.
+disk.activate(db_prefix + 'disk', db_prefix + 'pupil_tracking', linking_module=__name__)
 
 #Denoising table
 # Widefield schema - Activate AFTER scan and session are ready

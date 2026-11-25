@@ -139,6 +139,13 @@ from pathlib import Path
 import datajoint as dj
 import numpy as np
 
+# The eye-trace resampling and the gaze geometry, shared verbatim with the production chain
+# in pupil_tracking.py so the imputed tables cannot drift from their twins. That module
+# declares nothing, opens no connection and needs only numpy/scipy/tqdm, so importing it
+# here does not cost this module its independence from the element_* tree (below) -- which
+# importing pupil_tracking.py itself very much would, along with declaring its tables.
+from adamacs.helpers import eye_geometry as eg
+
 # element_interface is imported lazily inside the two classmethods that hash, so that the
 # constants and definitions in this module can be read from environments that carry
 # DataJoint but not the element_* tree -- the DISK evaluation environment, for one.
@@ -148,6 +155,7 @@ pupil_schema = dj.Schema()
 
 _linking_module = None
 _param_table = None
+_headfixed_param_table = None
 
 # --------------------------------------------------------------------------------------
 # Constants
@@ -184,6 +192,40 @@ SAMPLE_SOURCE = {
     "refused": 3,       # Classified no_reflection or tracking_lost: no pupil to rebuild.
     "unfilled": 4,      # Gap longer than the model's window. 44% of the cohort's missing
                         # frames are in gaps this long.
+    "not_modelled": 5,  # The marker is not in this model's keypoint contract, so it was
+                        # never offered to the network and is stored exactly as DeepLabCut
+                        # produced it. Distinct from "unfilled", which means the model was
+                        # asked and the gap was too long -- conflating the two would hide
+                        # the difference between "we could not" and "we did not try".
+                        #
+                        # Only arises where the contract is a strict subset of the
+                        # recording's markers, which is the head-fixed cohort: its model
+                        # covers IR and the eight pupil dots. The two corner markers are
+                        # tracked inconsistently there -- nose_corner above threshold in
+                        # 24% of frames on average, lateral_corner in 44%, both ranging
+                        # 0-98.6% by recording -- and since DISK trains only on windows
+                        # where every channel is clean throughout, including them cuts the
+                        # usable cohort from 46 recordings in 65 to 2. They also contribute
+                        # nothing downstream: the head-fixed fit thresholds them and then
+                        # computes the angle from IR and the pupil ring alone.
+    "interpolated": 6,  # Filled by LINEAR INTERPOLATION, on purpose, because the gap was
+                        # at or below the measured crossover for the quantity being read
+                        # -- see ``ImputationParamSet.Crossover``.
+                        #
+                        # This is not a failure state. Below the crossover interpolation
+                        # is genuinely the better estimator: at a one- to two-frame gap on
+                        # the topcam it puts the body centroid 0.09 px from the truth
+                        # where DISK puts it 0.32 px away, because over two frames the
+                        # animal has barely moved and a straight line between two observed
+                        # positions is very nearly exact.
+                        #
+                        # Distinct from "unfilled" (the model was asked and declined, or
+                        # the gap was too long) and from "not_modelled" (never offered).
+                        # Conflating it with either would hide the fact that a value IS
+                        # present and IS trustworthy -- just not from the network.
+                        #
+                        # Only the topcam chain produces it. The two eye chains have no
+                        # measured crossover, so they never interpolate deliberately.
 }
 
 #: Per-frame classification stored in ``PupilFrameQuality.frame_class``. Named for what is
@@ -254,11 +296,24 @@ def activate(
     # no class for this table -- only for the plural one -- so this module reached it
     # through a virtual module. That class now exists, so the table comes from the
     # linking module like every other upstream table here.
-    global _param_table
+    global _param_table, _headfixed_param_table
     _param_table = _linking_module.pupil_tracking.PupilEllipseParameterFreeMoving
 
+    # The head-fixed chain keys to `#pupil_ellipse_parameter`, a different table with a
+    # different shape: ONE likelihood threshold for every marker rather than separate
+    # pupil/IR/corner thresholds, and no pupil_min_dots column at all. Both tables call
+    # their key `parameter_id`, which is exactly why the two chains cannot share a table
+    # anywhere -- a set 4 in one means nothing like a set 4 in the other.
+    _headfixed_param_table = _linking_module.pupil_tracking.PupilEllipseParameter
+
+    # The imputed rotation and gaze tables foreign-key upstream tables that live in
+    # pupil_tracking but are not attributes of the linking module itself, so they are named
+    # here the same way the two parameter tables are. Without them a `-> EyeCamTimeSource`
+    # in a definition has nothing to resolve against.
     _objects = {**_linking_module.__dict__,
-                "PupilEllipseParameterFreeMoving": _param_table}
+                "PupilEllipseParameterFreeMoving": _param_table,
+                "PupilEllipseParameter": _headfixed_param_table,
+                **{n: upstream(n) for n in _UPSTREAM_DECLARED}}
     schema.activate(
         disk_schema_name,
         create_schema=create_schema,
@@ -269,7 +324,10 @@ def activate(
         pupil_tracking_schema_name,
         create_schema=create_schema,
         create_tables=create_tables,
-        add_objects={**_objects, "DLCImputation": DLCImputation},
+        add_objects={**_objects, "DLCImputation": DLCImputation,
+                     "HeadfixedImputation": HeadfixedImputation,
+                     "PupilEllipseFittingImputed": PupilEllipseFittingImputed,
+                     "PupilRotationOptiTrackImputed": PupilRotationOptiTrackImputed},
     )
 
 
@@ -302,6 +360,138 @@ PRODUCTION_AGREEMENT_TOLERANCE_RAD = 1e-6
 
 #: Where job directories are written. One per imputation, kept so a run can be inspected.
 DISK_WORK_ROOT = "/mnt/data/backup_user/disk_pupil_imputation/deployed"
+
+#: Which production parameter set each imputation set inherits its calibration from.
+#:
+#: Sets 5 and 6 were created as exact copies of production sets 1 and 2 -- identical
+#: thresholds, differing only in ``description`` -- so that the imputed chain could live
+#: under its own ids and be removed in one cascading delete. ``populate_natasha.py`` mirrors
+#: the same way round when it assigns work: a recording production-fitted at set 1 is
+#: imputed at set 5, one fitted at set 2 is imputed at set 6.
+#:
+#: The calibration is inherited rather than re-estimated (see PupilEllipseFittingImputed),
+#: and it is inherited FROM THE PRODUCTION FIT AT THE MIRRORED ID. The alternative -- also
+#: fitting the production estimator at sets 5 and 6 so the twin sits at the same id -- was
+#: rejected deliberately: it would add rows to `PupilEllipseFittingFreeMoving`, and through
+#: it to `PupilRotationOptiTrack` and `GazeReconstruction3D`, which several analysis
+#: callers query without pinning `parameter_id`. `multi_trial_lib.get_scan_pose_data()`
+#: takes `fetch("KEY")[0]`, so a second row there is not an error anyone would see; it is a
+#: different recording's worth of gaze, silently substituted. Reading across the mirror
+#: instead leaves every production table untouched and every existing query returning
+#: exactly what it returns today.
+#:
+#: Because the two sets carry identical thresholds, the inherited calibration is the same
+#: number either way -- the mirror costs nothing numerically. :func:`assert_mirror_is_a_copy`
+#: proves that rather than assuming it, and `_run_imputed_fit`'s reproduction gate would
+#: fail loudly if it ever stopped being true.
+PRODUCTION_MIRROR = {5: 1, 6: 2}
+
+#: Parameter-table columns that define the estimator. `description` is prose and
+#: `parameter_id` is the identity being mapped, so neither takes part in the comparison.
+_MIRROR_COMPARED_FIELDS = ("llh_thres_pupil", "llh_thres_ir", "llh_thres_corner",
+                           "pupil_min_dots", "exclude_ir_std", "ellipticity_thres")
+
+
+#: Which module of the linking package each bare upstream name can be found on, in order of
+#: preference. The imputed rotation and gaze tables reference four tables this module does
+#: not define and the linking module does not expose as attributes of itself.
+#:
+#: ``RigidMouseTracking`` is the awkward one and is worth spelling out, because getting it
+#: wrong fails only for some callers. ``pupil_tracking.py`` *imports* it from
+#: ``virtual_markers_optitrack``, so it is an attribute of the real module -- but
+#: ``dj.create_virtual_module("pupil_tracking", ...)`` reflects one schema and exposes only
+#: the tables declared *in* it, so the same lookup returns nothing there. Since
+#: ``populate_natasha.py``, ``run_chain.sh`` and ``validate_disk_schema.py`` all build their
+#: linking module out of virtual modules, resolving it through ``pupil_tracking`` alone
+#: would work under ``adamacs.pipeline`` and fail under every script.
+_UPSTREAM_SOURCES = {
+    "EyeCamTimeSource": ("pupil_tracking",),
+    "EyeModel": ("pupil_tracking",),
+    "TorsionCalibManual": ("pupil_tracking",),
+    "RigidMouseTracking": ("virtual_markers_optitrack", "pupil_tracking"),
+    "EyeSideNote": ("pupil_tracking",),
+    "Event": ("event",),
+}
+
+#: The subset that must resolve at DECLARATION time, i.e. the names appearing in a
+#: `-> Parent` line. The rest are only needed when make() runs, so a linking module missing
+#: them can still declare.
+_UPSTREAM_DECLARED = ("EyeCamTimeSource", "EyeModel", "TorsionCalibManual",
+                      "RigidMouseTracking")
+
+
+def upstream(name: str):
+    """An upstream table by bare name, wherever this linking module happens to keep it."""
+    if _linking_module is None:
+        raise RuntimeError("activate() has not run; upstream tables are not bound")
+    if name not in _UPSTREAM_SOURCES:
+        raise KeyError(f"{name} is not one of the upstream tables this module resolves: "
+                       f"{sorted(_UPSTREAM_SOURCES)}")
+    for mod_name in _UPSTREAM_SOURCES[name]:
+        mod = getattr(_linking_module, mod_name, None)
+        if mod is not None and hasattr(mod, name):
+            return getattr(mod, name)
+    if hasattr(_linking_module, name):
+        return getattr(_linking_module, name)
+    raise AttributeError(
+        f"cannot find {name} on the linking module; looked at "
+        f"{list(_UPSTREAM_SOURCES[name])} and at the module itself. A linking module built "
+        f"from dj.create_virtual_module must include every schema these tables are DECLARED "
+        f"in -- notably virtual_markers_optitrack, which is where RigidMouseTracking lives; "
+        f"pupil_tracking.py only imports it.")
+
+
+def production_parameter_id(parameter_id: int) -> int:
+    """The production set whose calibration an imputation set inherits."""
+    try:
+        return PRODUCTION_MIRROR[int(parameter_id)]
+    except KeyError:
+        raise KeyError(
+            f"parameter_id {parameter_id} is not an imputation set; PRODUCTION_MIRROR "
+            f"maps {sorted(PRODUCTION_MIRROR)}. An imputation at a set with no production "
+            f"mirror has no calibration to inherit and must not be fitted.") from None
+
+
+def production_key_for(key: dict) -> dict:
+    """``key`` with ``parameter_id`` moved to its mirrored production set.
+
+    Only the attributes a production fit is keyed on are kept, so the result can restrict
+    `PupilEllipseFittingFreeMoving` directly.
+    """
+    out = {k: v for k, v in key.items()
+           if k in ("session_id", "scan_id", "recording_id", "model_name")}
+    out["parameter_id"] = production_parameter_id(key["parameter_id"])
+    return out
+
+
+def assert_mirror_is_a_copy() -> dict:
+    """Fail if an imputation set and the production set it mirrors ever diverge.
+
+    The mirror is only legitimate while the two sets describe the same estimator. If
+    somebody edits set 5's thresholds, its imputations would be masked one way and
+    calibrated from a fit made another way -- the exact confusion that the singular/plural
+    parameter-table mix-up produced before, which "agreed, so nothing broke; nothing
+    enforced that they would".
+    """
+    if _param_table is None:
+        raise RuntimeError("activate() has not run; the parameter table is not bound")
+    rows = {r["parameter_id"]: r for r in _param_table.fetch(as_dict=True)}
+    checked = {}
+    for imp_id, prod_id in PRODUCTION_MIRROR.items():
+        if imp_id not in rows or prod_id not in rows:
+            raise RuntimeError(
+                f"PRODUCTION_MIRROR maps {imp_id} -> {prod_id} but "
+                f"{'both are' if imp_id not in rows and prod_id not in rows else 'one is'} "
+                f"missing from {_param_table.table_name}")
+        differ = {f: (rows[imp_id][f], rows[prod_id][f]) for f in _MIRROR_COMPARED_FIELDS
+                  if rows[imp_id][f] != rows[prod_id][f]}
+        if differ:
+            raise RuntimeError(
+                f"imputation set {imp_id} is no longer a copy of production set {prod_id}: "
+                f"{differ}. The inherited calibration would come from a different estimator "
+                f"than the one that masked the markers.")
+        checked[imp_id] = prod_id
+    return checked
 
 
 def production_fit_hash() -> str:
@@ -534,6 +724,13 @@ class ImputationParamSet(dj.Lookup):
     than 60 frames. Those become ``sample_source == 'unfilled'`` and are counted, not
     quietly dropped.
 
+    ``split_gaps_at_refused`` changes the GRANULARITY of refusal, not its threshold. At 0,
+    the original behaviour, one refused frame anywhere in a run of missing samples withholds
+    the entire run; at 1 the refused frames stay refused and the stretches between them are
+    judged on their own length. The distinction matters because refusal is decided per
+    frame and was applied per gap: measured over 40 recordings, 76.3% of all withheld
+    frames were withheld by contamination rather than by length, in runs of median length 8.
+
     **Leave ``keep_dlc_low_conf`` at 0 unless you have a per-sample rule.** It only takes
     effect where DISK declines -- that is, in gaps longer than the window -- and that is
     precisely the regime where a rejected DeepLabCut point is worst. Measured by likelihood
@@ -552,6 +749,7 @@ class ImputationParamSet(dj.Lookup):
     refuse_no_reflection=1      : tinyint unsigned  # refuse frames with no corneal reflection
     refuse_tracking_lost=1      : tinyint unsigned  # refuse frames with nothing tracked
     keep_dlc_low_conf=0         : tinyint unsigned  # keep DLC's sub-threshold guess where DISK declines; see docstring before setting 1
+    split_gaps_at_refused=0     : tinyint unsigned  # 0: one refused frame withholds the whole gap. 1: split the gap around it and judge each stretch on its own length
     max_gap_frames              : smallint unsigned # longer gaps are left unfilled, not filled badly
     paramset_hash               : uuid
     paramset_description=''     : varchar(255)
@@ -567,6 +765,80 @@ class ImputationParamSet(dj.Lookup):
                                                                "paramset_hash",
                                                                "paramset_description")}
         )
+
+    class Crossover(dj.Part):
+        """Per-quantity gap length below which the model is NOT called.
+
+        THE KEY CARRIES THE MODEL AS WELL AS THE QUANTITY
+        -------------------------------------------------
+        A crossover is a property of the CHECKPOINT paired with the quantity, not of the
+        parameter set alone. Two checkpoints can legitimately share one parameter set --
+        the held-out-animal topcam model shares set 4 with the within-animal one by
+        design -- and there is no reason their crossovers should agree: they were fitted on
+        different data and one of them has never seen the animal being imputed.
+
+        Keyed on the parameter set alone, a lookup for the second checkpoint would silently
+        return the first checkpoint's threshold, or its ``use_model = 0``. Both are wrong
+        answers that look like right ones, and the failure is invisible because the row
+        that comes back is well-formed. So ``disk_model_name`` is in the key and in every
+        lookup.
+
+        WHY THIS IS A PART TABLE AND NOT A COLUMN
+        -----------------------------------------
+        Two reasons, and the first is decisive.
+
+        **One column cannot hold the finding.** The crossover is not a property of the
+        model; it is a property of the model *paired with the quantity being consumed*, and
+        the measured values differ. On the topcam benchmark the optimum is 20 frames for the
+        body centroid and for ear heading, 45 for IR heading, and for centroid speed there is
+        no useful crossover at all. A scalar attribute would have to pick one of those and be
+        wrong for the other three.
+
+        **A new master column would invalidate every stored hash.**
+        :meth:`ImputationParamSet.hash_params` digests every attribute except the id, the
+        hash and the description, so adding one would change the hash of parameter sets that
+        already exist; a later insert of "the same" policy would then compute a different
+        uuid and create a duplicate instead of matching. A part table leaves the master row,
+        and therefore its hash, exactly as it was.
+
+        WHY THIS EXISTS AT ALL
+        ----------------------
+        Because a deployment that ignores it does measurable harm. Measured on recordings the
+        topcam checkpoint never trained on (``bench_topcam.py``, PR #106), calling DISK on
+        every gap inside its window makes centroid speed **43% worse** than plain linear
+        interpolation, while calling it only above the crossover cuts ear heading by 54%, the
+        body centroid by 48% and IR heading by 40%. The gain and the harm come from the same
+        model and are separated only by this number.
+
+        The mechanism is not mysterious. Below the crossover the animal has barely moved, so
+        a straight line between the two observed positions is very nearly exact and the model
+        is reconstructing from dynamics it does not need. Above it there is no straight line
+        to draw. Speed is the exception in kind rather than in degree: it is a central
+        difference, so it is sensitive to how *smooth* a fill is rather than to where it
+        sits, and DISK's fills are accurate but rougher than a straight line.
+
+        HOW TO READ IT
+        --------------
+        ``use_model = 0`` means never call the model for this quantity, whatever the gap
+        length, and ``crossover_frames`` is then advisory only. Otherwise: fill gaps of
+        ``crossover_frames`` or shorter by interpolation and call the model above that, up to
+        the master's ``max_gap_frames``.
+
+        Absence of a row is NOT "no restriction". A consumer that finds no row for its
+        quantity has no measured crossover for it, and the honest default is then to refuse
+        the model rather than to assume it is safe -- assuming it is safe is precisely the
+        configuration this table exists to prevent.
+        """
+
+        definition = """
+        -> master
+        -> DISKModel                            # the checkpoint the crossover was measured on
+        consumer_quantity       : varchar(40)   # the quantity this rule governs
+        ---
+        crossover_frames        : smallint unsigned # interpolate gaps <= this; model above
+        use_model=1             : tinyint unsigned  # 0 -> never call the model for this quantity
+        evidence=''             : varchar(255)      # what measured it
+        """
 
 
 
@@ -723,6 +995,85 @@ def fetch_params(key) -> dict:
     if _param_table is None:
         raise RuntimeError("activate() has not run; the parameter table is not bound")
     return (_param_table & {"parameter_id": key["parameter_id"]}).fetch1()
+
+
+#: The head-fixed production fit hard-codes its dot minimum. `PupilEllipseFitting.make()`
+#: reads three values from its parameter table and then writes ``nd = 6`` inline, with the
+#: comment "can be put in parameter table!". Six is therefore part of that estimator, not a
+#: choice this module gets to make, and it is spelled out here rather than buried.
+HEADFIXED_PUPIL_MIN_DOTS = 6
+
+
+def fetch_headfixed_params(key) -> dict:
+    """Head-fixed ellipse parameters, expressed in the shape the shared helpers expect.
+
+    `#pupil_ellipse_parameter` carries a single ``likelihood_thres`` applied to every
+    marker; the free-moving table splits it into ``llh_thres_pupil``, ``llh_thres_ir`` and
+    ``llh_thres_corner``. The numerical helpers (:func:`_mask_and_center`,
+    :func:`_fit_frames`, :func:`_nice_mask`, :func:`_yields_angle`) all read the
+    free-moving spelling, so this translates rather than duplicating them.
+
+    The translation is exact, not approximate: `PupilEllipseFitting.make()` applies its one
+    threshold to the whole likelihood array in a single masked assignment, which is the
+    same thing as applying it separately to pupil, IR and corner markers.
+    """
+    if _headfixed_param_table is None:
+        raise RuntimeError("activate() has not run; the head-fixed parameter table is not bound")
+    p = (_headfixed_param_table & {"parameter_id": key["parameter_id"]}).fetch1()
+    thres = float(p["likelihood_thres"])
+    return {
+        "parameter_id": p["parameter_id"],
+        "llh_thres_pupil": thres,
+        "llh_thres_ir": thres,
+        "llh_thres_corner": thres,
+        "pupil_min_dots": HEADFIXED_PUPIL_MIN_DOTS,
+        "exclude_ir_std": float(p["exclude_ir_std"]),
+        "ellipticity_thres": float(p["ellipticity_thres"]),
+        "description": p.get("description", ""),
+    }
+
+
+def assert_fit_ellipse_shared() -> str:
+    """Fail loudly if the two production ``fit_ellipse`` implementations have diverged.
+
+    ``PupilEllipseFitting.fit_ellipse`` and ``PupilEllipseFittingFreeMoving.fit_ellipse``
+    are, as of 2026-09-15, byte-identical -- the same 109 lines with the same SHA-256. That
+    is why :func:`_production_fit_ellipse` can serve both chains, and why
+    :func:`production_fit_hash` means the same thing for either.
+
+    It is also a fact about the current source, not a guarantee. If someone edits one and
+    not the other, the head-fixed chain would silently keep running the free-moving
+    estimator and stamping the free-moving hash, and every head-fixed imputed angle would
+    be measuring an estimator production no longer uses. So it is asserted, once, at the
+    top of each head-fixed make(). Returns the shared hash.
+    """
+    import ast
+    import hashlib
+
+    src_path = Path(__file__).with_name("pupil_tracking.py")
+    text = src_path.read_text()
+    tree = ast.parse(text)
+    got = {}
+    for cls in ast.walk(tree):
+        if isinstance(cls, ast.ClassDef) and cls.name in (
+                "PupilEllipseFitting", "PupilEllipseFittingFreeMoving"):
+            for fn in cls.body:
+                if isinstance(fn, ast.FunctionDef) and fn.name == "fit_ellipse":
+                    got[cls.name] = ast.get_source_segment(text, fn)
+    missing = {"PupilEllipseFitting", "PupilEllipseFittingFreeMoving"} - set(got)
+    if missing:
+        raise RuntimeError(
+            f"could not find fit_ellipse on {sorted(missing)} in pupil_tracking.py; the "
+            "production code has been restructured and the head-fixed chain needs review")
+    h = {k: hashlib.sha256(v.encode()).hexdigest() for k, v in got.items()}
+    if h["PupilEllipseFitting"] != h["PupilEllipseFittingFreeMoving"]:
+        raise RuntimeError(
+            "PupilEllipseFitting.fit_ellipse and PupilEllipseFittingFreeMoving.fit_ellipse "
+            "have DIVERGED (%s vs %s). The head-fixed chain reuses the free-moving "
+            "extraction and would now be running the wrong estimator. Give the head-fixed "
+            "chain its own extraction before populating anything further."
+            % (h["PupilEllipseFitting"][:12], h["PupilEllipseFittingFreeMoving"][:12]))
+    return h["PupilEllipseFitting"]
 
 
 def _recover_calibration(cam_center, eye_center, ir_xg, ir_yg):
@@ -966,6 +1317,553 @@ class PupilFrameQuality(dj.Computed):
 # ======================================================================================
 
 
+def _impute_markers(key, *, mdl, pset, pose_key, refused_frame=None,
+                    allow_dlc_low_kept=False):
+    """Run DISK over one recording's markers and account for every sample.
+
+    This is the part that is IDENTICAL for every chain -- eye or body -- and it was
+    extracted from ``_run_imputation`` when the topcam chain needed it. Splitting it out
+    rather than copying it is deliberate: the alignment gate and the gap bookkeeping are
+    the two things that must never drift between chains, and they are also the two things
+    a copy would drift in first.
+
+    What stays OUTSIDE this function is what genuinely differs: which task table to read,
+    how a frame comes to be refused, and what "a useful frame" means downstream -- an eye
+    angle for the pupil chains, a body centroid or heading for the topcam one.
+
+    Parameters
+    ----------
+    refused_frame
+        Boolean per frame, or ``None`` for a chain with no concept of refusal. The topcam
+        passes ``None``: ``PupilFrameQuality``'s two refusal classes, ``no_reflection``
+        and ``tracking_lost``, are corneal-reflection concepts a body camera cannot
+        produce.
+    allow_dlc_low_kept
+        Whether a sub-threshold DeepLabCut point may be kept where DISK declined. Off for
+        the topcam, where ``dlc_low_kept`` is documented as unreachable; passing the
+        parameter set's flag straight through would have quietly made it reachable.
+
+    Returns a dict carrying everything a caller needs to count, insert and audit. It
+    writes nothing.
+    """
+    import json
+    import subprocess
+    import tempfile
+    import time
+
+    model = _linking_module.model
+
+    if not mdl["mu_sigma"]:
+        raise ValueError(
+            f"{mdl['disk_model_name']} was trained without mu_sigma, so it reports no "
+            "uncertainty and Gap.uncertainty could not be filled honestly")
+
+    # -- 1. markers, reindexed onto the model's own contract ----------------------
+    # Never onto fetch order: DataJoint's ordering is not contractual, and pairing an
+    # array with the wrong marker name is the most damaging silent error available.
+    contract = DISKModel.keypoint_order(key["disk_model_name"])
+    rows = (model.PoseEstimationNew.BodyPartPosition & pose_key).fetch(
+        "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
+        order_by="body_part")
+    by_name = {r["body_part"]: r for r in rows}
+    # The contract must be a SUBSET of what the recording carries, not equal to it. A
+    # missing contract marker is still fatal -- the model cannot run without its inputs --
+    # but extra markers are fine and are stored untouched.
+    absent = sorted(set(contract) - set(by_name))
+    if absent:
+        raise ValueError(
+            f"recording is missing {absent}, which {mdl['disk_model_name']}'s keypoint "
+            f"contract requires. It has {sorted(set(by_name))}.")
+    extra = [m for m in sorted(set(by_name) - set(contract))]
+    xy = np.stack([np.c_[np.asarray(by_name[m]["x_pos"], float),
+                         np.asarray(by_name[m]["y_pos"], float)] for m in contract],
+                  axis=1)
+    lik = np.stack([np.asarray(by_name[m]["likelihood"], float) for m in contract],
+                   axis=1)
+    n_frames, n_kp = lik.shape
+
+    if refused_frame is None:
+        refused_frame = np.zeros(n_frames, dtype=bool)
+    elif len(refused_frame) != n_frames:
+        raise ValueError(
+            f"refused_frame has {len(refused_frame)} entries but the recording has "
+            f"{n_frames} frames")
+
+    # -- 2. the rate gate ---------------------------------------------------------
+    # Read, never inferred from frame indices. A 50 Hz model applied to a 60 Hz
+    # recording is a transfer test the evaluation never scored.
+    fps = float((model.RecordingInfoNew & pose_key).fetch1("fps"))
+    if abs(fps - float(mdl["training_fps"])) > 0.5:
+        raise ValueError(
+            f"recording is {fps} Hz but {mdl['disk_model_name']} was trained at "
+            f"{mdl['training_fps']} Hz. Applying it across rates is untested; register "
+            "a model trained at this rate instead.")
+
+    # -- 3. what counts as missing ------------------------------------------------
+    # DISK masks with <= , not < . A sample at exactly the threshold is missing, and
+    # using < here would score a different set of gaps than DISK fills.
+    thres = float(mdl["likelihood_threshold"])
+    missing = lik <= thres
+    src = np.full((n_frames, n_kp), SAMPLE_SOURCE["observed"], dtype=np.uint8)
+
+    # Refusal is a per-FRAME judgement and the original rule applied it per GAP: one
+    # refused frame anywhere in a run withheld the whole run from the network. Measured
+    # over 40 recordings that rule accounts for 76.3% of all withheld frames, and the runs
+    # it withholds have a median length of 8 frames, comfortably inside the model's
+    # window. They were discarded for being contaminated, not for being hard.
+    split = bool(pset.get("split_gaps_at_refused", 0))
+    max_gap = int(pset["max_gap_frames"])
+
+    # Each entry carries the length of the ORIGINAL maximal missing run it came from, as
+    # well as its own. They diverge as soon as a run is split -- by refusal, or by DISK
+    # filling only part of it -- and the distinction decides policy downstream: a topcam
+    # crossover is fitted on how long the DROPOUT was, not on how much of it the model
+    # happened to answer. See `_apply_topcam_crossover`.
+    gaps = []           # (marker_index, start, length, status, origin_length)
+    submit = missing.copy()
+    for j in range(n_kp):
+        for start, length in _runs(missing[:, j]):
+            origin = length
+            sl = slice(start, start + length)
+            if not refused_frame[sl].any():
+                status = "too_long" if length > max_gap else "filled"
+                if status != "filled":
+                    submit[sl, j] = False
+                gaps.append([j, start, length, status, origin])
+                continue
+
+            if not split:
+                submit[sl, j] = False
+                gaps.append([j, start, length, "refused", origin])
+                continue
+
+            local = refused_frame[start:start + length]
+            i = 0
+            while i < length:
+                k = i
+                while k < length and bool(local[k]) == bool(local[i]):
+                    k += 1
+                sub_len, s0 = k - i, start + i
+                ssl = slice(s0, s0 + sub_len)
+                if bool(local[i]):
+                    submit[ssl, j] = False
+                    gaps.append([j, s0, sub_len, "refused", origin])
+                elif sub_len > max_gap:
+                    submit[ssl, j] = False
+                    gaps.append([j, s0, sub_len, "too_long", origin])
+                else:
+                    gaps.append([j, s0, sub_len, "filled", origin])
+                i = k
+
+    # -- 3b. the precondition DISK does not state but requires ---------------------
+    # `create_dataset` builds its train/val/test partitions out of contiguous stretches
+    # in which EVERY contract marker is present, and needs them at least one window long.
+    # Given none, it raises
+    #
+    #     ValueError: no data for train with 0 NaNs, probably due to not long enough
+    #     segments
+    #
+    # from inside the DISK package, naming neither the recording nor the reason, and the
+    # worker's stderr is then dominated by progress bars. That is what 95 of the topcam
+    # cohort's 468 recordings did on 2026-09-24.
+    #
+    # The separation was almost exact at the window length: of the 373 that succeeded,
+    # the shortest longest-clean-run was 243 frames and NONE was below 240; of the 95
+    # that failed, 94 were below it, with a median of 94 frames. So "shorter than one
+    # window" is a NECESSARY condition for failure and is worth refusing on. It is not
+    # sufficient -- one recording with 241 clean frames failed anyway, because DISK needs
+    # several such windows to partition, not one -- so this check makes the common failure
+    # legible rather than promising that everything past it will succeed.
+    clean = ~missing.any(axis=1)
+    if clean.any():
+        edges = np.flatnonzero(np.diff(np.r_[0, clean.view(np.int8), 0]))
+        longest_clean = int((edges[1::2] - edges[::2]).max())
+    else:
+        longest_clean = 0
+    if longest_clean < int(mdl["seq_length"]):
+        raise ValueError(
+            "recording has no stretch in which all %d contract markers are tracked for "
+            "one model window: longest clean run is %d frames against seq_length %d, and "
+            "%.1f%% of frames are missing at least one marker. DISK cannot build its "
+            "dataset from this and would fail inside create_dataset with a message naming "
+            "neither the recording nor the cause. This is a property of the tracking, not "
+            "of the imputation: retrack, or use a model with a shorter window."
+            % (n_kp, longest_clean, int(mdl["seq_length"]),
+               100.0 * missing.any(axis=1).mean()))
+
+    # -- 4. hand the masked recording to DISK -------------------------------------
+    xy_in = xy.copy()
+    xy_in[submit] = np.nan
+    lik_in = lik.copy()
+    lik_in[submit] = 0.0
+
+    root = Path(dj.config.get("custom", {}).get("disk_work_root", DISK_WORK_ROOT))
+    jobdir = Path(tempfile.mkdtemp(prefix="imp_", dir=str(root / "jobs")))
+    try:
+        _write_dlc_csv(jobdir / "input.csv", contract, xy_in, lik_in)
+        (jobdir / "job.json").write_text(json.dumps({
+            "length": int(mdl["seq_length"]),
+            "stride": int(mdl["seq_length"]) // 2,
+            "fps": fps,
+            "likelihood_threshold": thres,
+            "checkpoint": mdl["checkpoint_path"],
+            "model_name": mdl["disk_model_name"],
+            "batch_size": 64,
+        }))
+        worker = Path(__file__).with_name("disk_worker.py")
+        python = dj.config.get("custom", {}).get("disk_python", DISK_PYTHON)
+        t0 = time.time()
+        proc = subprocess.run([python, str(worker), str(jobdir)],
+                              capture_output=True, text=True)
+        runtime = time.time() - t0
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"disk_worker failed ({proc.returncode}).\n"
+                f"stdout: {proc.stdout[-2000:]}\nstderr: {proc.stderr[-2000:]}\n"
+                f"job kept at {jobdir}")
+        xy_out = _read_dlc_csv(jobdir / "imputed.csv", contract)
+        seg = json.loads((jobdir / "gaps.json").read_text())
+    finally:
+        keep = str(jobdir)
+
+    if xy_out.shape != xy.shape:
+        raise RuntimeError(f"DISK changed the shape: {xy.shape} -> {xy_out.shape}; "
+                           f"job kept at {keep}")
+
+    # -- 5. the gate: nothing we did not ask about may have moved -----------------
+    # A column shift is invisible -- plausible coordinates, a successful ellipse fit or a
+    # plausible body heading, all belonging to the wrong markers. So it is asserted, not
+    # trusted. DISK is entitled to change exactly two kinds of sample: the ones we
+    # blanked, and the recording's own sub-threshold samples, which it masks internally at
+    # the same threshold and imputes as well. Everything else must come back
+    # bit-identical, or a marker column has shifted.
+    protected = ~missing & np.isfinite(xy).all(axis=2)
+    # The tolerance is not slack. Exact equality is unattainable: DISK normalises the whole
+    # array before inference and de-normalises afterwards, so even an untouched sample
+    # comes back through x/s*s, which is not the identity in floating point. Measured on
+    # these cohorts that noise is ~1e-13 px. A real column shift is not subtle -- when this
+    # gate first fired on a genuine fault it reported 545 px -- so 1e-6 px sits seven
+    # orders of magnitude below anything meaningful and seven above the noise.
+    if protected.any():
+        delta = np.abs(xy[protected] - xy_out[protected])
+        worst = float(np.nanmax(delta)) if delta.size else 0.0
+        if worst > ALIGNMENT_TOLERANCE_PX:
+            n_bad = int((delta > ALIGNMENT_TOLERANCE_PX).any(axis=1).sum())
+            raise RuntimeError(
+                f"alignment gate failed: {n_bad} protected samples moved by more "
+                f"than {ALIGNMENT_TOLERANCE_PX:g} px, worst {worst:g} px. A marker "
+                f"column has shifted and every downstream number would be "
+                f"meaningless. Job kept at {keep}")
+    else:
+        worst = 0.0
+
+    # -- 6. assemble --------------------------------------------------------------
+    filled = submit & np.isfinite(xy_out).all(axis=2)
+    xy_eff = np.where(filled[:, :, None], xy_out, xy)
+    lik_eff = lik.copy()
+    lik_eff[filled] = 1.0          # effective: what downstream thresholds on
+
+    src[missing] = SAMPLE_SOURCE["unfilled"]
+    src[refused_frame[:, None] & missing] = SAMPLE_SOURCE["refused"]
+    src[filled] = SAMPLE_SOURCE["disk"]
+    if allow_dlc_low_kept:
+        # Deliberately narrow, and off by default: see the ImputationParamSet docstring.
+        # It only fires where DISK declined, which is the regime where a rejected
+        # DeepLabCut point is least reliable.
+        keepable = missing & ~filled & ~refused_frame[:, None] & np.isfinite(xy).all(axis=2)
+        xy_eff = np.where(keepable[:, :, None], xy, xy_eff)
+        lik_eff[keepable] = lik[keepable]
+        src[keepable] = SAMPLE_SOURCE["dlc_low_kept"]
+
+    # A submitted gap can come back PARTIALLY filled -- `filled` is computed per frame --
+    # so one status per original gap cannot describe it. The first version stamped the
+    # whole segment 'unfilled' whenever any frame was missed, which silently contradicted
+    # sample_source. So a submitted gap is split into contiguous runs of equal outcome and
+    # one row is emitted per run. Gap rows then partition the missing frames exactly, and
+    # the union of 'filled' rows equals sample_source == disk by construction rather than
+    # by coincidence. Refused and too-long gaps are uniform and stay whole.
+    def _uncertainty(start, length):
+        """Worst uncertainty among the DISK segments overlapping this run.
+
+        Per DISK segment rather than per marker-gap: one badly guessed marker is what
+        damages the quantity built from it, so the run takes the worst it overlaps.
+        """
+        over = [s["uncertainty"] for s in seg
+                if s["uncertainty"] is not None
+                and s["start"] < start + length and s["start"] + s["length"] > start]
+        return max(over) if over else None
+
+    resolved = []
+    for j, start, length, status, origin in gaps:
+        if status != "filled":                      # refused / too_long: uniform
+            resolved.append([j, start, length, status,
+                             _uncertainty(start, length), origin])
+            continue
+        col = filled[start:start + length, j]
+        run_start = 0
+        while run_start < length:
+            val = col[run_start]
+            run_end = run_start
+            while run_end < length and col[run_end] == val:
+                run_end += 1
+            s0, ln = start + run_start, run_end - run_start
+            resolved.append([j, s0, ln, "filled" if val else "unfilled",
+                             _uncertainty(s0, ln) if val else None, origin])
+            run_start = run_end
+    gaps = resolved
+
+    # The job directory is NOT removed here. The caller deletes it after its inserts have
+    # succeeded, because a failed insert is exactly when the inputs, the raw DISK output
+    # and the segment records are worth having. Deleting it on the way out of this
+    # function would throw that away precisely in the case it is needed.
+    return {
+        "contract": contract, "extra": extra, "by_name": by_name,
+        "n_frames": n_frames, "fps": fps, "thres": thres,
+        "xy": xy, "lik": lik, "missing": missing,
+        "xy_eff": xy_eff, "lik_eff": lik_eff, "src": src,
+        "gaps": gaps, "runtime": runtime,
+        "alignment_worst_px": worst, "jobdir": keep,
+    }
+
+
+def _run_imputation(table, key, *, task_table, quality_table, fit_params):
+    """The eye chains' imputation: refusal, then :func:`_impute_markers`, then the fit yield.
+
+    Only four things differ between the free-moving and head-fixed chains -- which task
+    table to read, which frame-quality table, how to fetch the ellipse parameters, and
+    which table to insert into -- so those are arguments and everything else is identical
+    by construction.
+    """
+    model = _linking_module.model
+
+    task = (task_table & key).fetch1()
+    mdl = (DISKModel & key).fetch1()
+    pset = (ImputationParamSet & key).fetch1()
+    fitp = fit_params(key)
+
+    if task["task_mode"] != "trigger":
+        raise NotImplementedError("only task_mode='trigger' is implemented")
+
+    pose_key = {k: key[k] for k in model.PoseEstimationNew.primary_key}
+
+    # Refuse before imputing. This is the one step the body chain has no analogue for.
+    frame_class = (quality_table & key).fetch1("frame_class")
+    refuse_codes = []
+    if pset["refuse_no_reflection"]:
+        refuse_codes.append(FRAME_CLASS["no_reflection"])
+    if pset["refuse_tracking_lost"]:
+        refuse_codes.append(FRAME_CLASS["tracking_lost"])
+    refused_frame = np.isin(frame_class, refuse_codes)
+
+    r = _impute_markers(key, mdl=mdl, pset=pset, pose_key=pose_key,
+                        refused_frame=refused_frame,
+                        allow_dlc_low_kept=bool(pset["keep_dlc_low_conf"]))
+
+    contract, src, gaps = r["contract"], r["src"], r["gaps"]
+    before = _yields_angle(r["lik"], contract, fitp)
+    after = _yields_angle(r["lik_eff"], contract, fitp)
+    filled_lengths = [g[2] for g in gaps if g[3] == "filled"]
+
+    table.insert1({
+        **key,
+        "imputation_time": datetime.datetime.now(),
+        "recording_fps": r["fps"],
+        "production_fit_hash": production_fit_hash(),
+        # Counted over the CONTRACT markers only. With a subset contract, folding in a
+        # marker the model never touched would distort every counter here: in the
+        # head-fixed cohort nose_corner is above threshold in only 24% of frames on
+        # average, so including it would drive n_frames_observed toward zero while saying
+        # nothing whatever about how well the imputation worked.
+        "n_frames_total": r["n_frames"],
+        "n_frames_observed": int((src == SAMPLE_SOURCE["observed"]).all(axis=1).sum()),
+        "n_frames_imputed": int((src == SAMPLE_SOURCE["disk"]).any(axis=1).sum()),
+        "n_frames_refused": int((src == SAMPLE_SOURCE["refused"]).any(axis=1).sum()),
+        "n_frames_unfilled": int((src == SAMPLE_SOURCE["unfilled"]).any(axis=1).sum()),
+        "n_gaps_attempted": int(sum(1 for g in gaps if g[3] in ("filled", "unfilled"))),
+        "n_gaps_too_long": int(sum(1 for g in gaps if g[3] == "too_long")),
+        "max_gap_filled": int(max(filled_lengths)) if filled_lengths else 0,
+        "n_angle_before": int(before.sum()),
+        "n_angle_after": int(after.sum()),
+        "disk_runtime_s": round(r["runtime"], 1),
+    })
+    table.BodyPart.insert(_body_part_rows(key, r))
+    # The eye chains' Gap tables have no origin_length column: they carry no crossover, so
+    # nothing there reads the distinction. It is still computed, because it is computed in
+    # the shared core, and dropping it here is explicit rather than accidental.
+    table.Gap.insert([
+        {**key, "body_part": contract[j], "gap_start": start,
+         "gap_length": length, "uncertainty": unc, "gap_status": status}
+        for j, start, length, status, unc, _origin in gaps])
+
+    import shutil
+    shutil.rmtree(r["jobdir"], ignore_errors=True)
+
+
+def _body_part_rows(key, r):
+    """The per-marker rows to insert, contract markers then the untouched extras.
+
+    Markers outside the contract are stored exactly as DeepLabCut produced them -- same
+    coordinates, same likelihood, no imputation -- flagged ``not_modelled`` wherever they
+    fall below the threshold, so that nothing downstream can mistake them for something
+    the model considered and declined.
+    """
+    contract, xy_eff, lik_eff, src = r["contract"], r["xy_eff"], r["lik_eff"], r["src"]
+    rows = [
+        {**key, "body_part": m,
+         "x_pos": xy_eff[:, i, 0], "y_pos": xy_eff[:, i, 1],
+         "likelihood": lik_eff[:, i], "sample_source": src[:, i]}
+        for i, m in enumerate(contract)]
+    for m in r["extra"]:
+        rec = r["by_name"][m]
+        lk = np.asarray(rec["likelihood"], float)
+        s = np.where(lk <= r["thres"], SAMPLE_SOURCE["not_modelled"],
+                     SAMPLE_SOURCE["observed"]).astype(np.uint8)
+        rows.append({**key, "body_part": m,
+                     "x_pos": np.asarray(rec["x_pos"], float),
+                     "y_pos": np.asarray(rec["y_pos"], float),
+                     "likelihood": lk, "sample_source": s})
+    return rows
+
+
+def _run_imputed_fit(table, key, *, imputation_table, production_table, fit_params,
+                     production_key=lambda k: k):
+    """The imputed ellipse fit, shared by the free-moving and head-fixed chains.
+
+    Lifted verbatim out of ``PupilEllipseFittingImputed.make()``. Three things differ --
+    which imputation table supplies the markers, which production table supplies the
+    calibration to inherit, and how the ellipse parameters are fetched. The estimator
+    itself, the inherited calibration, and both gates are identical for the two chains,
+    and must stay that way: the whole point of the sibling is that it is comparable to its
+    production twin.
+    """
+    """Refit the ellipse on imputed markers, holding the production calibration fixed.
+
+    The conic fit is the production one, extracted from ``pupil_tracking.py`` at run
+    time rather than reimplemented, so this table and its production twin measure the
+    same estimator. Two gates protect the comparison; both raise rather than warn,
+    because a silent failure here produces smooth, plausible angles that are wrong.
+    """
+    model = _linking_module.model
+    pupil_tracking = _linking_module.pupil_tracking
+
+    params = fit_params(key)
+
+    def _stack(rows, what):
+        by = {r["body_part"]: r for r in rows}
+        miss = [m for m in PRODUCTION_ORDER if m not in by]
+        if miss:
+            raise ValueError(f"{what} is missing markers {miss} for {key}")
+        names = list(by)
+        xy = np.stack([np.c_[np.asarray(by[m]["x_pos"], float),
+                             np.asarray(by[m]["y_pos"], float)] for m in names], axis=1)
+        lik = np.stack([np.asarray(by[m]["likelihood"], float) for m in names], axis=1)
+        return names, xy, lik
+
+    # -- 1. imputed markers, and the originals production saw ----------------------
+    # Both are needed. The imputed ones are what this table fits; the original ones
+    # are what the inherited calibration was estimated from, and the only way to
+    # recover it from what production stored.
+    names_i, xy_i, lik_i = _stack(
+        (imputation_table.BodyPart & key).fetch(
+            "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
+            order_by="body_part"), "%s.BodyPart" % imputation_table.__name__)
+
+    pose_key = {k: key[k] for k in model.PoseEstimationNew.primary_key}
+    names_o, xy_o, lik_o = _stack(
+        (model.PoseEstimationNew.BodyPartPosition & pose_key).fetch(
+            "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
+            order_by="body_part"), "PoseEstimationNew.BodyPartPosition")
+
+    pc_x, pc_y, ir_xg, ir_yg = _mask_and_center(xy_i, lik_i, names_i, params)
+    pc_x_o, pc_y_o, ir_xg_o, ir_yg_o = _mask_and_center(xy_o, lik_o, names_o, params)
+
+    # -- 2. inherit the calibration -----------------------------------------------
+    # From the MIRRORED production set, not from this key's own parameter_id -- see
+    # PRODUCTION_MIRROR. `prod_key` is this same recording; only the set id differs, and
+    # the two sets carry identical thresholds.
+    prod_key = production_key(key)
+    cam_center_prod, eye_center_prod, scale = (
+        production_table & prod_key).fetch1(
+            "cam_center", "eye_center", "scale")
+    scale = float(scale)
+    cam_cent, eye_cent = _recover_calibration(
+        np.asarray(cam_center_prod, float), np.asarray(eye_center_prod, float),
+        ir_xg_o, ir_yg_o)
+
+    horizontal_offset = float(np.arcsin((eye_cent[0] - cam_cent[0]) / scale))
+    vertical_offset = float(np.arcsin(
+        (eye_cent[1] - cam_cent[1]) / np.cos(horizontal_offset) / scale))
+
+    # -- 3. gate: does the reused fit reproduce production's own angles? -----------
+    # Run the extracted fit over the ORIGINAL markers under the inherited
+    # calibration. That is precisely what production did, so it must return
+    # precisely what production stored. If it does not, the masking, the marker
+    # ordering or the fit differs from production somewhere, and every comparison
+    # this table exists to support would be measuring that difference instead of
+    # imputation. This pass also supplies n_nice_frames honestly -- with an
+    # inherited calibration, the frames that contributed to it are production's,
+    # not this row's.
+    X0_o, Y0_o, la_o, sa_o, _ = _fit_frames(pc_x_o, pc_y_o, params)
+    theta_o, _ = _to_angles(X0_o, Y0_o, cam_cent, scale,
+                            horizontal_offset, vertical_offset)
+    theta_prod = np.asarray(
+        (production_table & prod_key).fetch1("theta"), float)
+    _check_reproduces_production(theta_o, theta_prod, key)
+    n_nice_frames = int(_nice_mask(pc_x_o, la_o, sa_o, params).size)
+
+    # -- 4. the fit this table is for ---------------------------------------------
+    X0_in, Y0_in, long_axis, short_axis, angle_from_x = _fit_frames(pc_x, pc_y, params)
+    theta, phi = _to_angles(X0_in, Y0_in, cam_cent, scale,
+                            horizontal_offset, vertical_offset)
+
+    # How much of each frame's evidence is invented. Without this the table cannot
+    # distinguish an angle fitted through eight real markers from one fitted through
+    # eight synthetic ones -- measured on Natasha's cohort, 2.1% of frames that yield
+    # an angle would be fitted entirely from DISK output, and nothing downstream could
+    # tell. Counted over the markers that actually entered the fit, so a marker DISK
+    # filled but that still failed the threshold is not counted.
+    # Counted over the eight PUPIL markers, in PRODUCTION_ORDER, which are the ones
+    # the conic is fitted through -- and only those that actually entered the fit, so
+    # a marker DISK filled that still failed the threshold is not counted. The
+    # corneal reflection is deliberately excluded: it is the origin the pupil
+    # coordinates are expressed relative to, not a point on the ellipse. An imputed
+    # IR shifts every coordinate in the frame rather than adding one of eight, so
+    # folding it into the same count would understate it; read it from the imputation
+    # table's BodyPart part when that matters.
+    src = {r["body_part"]: np.asarray(r["sample_source"]) for r in
+           (imputation_table.BodyPart & key).fetch(
+               "body_part", "sample_source", as_dict=True)}
+    synth = np.stack([src[m] == SAMPLE_SOURCE["disk"] for m in PRODUCTION_ORDER[3:]],
+                     axis=1)
+    used = ~np.isnan(pc_x)                        # (T, 8): entered the conic fit
+    n_imputed = (used & synth).sum(axis=1).astype(np.uint8)
+
+    # Un-centred back into original pixel coordinates with the IMPUTED reflection,
+    # which is the same convention production uses with its own -- and is part of the
+    # point, since a recovered IR is one of the ways a frame is won back.
+    table.insert1({
+        **key,
+        "theta": theta,
+        "phi": phi,
+        "diameter": long_axis,
+        "pupil_center": np.column_stack((X0_in + ir_xg, Y0_in + ir_yg)),
+        "x0_in": X0_in,
+        "y0_in": Y0_in,
+        "long_axis": long_axis,
+        "short_axis": short_axis,
+        "angle_from_x": angle_from_x,
+        "cam_center": np.column_stack((cam_cent[0] + ir_xg, cam_cent[1] + ir_yg)),
+        "eye_center": np.column_stack((eye_cent[0] + ir_xg, eye_cent[1] + ir_yg)),
+        "scale": scale,
+        "horizontal_offset": horizontal_offset,
+        "vertical_offset": vertical_offset,
+        "n_nice_frames": n_nice_frames,
+        "n_imputed_markers": n_imputed,
+        "n_angle": int(np.isfinite(theta).sum()),
+        "calibration_source": "inherited",
+    })
+
+
 @schema
 class DLCImputationTask(dj.Manual):
     """One imputation to perform: a recording, a threshold, a model, a policy.
@@ -1094,228 +1992,9 @@ class DLCImputation(dj.Computed):
         return DLCImputationTask & PupilFrameQuality.proj()
 
     def make(self, key):
-        """Impute one recording, then record what was filled, refused and left alone.
-
-        The DISK half runs as a subprocess in the ``disk`` environment -- see
-        :data:`DISK_PYTHON` for why. Everything before and after it is DataJoint work and
-        happens here.
-        """
-        import json
-        import shutil
-        import subprocess
-        import tempfile
-        import time
-
-        model = _linking_module.model
-        pupil_tracking = _linking_module.pupil_tracking
-
-        task = (DLCImputationTask & key).fetch1()
-        mdl = (DISKModel & key).fetch1()
-        pset = (ImputationParamSet & key).fetch1()
-        fitp = fetch_params(key)
-
-        if task["task_mode"] != "trigger":
-            raise NotImplementedError("only task_mode='trigger' is implemented")
-        if not mdl["mu_sigma"]:
-            raise ValueError(
-                f"{mdl['disk_model_name']} was trained without mu_sigma, so it reports no "
-                "uncertainty and Gap.uncertainty could not be filled honestly")
-
-        pose_key = {k: key[k] for k in model.PoseEstimationNew.primary_key}
-
-        # -- 1. markers, reindexed onto the model's own contract ----------------------
-        # Never onto fetch order: DataJoint's ordering is not contractual, and pairing an
-        # array with the wrong marker name is the most damaging silent error available.
-        contract = DISKModel.keypoint_order(key["disk_model_name"])
-        rows = (model.PoseEstimationNew.BodyPartPosition & pose_key).fetch(
-            "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
-            order_by="body_part")
-        by_name = {r["body_part"]: r for r in rows}
-        if set(by_name) != set(contract):
-            raise ValueError(
-                f"marker set does not match {mdl['disk_model_name']}'s keypoint contract. "
-                f"recording has {sorted(set(by_name) - set(contract))} extra, "
-                f"{sorted(set(contract) - set(by_name))} missing")
-        xy = np.stack([np.c_[np.asarray(by_name[m]["x_pos"], float),
-                             np.asarray(by_name[m]["y_pos"], float)] for m in contract],
-                      axis=1)
-        lik = np.stack([np.asarray(by_name[m]["likelihood"], float) for m in contract],
-                       axis=1)
-        n_frames, n_kp = lik.shape
-
-        # -- 2. the rate gate ---------------------------------------------------------
-        # Read, never inferred from frame indices. A 50 Hz model applied to a 60 Hz
-        # recording is a transfer test the evaluation never scored.
-        fps = float((model.RecordingInfoNew & pose_key).fetch1("fps"))
-        if abs(fps - float(mdl["training_fps"])) > 0.5:
-            raise ValueError(
-                f"recording is {fps} Hz but {mdl['disk_model_name']} was trained at "
-                f"{mdl['training_fps']} Hz. Applying it across rates is untested; register "
-                "a model trained at this rate instead.")
-
-        # -- 3. classification: refuse before imputing --------------------------------
-        frame_class = (PupilFrameQuality & key).fetch1("frame_class")
-        refuse_codes = []
-        if pset["refuse_no_reflection"]:
-            refuse_codes.append(FRAME_CLASS["no_reflection"])
-        if pset["refuse_tracking_lost"]:
-            refuse_codes.append(FRAME_CLASS["tracking_lost"])
-        refused_frame = np.isin(frame_class, refuse_codes)
-
-        # -- 4. what counts as missing ------------------------------------------------
-        # DISK masks with <= , not < . A sample at exactly the threshold is missing, and
-        # using < here would score a different set of gaps than DISK fills.
-        thres = float(mdl["likelihood_threshold"])
-        missing = lik <= thres
-        src = np.full((n_frames, n_kp), SAMPLE_SOURCE["observed"], dtype=np.uint8)
-
-        gaps = []           # (marker_index, start, length, status)
-        submit = missing.copy()
-        for j in range(n_kp):
-            for start, length in _runs(missing[:, j]):
-                sl = slice(start, start + length)
-                if refused_frame[sl].any():
-                    status = "refused"
-                elif length > int(pset["max_gap_frames"]):
-                    status = "too_long"
-                else:
-                    status = "filled"       # provisional; readback decides
-                if status != "filled":
-                    submit[sl, j] = False
-                gaps.append([j, start, length, status])
-
-        # -- 5. hand the masked recording to DISK -------------------------------------
-        xy_in = xy.copy()
-        xy_in[submit] = np.nan
-        lik_in = lik.copy()
-        lik_in[submit] = 0.0
-
-        root = Path(dj.config.get("custom", {}).get("disk_work_root", DISK_WORK_ROOT))
-        jobdir = Path(tempfile.mkdtemp(prefix="imp_", dir=str(root / "jobs")))
-        try:
-            _write_dlc_csv(jobdir / "input.csv", contract, xy_in, lik_in)
-            (jobdir / "job.json").write_text(json.dumps({
-                "length": int(mdl["seq_length"]),
-                "stride": int(mdl["seq_length"]) // 2,
-                "fps": fps,
-                "likelihood_threshold": thres,
-                "checkpoint": mdl["checkpoint_path"],
-                "model_name": mdl["disk_model_name"],
-                "batch_size": 64,
-            }))
-            worker = Path(__file__).with_name("disk_worker.py")
-            python = dj.config.get("custom", {}).get("disk_python", DISK_PYTHON)
-            t0 = time.time()
-            proc = subprocess.run([python, str(worker), str(jobdir)],
-                                  capture_output=True, text=True)
-            runtime = time.time() - t0
-            if proc.returncode != 0:
-                raise RuntimeError(
-                    f"disk_worker failed ({proc.returncode}).\n"
-                    f"stdout: {proc.stdout[-2000:]}\nstderr: {proc.stderr[-2000:]}\n"
-                    f"job kept at {jobdir}")
-            xy_out = _read_dlc_csv(jobdir / "imputed.csv", contract)
-            seg = json.loads((jobdir / "gaps.json").read_text())
-        finally:
-            keep = str(jobdir)
-
-        if xy_out.shape != xy.shape:
-            raise RuntimeError(f"DISK changed the shape: {xy.shape} -> {xy_out.shape}; "
-                               f"job kept at {keep}")
-
-        # -- 6. the gate: nothing we did not ask about may have moved -----------------
-        # A column shift is invisible -- plausible coordinates, a successful ellipse fit,
-        # smooth angles, all belonging to the wrong markers. So it is asserted, not
-        # trusted.
-        # DISK is entitled to change exactly two kinds of sample: the ones we
-        # blanked, and the recording's own sub-threshold samples, which it masks
-        # internally at the same threshold and imputes as well. Everything else --
-        # every coordinate DeepLabCut was confident about -- must come back
-        # bit-identical, or a marker column has shifted.
-        protected = ~missing & np.isfinite(xy).all(axis=2)
-        # The tolerance is not slack. Exact equality is unattainable: DISK normalises
-        # the whole array before inference and de-normalises afterwards, so even a
-        # sample it never touched comes back through x/s*s, which is not the identity in
-        # floating point. Measured on this cohort that noise is ~1e-13 px, roughly
-        # machine epsilon against a 500-px coordinate.
-        #
-        # A real column shift is not subtle. When this gate first fired on a genuine
-        # fault it reported 545 px. So 1e-6 px sits about seven orders of magnitude
-        # below anything meaningful and seven above the noise, and the gate keeps all
-        # of its power.
-        if protected.any():
-            delta = np.abs(xy[protected] - xy_out[protected])
-            worst = float(np.nanmax(delta)) if delta.size else 0.0
-            if worst > ALIGNMENT_TOLERANCE_PX:
-                n_bad = int((delta > ALIGNMENT_TOLERANCE_PX).any(axis=1).sum())
-                raise RuntimeError(
-                    f"alignment gate failed: {n_bad} protected samples moved by more "
-                    f"than {ALIGNMENT_TOLERANCE_PX:g} px, worst {worst:g} px. A marker "
-                    f"column has shifted and every downstream number would be "
-                    f"meaningless. Job kept at {keep}")
-
-        # -- 7. assemble --------------------------------------------------------------
-        filled = submit & np.isfinite(xy_out).all(axis=2)
-        xy_eff = np.where(filled[:, :, None], xy_out, xy)
-        lik_eff = lik.copy()
-        lik_eff[filled] = 1.0          # effective: what downstream thresholds on
-
-        src[missing] = SAMPLE_SOURCE["unfilled"]
-        src[refused_frame[:, None] & missing] = SAMPLE_SOURCE["refused"]
-        src[filled] = SAMPLE_SOURCE["disk"]
-        if pset["keep_dlc_low_conf"]:
-            # Deliberately narrow, and off by default: see the ImputationParamSet
-            # docstring. It only fires where DISK declined, which is the regime where a
-            # rejected DeepLabCut point is least reliable.
-            keepable = missing & ~filled & ~refused_frame[:, None] & np.isfinite(xy).all(axis=2)
-            xy_eff = np.where(keepable[:, :, None], xy, xy_eff)
-            lik_eff[keepable] = lik[keepable]
-            src[keepable] = SAMPLE_SOURCE["dlc_low_kept"]
-
-        # Uncertainty is per DISK segment, not per marker-gap, so a gap takes the worst
-        # uncertainty of the segments it overlaps -- one badly guessed marker is what
-        # damages the ellipse fit.
-        for g in gaps:
-            j, start, length, status = g
-            if status == "filled" and not filled[start:start + length, j].all():
-                g[3] = "unfilled"
-            overlap = [s["uncertainty"] for s in seg
-                       if s["uncertainty"] is not None
-                       and s["start"] < start + length and s["start"] + s["length"] > start]
-            g.append(max(overlap) if overlap else None)
-
-        before = _yields_angle(lik, contract, fitp)
-        after = _yields_angle(lik_eff, contract, fitp)
-        filled_lengths = [g[2] for g in gaps if g[3] == "filled"]
-
-        self.insert1({
-            **key,
-            "imputation_time": datetime.datetime.now(),
-            "recording_fps": fps,
-            "production_fit_hash": production_fit_hash(),
-            "n_frames_total": n_frames,
-            "n_frames_observed": int((src == SAMPLE_SOURCE["observed"]).all(axis=1).sum()),
-            "n_frames_imputed": int((src == SAMPLE_SOURCE["disk"]).any(axis=1).sum()),
-            "n_frames_refused": int((src == SAMPLE_SOURCE["refused"]).any(axis=1).sum()),
-            "n_frames_unfilled": int((src == SAMPLE_SOURCE["unfilled"]).any(axis=1).sum()),
-            "n_gaps_attempted": int(sum(1 for g in gaps if g[3] in ("filled", "unfilled"))),
-            "n_gaps_too_long": int(sum(1 for g in gaps if g[3] == "too_long")),
-            "max_gap_filled": int(max(filled_lengths)) if filled_lengths else 0,
-            "n_angle_before": int(before.sum()),
-            "n_angle_after": int(after.sum()),
-            "disk_runtime_s": round(runtime, 1),
-        })
-        self.BodyPart.insert([
-            {**key, "body_part": m,
-             "x_pos": xy_eff[:, i, 0], "y_pos": xy_eff[:, i, 1],
-             "likelihood": lik_eff[:, i], "sample_source": src[:, i]}
-            for i, m in enumerate(contract)])
-        self.Gap.insert([
-            {**key, "body_part": contract[j], "gap_start": start,
-             "gap_length": length, "uncertainty": unc, "gap_status": status}
-            for j, start, length, status, unc in gaps])
-
-        shutil.rmtree(keep, ignore_errors=True)
+        """Impute one recording. See :func:`_run_imputation`, which carries the body."""
+        _run_imputation(self, key, task_table=DLCImputationTask,
+                        quality_table=PupilFrameQuality, fit_params=fetch_params)
 
 
 # ======================================================================================
@@ -1380,148 +2059,1166 @@ class PupilEllipseFittingImputed(dj.Computed):
 
     @property
     def key_source(self):
-        """Only imputations whose production twin exists, because the calibration is inherited.
+        """Only imputations whose MIRRORED production twin exists, because calibration is inherited.
 
-        A recording with no :class:`PupilEllipseFittingFreeMoving` row at this parameter
-        set has no camera centre or scale to inherit, and re-estimating one is not an
-        option -- see the class docstring. Such a recording is therefore not *ready*, in
-        exactly the sense that an unclassified recording is not ready for
-        :class:`DLCImputation`, so it is skipped rather than failed. Populating the
-        production table for it is a separate and deliberate write to production data.
+        A recording with no :class:`PupilEllipseFittingFreeMoving` row at the production
+        set this imputation set mirrors (:data:`PRODUCTION_MIRROR`) has no camera centre
+        or scale to inherit, and re-estimating one is not an option -- see the class
+        docstring. Such a recording is therefore not *ready*, in exactly the sense that an
+        unclassified recording is not ready for :class:`DLCImputation`, so it is skipped
+        rather than failed.
 
-        On this cohort that restriction is severe rather than incidental: every
-        parameter-set-4 production fit in the database belongs to ROS-2196.
+        This reads ACROSS the mirror -- set 5 looks for a set-1 fit, set 6 for a set-2 one
+        -- rather than requiring a twin at its own id. The version before 2026-09-16
+        required the same id, which would have meant first populating the production
+        estimator at sets 5 and 6; see :data:`PRODUCTION_MIRROR` for why that was rejected.
+        Nothing here writes to, or requires a write to, any production table.
         """
         pupil_tracking = _linking_module.pupil_tracking
-        return DLCImputation & pupil_tracking.PupilEllipseFittingFreeMoving.proj()
+        P = pupil_tracking.PupilEllipseFittingFreeMoving
+
+        # One OR-branch per mirror entry: "this imputation set, AND a production fit of the
+        # same recording at the set it mirrors". `parameter_id` is renamed on the
+        # production side so it does not join against the imputation's own -- what remains
+        # common is (session_id, scan_id, recording_id, model_name), which is the recording.
+        branches = []
+        for imp_id, prod_id in PRODUCTION_MIRROR.items():
+            twin = (P & {"parameter_id": prod_id}).proj(production_parameter_id="parameter_id")
+            branches.append(dj.AndList([{"parameter_id": imp_id}, twin]))
+        return DLCImputation & branches
 
     def make(self, key):
-        """Refit the ellipse on imputed markers, holding the production calibration fixed.
+        """Fit the imputed markers. See :func:`_run_imputed_fit`, which carries the body."""
+        # The mirror is checked HERE, not only in the utility scripts that set it up. This
+        # table masks its markers with set 5's thresholds and inherits its calibration from
+        # set 1, and that is only legitimate while the two are the same estimator. Without
+        # this call a populate() run after somebody edited either lookup row would produce
+        # rows that look like valid comparisons and are not. `_check_reproduces_production`
+        # further down would eventually catch a real divergence, but it would report it as
+        # estimator drift, which is the wrong diagnosis and the wrong place to start looking.
+        assert_mirror_is_a_copy()
+        _run_imputed_fit(
+            self, key, imputation_table=DLCImputation,
+            production_table=_linking_module.pupil_tracking.PupilEllipseFittingFreeMoving,
+            fit_params=fetch_params, production_key=production_key_for)
 
-        The conic fit is the production one, extracted from ``pupil_tracking.py`` at run
-        time rather than reimplemented, so this table and its production twin measure the
-        same estimator. Two gates protect the comparison; both raise rather than warn,
-        because a silent failure here produces smooth, plausible angles that are wrong.
+
+def _eye_and_optitrack_clocks(base_key, eyecam_time_source):
+    """The eye-camera and OptiTrack frame timestamps, in session time.
+
+    The production twin of this is ``pupil_tracking.fetch_eye_and_optitrack_clocks``. It is
+    not called directly because this module reaches pupil_tracking as a virtual module under
+    every script that runs it, and a virtual module carries tables but no functions. The
+    part that is actually logic -- which event_type a recording's frames are under -- is
+    shared through ``eye_geometry.eye_camera_event_type``; only the two fetches are here.
+    """
+    Event = upstream("Event")
+    suffix = (upstream("EyeCamTimeSource")
+              & {"eyecam_time_source": eyecam_time_source}).fetch1("event_suffix")
+    event_type = eg.eye_camera_event_type(base_key["recording_id"], suffix)
+
+    event_key = {k: base_key[k] for k in ("session_id", "scan_id") if k in base_key}
+    t_eyecam = (Event & event_key
+                & f'event_type="{event_type}"').fetch("event_start_time").astype(float)
+    if len(t_eyecam) == 0:
+        raise ValueError(f"No eye camera events found for {event_type} "
+                         f"({base_key['recording_id']})")
+    t_optitrack = (Event & event_key
+                   & 'event_type="optitrack_frames"').fetch("event_start_time").astype(float)
+    if len(t_optitrack) == 0:
+        raise ValueError("No optitrack_frames events found for this session/scan")
+    return t_eyecam, t_optitrack
+
+
+def _eye_side_sign(recording_id, subject_name):
+    """+1 left, -1 right, with the EyeSideNote correction applied exactly as production does.
+
+    Mirrors ``pupil_tracking.eye_side_sign``. The label read is shared
+    (``eye_geometry.side_sign_from_recording_id``); the note lookup is a table read and so
+    lives with each chain. Both must stay in step: if the recordings are ever renamed and
+    the note updated, a chain still applying the old correction flips the sign of every
+    gaze vector it produces, and nothing downstream would raise.
+    """
+    s = eg.side_sign_from_recording_id(recording_id)
+    notes = (upstream("EyeSideNote") & {"subject": subject_name}).fetch(
+        as_dict=True, order_by="note_date DESC", limit=1)
+    if notes and notes[0]["sides_swapped"]:
+        s = -s
+    return s
+
+
+def _torsion(key):
+    """Torsion from head pitch through the subject's manual linear calibration.
+
+    Despite being stored per frame this is not a per-frame measurement: it is a linear
+    function of pitch with per-animal coefficients, and carries nothing the pitch does not.
+    """
+    param_coeff = (upstream("TorsionCalibManual") & key).fetch1("param_coeff")
+    param_intercept = (upstream("TorsionCalibManual") & key).fetch1("param_intercept")
+    pitch = (upstream("RigidMouseTracking") & key).fetch1("pitch")
+    return param_coeff * pitch + param_intercept
+
+
+@pupil_schema
+class PupilRotationOptiTrackImputed(dj.Computed):
+    """The imputed eye trace on the OptiTrack clock -- sibling of ``PupilRotationOptiTrack``.
+
+    Second of the three tables decision A1 requires. It exists for one reason: gaze in
+    space is computed frame by frame against the head quaternion, which is sampled by
+    OptiTrack, while the eye is sampled by its own camera at roughly 50 Hz. Something has
+    to put the two on one clock, and that something must be the same something production
+    uses or the imputed and production gaze would differ by their resampling as well as by
+    imputation.
+
+    So it is: ``make()`` calls ``eye_geometry.upsample_eye_trace``, which is the body of
+    ``PupilRotationOptiTrack.make()`` moved into a database-free module for exactly this
+    purpose, and which the production table now calls too. There is no second
+    implementation to keep in step.
+
+    Note what this does NOT do: gap-filling here runs over the imputed theta/phi, so frames
+    DISK won back are real samples the interpolator now works from rather than across. That
+    is the whole point, and it is also why the two chains cannot share rows -- the same
+    interpolator over different inputs.
+    """
+
+    definition = """
+    -> PupilEllipseFittingImputed
+    -> EyeCamTimeSource
+    ---
+    theta_opt       : longblob   # interpolated upscaled horizontal orientation in radians
+    phi_opt         : longblob   # interpolated upscaled vertical orientation in radians
+    diameter_opt    : longblob   # interpolated upscaled pupil diameter in pixels
+    """
+
+    @property
+    def key_source(self):
+        """Only the (recording, time source) pairs production actually has, read across the mirror.
+
+        ``PupilRotationOptiTrack``'s own key source is ``PupilEllipseFittingFreeMoving *
+        EyeCamTimeSource``, the full cross product with all three time sources, and it
+        relies on ``make()`` raising for the two that have no events. That leaves two failed
+        jobs in ``~jobs`` for every one that works. Restricting to the pairs production
+        already resolved gives the same rows without the noise, and guarantees every imputed
+        row has a production row to be compared against.
+        """
+        pupil_tracking = _linking_module.pupil_tracking
+        branches = []
+        for imp_id, prod_id in PRODUCTION_MIRROR.items():
+            prod = (pupil_tracking.PupilRotationOptiTrack
+                    & {"parameter_id": prod_id}).proj(production_parameter_id="parameter_id")
+            branches.append(dj.AndList([{"parameter_id": imp_id}, prod]))
+        return (PupilEllipseFittingImputed * upstream("EyeCamTimeSource")) & branches
+
+    def make(self, key):
+        base_key = {k: v for k, v in key.items() if k != "eyecam_time_source"}
+        theta, phi, diameter = (PupilEllipseFittingImputed & base_key).fetch1(
+            "theta", "phi", "diameter")
+
+        t_eyecam, t_optitrack = _eye_and_optitrack_clocks(
+            base_key, key["eyecam_time_source"])
+
+        theta_opt, phi_opt, diameter_opt = eg.upsample_eye_trace(
+            theta, phi, diameter, t_eyecam, t_optitrack)
+
+        self.insert1({**key, "theta_opt": theta_opt, "phi_opt": phi_opt,
+                      "diameter_opt": diameter_opt})
+
+
+@pupil_schema
+class GazeReconstruction3DImputed(dj.Computed):
+    """Gaze in head and in space from imputed markers -- sibling of ``GazeReconstruction3D``.
+
+    Third and last of the tables decision A1 requires, and the one the whole exercise is
+    for: this is where DISK's recovered eye angles become a gaze direction in the arena,
+    which is what every downstream analysis -- retinal position, gaze-to-target error, the
+    PSTHs -- actually reads.
+
+    ``make()`` is its production twin's, with the geometry taken from
+    ``eye_geometry.compute_gaze_vectors``, which both tables now call. The eye-side sign,
+    including the ``EyeSideNote`` correction for subjects whose eye videos were misnamed at
+    acquisition, is composed the same way in both chains: a second copy of that correction
+    is a second place for it to be applied twice, or not at all.
+
+    Everything except the eye trace is shared with production by construction -- the same
+    head quaternions from the same ``RigidMouseTracking`` row, the same ``EyeModel``, the
+    same per-animal torsion calibration. The difference between a row here and its
+    production twin is therefore the imputation and nothing else, which is what makes the
+    comparison worth drawing.
+    """
+
+    definition = """
+    -> PupilRotationOptiTrackImputed
+    -> RigidMouseTracking
+    -> EyeModel
+    -> TorsionCalibManual
+    ---
+    gaze_in_head    : longblob
+    gaze_in_space   : longblob
+    torsion         : longblob   # torsion angle of the eye
+    """
+
+    @property
+    def key_source(self):
+        """The mirrored production reconstructions, so the two sets are row-for-row comparable.
+
+        Without this the join would also multiply by every ``EyeModel`` row -- there are
+        two, one from Sakatani & Isa and one from Oommen & Stahl -- and reconstruct gaze
+        under an eye model the production row for the same recording never used.
+        """
+        pupil_tracking = _linking_module.pupil_tracking
+        base = (PupilRotationOptiTrackImputed
+                * upstream("RigidMouseTracking")
+                * upstream("EyeModel")
+                * upstream("TorsionCalibManual"))
+        branches = []
+        for imp_id, prod_id in PRODUCTION_MIRROR.items():
+            prod = (pupil_tracking.GazeReconstruction3D
+                    & {"parameter_id": prod_id}).proj(production_parameter_id="parameter_id")
+            branches.append(dj.AndList([{"parameter_id": imp_id}, prod]))
+        return base & branches
+
+    def make(self, key):
+        eye_model_azimuth, eye_model_elevation = (upstream("EyeModel") & key).fetch1(
+            "eye_model_azimuth", "eye_model_elevation")
+
+        rec_id = (PupilRotationOptiTrackImputed & key).fetch1("recording_id")
+        s = _eye_side_sign(rec_id, key["subject"])
+
+        theta, phi = (PupilRotationOptiTrackImputed & key).fetch1("theta_opt", "phi_opt")
+
+        qx, qy, qz, qw = (upstream("RigidMouseTracking") & key).fetch1(
+            "q_x", "q_y", "q_z", "q_w")
+        q_head_world_xyzw = np.column_stack([qx, qy, qz, qw])
+
+        gaze_in_head, gaze_in_space = eg.compute_gaze_vectors(
+            theta, phi, q_head_world_xyzw, eye_model_azimuth, eye_model_elevation, s)
+
+        torsion = _torsion(key)
+
+        self.insert1({**key, "gaze_in_head": gaze_in_head,
+                      "gaze_in_space": gaze_in_space, "torsion": torsion})
+
+
+# ======================================================================================
+# The head-fixed sibling chain
+# ======================================================================================
+#
+# Leon Kremers' bench2p cohort is recorded head-fixed and fitted by
+# `pupil_tracking.PupilEllipseFitting`, not `PupilEllipseFittingFreeMoving`. That is a
+# different chain from top to bottom -- a different parameter table with a different shape,
+# a different production fit table to inherit calibration from -- and the two cannot be
+# merged, because both parameter tables call their key `parameter_id` and a given id means
+# something unrelated in each.
+#
+# What they CAN share is everything numerical, and they do: `_run_imputation` and
+# `_run_imputed_fit` carry the whole body for both chains, and the helpers beneath them
+# (`_mask_and_center`, `_fit_frames`, `_nice_mask`, `_recover_calibration`, `_to_angles`,
+# `_check_reproduces_production`) are called unchanged. The head-fixed side supplies only
+# a parameter adapter. The two production `fit_ellipse` implementations are byte-identical,
+# which is what makes that legitimate, and `assert_fit_ellipse_shared()` fails loudly if
+# that ever stops being true.
+
+
+@schema
+class HeadfixedImputationTask(dj.Manual):
+    """One imputation to run: a head-fixed recording, a model, and a policy.
+
+    The free-moving twin of this table is :class:`DLCImputationTask`. They are separate
+    rather than one table with a discriminator column because the foreign key differs:
+    this one points at `#pupil_ellipse_parameter`, that one at
+    `#pupil_ellipse_parameter_free_moving`, and DataJoint has no way to express "one or the
+    other" in a primary key.
+    """
+
+    definition = """
+    -> PupilEllipseParameter                              # what counts as missing
+    -> model.PoseEstimationNew
+    -> DISKModel
+    -> ImputationParamSet
+    ---
+    task_mode='trigger'  : enum('trigger', 'load')
+    output_dir=''        : varchar(255)
+    task_description=''  : varchar(255)
+    """
+
+
+@pupil_schema
+class HeadfixedFrameQuality(dj.Computed):
+    """Frame classification for the head-fixed chain.
+
+    Identical logic to :class:`PupilFrameQuality` -- it calls that class's ``classify``
+    directly -- but keyed to the head-fixed parameter table. A shared table is not possible:
+    ``parameter_id`` is the primary key of both parameter tables and means different things
+    in each, so one classification row could not say which it belonged to.
+
+    Note that ``pupil_min_dots`` reaches into this classification. ``classify`` branches on
+    it, and the head-fixed parameter table has no such column, so the adapter supplies the
+    six that `PupilEllipseFitting.make()` hard-codes. A frame with exactly five good pupil
+    dots is therefore ``partial`` here, which is what production would do with it.
+    """
+
+    definition = """
+    -> PupilEllipseParameter
+    -> model.PoseEstimationNew
+    ---
+    frame_class          : blob@external-raw   # uint8 per frame, see FRAME_CLASS
+    n_frames             : int unsigned
+    frac_ok              : float
+    frac_partial         : float
+    frac_no_reflection   : float
+    frac_tracking_lost   : float
+    """
+
+    @property
+    def key_source(self):
+        """Eye recordings only, crossed with the head-fixed parameter sets.
+
+        Same restriction as :attr:`PupilFrameQuality.key_source` and for the same reason:
+        without it the default source is every pose estimation crossed with every parameter
+        set, most of which are not eye models at all and would raise in ``classify``.
         """
         model = _linking_module.model
-        pupil_tracking = _linking_module.pupil_tracking
+        bp = model.Model.BodyPart
+        eye_models = (dj.U("model_name") & (bp & 'body_part = "IR"')) \
+            & (dj.U("model_name") & (bp & 'body_part = "nose_corner"')) \
+            & (dj.U("model_name") & (bp & 'body_part = "lateral_corner"')) \
+            & (dj.U("model_name") & (bp & 'body_part like "pupil%"'))
+        return (model.PoseEstimationNew & eye_models) * _headfixed_param_table
 
-        params = fetch_params(key)
+    def make(self, key):
+        """Classify, using the same pure function the free-moving chain uses."""
+        model = _linking_module.model
 
-        def _stack(rows, what):
-            by = {r["body_part"]: r for r in rows}
-            miss = [m for m in PRODUCTION_ORDER if m not in by]
-            if miss:
-                raise ValueError(f"{what} is missing markers {miss} for {key}")
-            names = list(by)
-            xy = np.stack([np.c_[np.asarray(by[m]["x_pos"], float),
-                                 np.asarray(by[m]["y_pos"], float)] for m in names], axis=1)
-            lik = np.stack([np.asarray(by[m]["likelihood"], float) for m in names], axis=1)
-            return names, xy, lik
-
-        # -- 1. imputed markers, and the originals production saw ----------------------
-        # Both are needed. The imputed ones are what this table fits; the original ones
-        # are what the inherited calibration was estimated from, and the only way to
-        # recover it from what production stored.
-        names_i, xy_i, lik_i = _stack(
-            (DLCImputation.BodyPart & key).fetch(
-                "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
-                order_by="body_part"), "DLCImputation.BodyPart")
-
+        params = fetch_headfixed_params(key)
         pose_key = {k: key[k] for k in model.PoseEstimationNew.primary_key}
-        names_o, xy_o, lik_o = _stack(
-            (model.PoseEstimationNew.BodyPartPosition & pose_key).fetch(
-                "body_part", "x_pos", "y_pos", "likelihood", as_dict=True,
-                order_by="body_part"), "PoseEstimationNew.BodyPartPosition")
+        rows = (model.PoseEstimationNew.BodyPartPosition & pose_key).fetch(
+            "body_part", "likelihood", as_dict=True, order_by="body_part")
+        markers = [r["body_part"] for r in rows]
+        likelihood = np.stack([np.asarray(r["likelihood"], float) for r in rows], axis=1)
 
-        pc_x, pc_y, ir_xg, ir_yg = _mask_and_center(xy_i, lik_i, names_i, params)
-        pc_x_o, pc_y_o, ir_xg_o, ir_yg_o = _mask_and_center(xy_o, lik_o, names_o, params)
-
-        # -- 2. inherit the calibration -----------------------------------------------
-        cam_center_prod, eye_center_prod, scale = (
-            pupil_tracking.PupilEllipseFittingFreeMoving & key).fetch1(
-                "cam_center", "eye_center", "scale")
-        scale = float(scale)
-        cam_cent, eye_cent = _recover_calibration(
-            np.asarray(cam_center_prod, float), np.asarray(eye_center_prod, float),
-            ir_xg_o, ir_yg_o)
-
-        horizontal_offset = float(np.arcsin((eye_cent[0] - cam_cent[0]) / scale))
-        vertical_offset = float(np.arcsin(
-            (eye_cent[1] - cam_cent[1]) / np.cos(horizontal_offset) / scale))
-
-        # -- 3. gate: does the reused fit reproduce production's own angles? -----------
-        # Run the extracted fit over the ORIGINAL markers under the inherited
-        # calibration. That is precisely what production did, so it must return
-        # precisely what production stored. If it does not, the masking, the marker
-        # ordering or the fit differs from production somewhere, and every comparison
-        # this table exists to support would be measuring that difference instead of
-        # imputation. This pass also supplies n_nice_frames honestly -- with an
-        # inherited calibration, the frames that contributed to it are production's,
-        # not this row's.
-        X0_o, Y0_o, la_o, sa_o, _ = _fit_frames(pc_x_o, pc_y_o, params)
-        theta_o, _ = _to_angles(X0_o, Y0_o, cam_cent, scale,
-                                horizontal_offset, vertical_offset)
-        theta_prod = np.asarray(
-            (pupil_tracking.PupilEllipseFittingFreeMoving & key).fetch1("theta"), float)
-        _check_reproduces_production(theta_o, theta_prod, key)
-        n_nice_frames = int(_nice_mask(pc_x_o, la_o, sa_o, params).size)
-
-        # -- 4. the fit this table is for ---------------------------------------------
-        X0_in, Y0_in, long_axis, short_axis, angle_from_x = _fit_frames(pc_x, pc_y, params)
-        theta, phi = _to_angles(X0_in, Y0_in, cam_cent, scale,
-                                horizontal_offset, vertical_offset)
-
-        # How much of each frame's evidence is invented. Without this the table cannot
-        # distinguish an angle fitted through eight real markers from one fitted through
-        # eight synthetic ones -- measured on Natasha's cohort, 2.1% of frames that yield
-        # an angle would be fitted entirely from DISK output, and nothing downstream could
-        # tell. Counted over the markers that actually entered the fit, so a marker DISK
-        # filled but that still failed the threshold is not counted.
-        # Counted over the eight PUPIL markers, in PRODUCTION_ORDER, which are the ones
-        # the conic is fitted through -- and only those that actually entered the fit, so
-        # a marker DISK filled that still failed the threshold is not counted. The
-        # corneal reflection is deliberately excluded: it is the origin the pupil
-        # coordinates are expressed relative to, not a point on the ellipse. An imputed
-        # IR shifts every coordinate in the frame rather than adding one of eight, so
-        # folding it into the same count would understate it; read it from
-        # DLCImputation.BodyPart when that matters.
-        src = {r["body_part"]: np.asarray(r["sample_source"]) for r in
-               (DLCImputation.BodyPart & key).fetch(
-                   "body_part", "sample_source", as_dict=True)}
-        synth = np.stack([src[m] == SAMPLE_SOURCE["disk"] for m in PRODUCTION_ORDER[3:]],
-                         axis=1)
-        used = ~np.isnan(pc_x)                        # (T, 8): entered the conic fit
-        n_imputed = (used & synth).sum(axis=1).astype(np.uint8)
-
-        # Un-centred back into original pixel coordinates with the IMPUTED reflection,
-        # which is the same convention production uses with its own -- and is part of the
-        # point, since a recovered IR is one of the ways a frame is won back.
+        frame_class = PupilFrameQuality.classify(markers, likelihood, params)
+        n = int(frame_class.size)
+        frac = {name: float((frame_class == code).mean()) for name, code in FRAME_CLASS.items()}
         self.insert1({
             **key,
-            "theta": theta,
-            "phi": phi,
-            "diameter": long_axis,
-            "pupil_center": np.column_stack((X0_in + ir_xg, Y0_in + ir_yg)),
-            "x0_in": X0_in,
-            "y0_in": Y0_in,
-            "long_axis": long_axis,
-            "short_axis": short_axis,
-            "angle_from_x": angle_from_x,
-            "cam_center": np.column_stack((cam_cent[0] + ir_xg, cam_cent[1] + ir_yg)),
-            "eye_center": np.column_stack((eye_cent[0] + ir_xg, eye_cent[1] + ir_yg)),
-            "scale": scale,
-            "horizontal_offset": horizontal_offset,
-            "vertical_offset": vertical_offset,
-            "n_nice_frames": n_nice_frames,
-            "n_imputed_markers": n_imputed,
-            "n_angle": int(np.isfinite(theta).sum()),
-            "calibration_source": "inherited",
+            "frame_class": frame_class,
+            "n_frames": n,
+            "frac_ok": frac["ok"],
+            "frac_partial": frac["partial"],
+            "frac_no_reflection": frac["no_reflection"],
+            "frac_tracking_lost": frac["tracking_lost"],
         })
+
+
+@schema
+class HeadfixedImputation(dj.Computed):
+    """Imputed markers for a head-fixed recording. The twin of :class:`DLCImputation`.
+
+    The entire body is :func:`_run_imputation`, the same function the free-moving chain
+    calls. Only the three tables it reads differ.
+    """
+
+    definition = """
+    -> HeadfixedImputationTask
+    ---
+    imputation_time      : datetime
+    recording_fps        : decimal(7,3)   # validated against DISKModel.training_fps
+    production_fit_hash  : char(64)       # SHA-256 of the extracted production ellipse fit
+    n_frames_total       : int unsigned
+    n_frames_observed    : int unsigned   # every marker above threshold
+    n_frames_imputed     : int unsigned   # at least one marker filled by DISK
+    n_frames_refused     : int unsigned   # at least one marker refused
+    n_frames_unfilled    : int unsigned   # at least one marker left for gap length
+    n_gaps_attempted     : int unsigned
+    n_gaps_too_long      : int unsigned   # exceeded seq_length: the untested regime
+    max_gap_filled       : smallint unsigned
+    n_angle_before       : int unsigned   # frames yielding an eye angle from the originals
+    n_angle_after        : int unsigned   # ... and after imputation. The yield.
+    disk_runtime_s=null  : float
+    """
+
+    class BodyPart(dj.Part):
+        """Per-marker arrays. See :class:`DLCImputation.BodyPart`, which this mirrors."""
+
+        definition = """
+        -> master
+        -> model.Model.BodyPart
+        ---
+        x_pos         : blob@external-raw   # effective coordinates: observed or filled
+        y_pos         : blob@external-raw
+        likelihood    : blob@external-raw   # EFFECTIVE likelihood -- what downstream thresholds on
+        sample_source : blob@external-raw   # uint8 per frame, see SAMPLE_SOURCE
+        """
+
+    class Gap(dj.Part):
+        """One row per contiguous missing segment. See :class:`DLCImputation.Gap`."""
+
+        definition = """
+        -> master
+        -> model.Model.BodyPart
+        gap_start     : int unsigned
+        ---
+        gap_length    : int unsigned
+        uncertainty=null : float          # DISK's per-segment sigma; null where it declined
+        gap_status    : enum('filled', 'refused', 'too_long', 'unfilled')
+        """
+
+    @property
+    def key_source(self):
+        """Only recordings whose frames have been classified."""
+        return HeadfixedImputationTask & HeadfixedFrameQuality.proj()
+
+    def make(self, key):
+        """Impute one head-fixed recording. Body in :func:`_run_imputation`."""
+        assert_fit_ellipse_shared()
+        _run_imputation(self, key, task_table=HeadfixedImputationTask,
+                        quality_table=HeadfixedFrameQuality,
+                        fit_params=fetch_headfixed_params)
+
+
+@pupil_schema
+class PupilEllipseFittingHeadfixedImputed(dj.Computed):
+    """Eye angles from imputed markers, beside the head-fixed production fit.
+
+    The twin of :class:`PupilEllipseFittingImputed`, and the same decision behind it: a
+    sibling table rather than a pose-source dimension on `PupilEllipseFitting`, because
+    DataJoint cannot add a primary-key attribute in place.
+
+    Its ``key_source`` requires a production fit at the SAME ``parameter_id``, exactly as
+    the free-moving twin does -- the calibration is inherited from that fit, not
+    re-estimated, so without it there is nothing to inherit.
+    """
+
+    definition = """
+    -> HeadfixedImputation
+    ---
+    theta               : blob@external-raw   # azimuth, radians, relative to eye centre
+    phi                 : blob@external-raw   # elevation, radians
+    diameter            : blob@external-raw   # ellipse semi-major axis, px
+    pupil_center        : blob@external-raw   # (T, 2) in original pixel coordinates
+    x0_in               : blob@external-raw
+    y0_in               : blob@external-raw
+    long_axis           : blob@external-raw
+    short_axis          : blob@external-raw
+    angle_from_x        : blob@external-raw
+    cam_center          : blob@external-raw
+    eye_center          : blob@external-raw
+    scale               : float
+    horizontal_offset   : float
+    vertical_offset     : float
+    n_nice_frames       : int unsigned
+    n_imputed_markers   : blob@external-raw
+    n_angle             : int unsigned
+    calibration_source  : enum('inherited', 'refit')
+    """
+
+    @property
+    def key_source(self):
+        """Imputations whose head-fixed production twin exists at the same parameter set."""
+        pupil_tracking = _linking_module.pupil_tracking
+        return HeadfixedImputation & pupil_tracking.PupilEllipseFitting.proj()
+
+    def make(self, key):
+        """Fit the imputed markers. Body in :func:`_run_imputed_fit`."""
+        assert_fit_ellipse_shared()
+        _run_imputed_fit(
+            self, key, imputation_table=HeadfixedImputation,
+            production_table=_linking_module.pupil_tracking.PupilEllipseFitting,
+            fit_params=fetch_headfixed_params)
+
 
 # ======================================================================================
 # Read-only helpers
 # ======================================================================================
+
+
+# ======================================================================================
+# The topcam body-tracking chain -- the third sibling
+# ======================================================================================
+#
+# WHY A THIRD CHAIN AND NOT A COLUMN ON THE FIRST
+# -----------------------------------------------
+# `DLCImputation`'s primary key is
+#
+#     session_id, scan_id, recording_id, model_name,   <- model.PoseEstimationNew
+#     parameter_id,                                    <- PupilEllipseParameterFreeMoving
+#     disk_model_name, imputation_paramset_id
+#
+# and the fifth attribute is the problem. `parameter_id` there is the *pupil* parameter
+# set: it says what counts as a missing pupil marker, and it is the key of
+# `#pupil_ellipse_parameter_free_moving`. A topcam row would have to supply one, and there
+# is no body-camera parameter table to supply it from -- so the row could only exist by
+# naming a pupil parameter set that has nothing to do with it. That is not a tight fit
+# made loose; it is a foreign key pointing at the wrong thing.
+#
+# `HeadfixedImputation` already established the precedent and the reason: the two eye
+# chains are separate tables rather than one table with a discriminator column because
+# their fifth key attribute resolves to different parameter tables, and DataJoint cannot
+# express "one or the other" in a primary key. The topcam is the same argument with the
+# parameter table removed entirely.
+#
+# WHAT IS DIFFERENT HERE, BEYOND THE KEY
+# --------------------------------------
+# Three things, and each one removes something rather than adding it.
+#
+# 1. **There is no frame-quality gate.** `PupilFrameQuality` classifies frames as
+#    `no_reflection` or `tracking_lost`; both are corneal-reflection concepts and neither
+#    exists on a body camera. So this chain has no quality table, `key_source` is the task
+#    table alone, and `refused` is not a reachable state. The two `refuse_*` flags on
+#    `ImputationParamSet` are inert here, which is what set 4's description already says.
+#
+# 2. **There is no production ellipse fit**, so `production_fit_hash` has nothing to hash.
+#    Its job -- make a row visibly stale when the thing it depends on changes -- is done
+#    here by `crossover_hash`, the digest of the `ImputationParamSet.Crossover` rows in
+#    force when the row was computed. Change the policy and every row that predates the
+#    change is visibly, not quietly, out of date.
+#
+# 3. **The yield counters are consumer quantities, not eye angles.** `n_angle_before` and
+#    `n_angle_after` answer "how many frames produce an eye angle". The topcam's equivalent
+#    question is asked four times over, because it has four consumers -- and the headroom
+#    measurement (`bench_topcam_headroom.py`) framed the whole project in exactly these
+#    terms: 15.6% of frames have no ear heading today, 6.1% no body centroid.
+#
+# THE ONE REAL DESIGN PROBLEM, AND THE CHOICE MADE
+# ------------------------------------------------
+# The crossover is per *quantity* (20 frames for the centroid and ear heading, 45 for IR
+# heading, never for speed), but `BodyPart.x_pos` is per *marker*. One stored marker array
+# therefore cannot honour four different crossovers at once. Two ways out:
+#
+#   (a) Store the array at NO crossover -- DISK wherever it answered -- and let each
+#       consumer apply its own crossover at read time. `sample_source` plus `Gap.gap_length`
+#       carry everything needed to do that, and `ImputationParamSet.Crossover` states the
+#       rule.
+#   (b) Store one array per consumer quantity, keyed by `consumer_quantity`, honouring the
+#       rule at write time.
+#
+# **(a) is chosen**, for one reason that outweighs the rest: (b) bakes today's measured
+# policy into stored data, so re-measuring the crossover -- which the held-out-animal model
+# may well force -- would invalidate every stored array rather than one lookup table. (b)
+# also duplicates the heavy blobs up to four times.
+#
+# The cost of (a) is real and must be named: **the stored array is not safe to read
+# directly.** Read naively it is the all-DISK configuration, which is the one measured to
+# make centroid speed 43% worse than plain interpolation. That is why
+# :meth:`TopcamImputation.markers_for` exists and why it raises rather than returning
+# anything when no crossover row is on file. The correct read is one method call; the
+# harmful read is the one that takes more work.
+#
+# NOTHING BELOW IS ACTIVATED
+# --------------------------
+# These are declarations. `schema.activate(..., create_tables=True)` will create them on
+# any server missing them, which is exactly how the `MocapImputation*` tables came back
+# twice from stale checkouts. Create them the way `add_crossover_policy.py` did it: name
+# the table explicitly, diff the schema's table list before and after, and refuse if the
+# difference is anything other than what was asked for.
+#
+# `MocapImputation*` -- TO BE DELETED FROM roselab_disk
+# -----------------------------------------------------
+# Four tables still stand in the database that this module no longer declares:
+#
+#     mocap_imputation_task
+#     __mocap_imputation
+#     __mocap_imputation__rigid_body_position_d_i_s_k
+#     __mocap_imputation__tracking_position_d_i_s_k
+#
+# All four are EMPTY and have never held a row. They are orphans of an earlier version of
+# this module, recreated twice by activating a stale checkout, and they should be dropped
+# -- but dropping is a schema write and needs its own authorisation, so they are recorded
+# here instead of removed quietly.
+#
+# Do not repurpose them. They were built for a job that measurement has since ruled out,
+# and they are weaker than every chain now in use: no `Gap` table, no `uncertainty`, no
+# `sample_source`, no crossover policy -- the four things that make an imputation
+# auditable after the fact.
+#
+# The job itself is settled. Surveyed on 2026-09-24, OptiTrack tracks the mouse with three
+# markers on one rigid headpiece; they drop out together or not at all (zero frames with
+# one or two visible), so the cross-marker inference DISK exists for has no input, and 98%
+# of the blackouts are a SINGLE frame at 240 Hz, the regime in which the topcam benchmark
+# measured DISK to be three and a half times worse than a straight line. The right tool is
+# SLERP over the rigid body's stored quaternions, not a learned model. See
+# `notebooks/tobiasr/Claude/optitrack_disk_feasibility/handoff.md` for the numbers.
+
+
+#: The four quantities the topcam benchmark scored, and the only strings
+#: :meth:`TopcamImputation.markers_for` will accept. They are the
+#: ``consumer_quantity`` values in :class:`ImputationParamSet.Crossover`.
+#:
+#: ``centroid_speed`` is in the list because it must be *refusable* by name. Its measured
+#: policy is ``use_model = 0``, and a consumer that asks for it should get a clear refusal
+#: rather than silently fall through to a default.
+TOPCAM_CONSUMER_QUANTITIES = (
+    "body_centroid",   # mean of back, neck, tail_base
+    "centroid_speed",  # its central difference -- DO NOT use the model
+    "heading_ir",      # heading from the IR pair
+    "heading_ear",     # heading from the ear pair
+)
+
+#: Which markers each consumer quantity is built from. Used to decide which gaps a given
+#: quantity's crossover actually governs -- a crossover on ``heading_ear`` has no business
+#: filtering the tail base.
+TOPCAM_QUANTITY_MARKERS = {
+    "body_centroid":  ("back", "neck", "tail_base"),
+    "centroid_speed": ("back", "neck", "tail_base"),
+    "heading_ir":     ("IR_left", "IR_right"),
+    "heading_ear":    ("ear_left", "ear_right"),
+}
+
+
+def topcam_crossover(imputation_paramset_id: int, disk_model_name: str,
+                     consumer_quantity: str) -> dict:
+    """The measured crossover rule for one model and one quantity. Fails closed.
+
+    Returns a dict with ``crossover_frames`` and ``use_model``. Raises if no row exists,
+    because absence of a row means "nobody has measured this" and the honest response to
+    that is a refusal, not a default -- see :class:`ImputationParamSet.Crossover`.
+
+    ``disk_model_name`` is required, not optional. A crossover measured on one checkpoint
+    says nothing about another, and two checkpoints can share a parameter set -- the
+    held-out-animal topcam model shares set 4 with the within-animal one. Defaulting it
+    would hand the caller the wrong checkpoint's threshold in exactly the case the
+    distinction exists for.
+
+    Read-only: one restriction and one ``fetch1``.
+    """
+    if consumer_quantity not in TOPCAM_CONSUMER_QUANTITIES:
+        raise ValueError(
+            "unknown consumer_quantity %r; expected one of %r"
+            % (consumer_quantity, TOPCAM_CONSUMER_QUANTITIES)
+        )
+    rows = ImputationParamSet.Crossover & {
+        "imputation_paramset_id": imputation_paramset_id,
+        "disk_model_name": disk_model_name,
+        "consumer_quantity": consumer_quantity,
+    }
+    if not rows:
+        raise RuntimeError(
+            "No ImputationParamSet.Crossover row for paramset %d, model %r, quantity %r. "
+            "That means no crossover has been MEASURED for this CHECKPOINT and quantity, "
+            "not that there is no restriction -- calling the model without one is the "
+            "configuration measured to do harm (centroid speed 43%% worse than linear "
+            "interpolation). A crossover measured on a different checkpoint does not "
+            "transfer. Measure it with bench_topcam.py before reading this quantity."
+            % (imputation_paramset_id, disk_model_name, consumer_quantity)
+        )
+    row = rows.fetch1()
+    return {
+        "crossover_frames": int(row["crossover_frames"]),
+        "use_model": bool(row["use_model"]),
+        "evidence": row["evidence"],
+    }
+#: Markers whose presence a consumer quantity requires. A quantity yields a frame only
+#: when EVERY marker it is built from has a usable coordinate there -- a centroid from two
+#: of three markers is a different quantity, not a degraded one.
+def _usable_mask(xy, src):
+    """Per (frame, marker): does this sample carry a coordinate a consumer may use?
+
+    Usable means a finite coordinate whose provenance is one the consumer is entitled to
+    read -- observed, filled by DISK, interpolated below a crossover, or a kept
+    low-confidence DeepLabCut point. ``unfilled``, ``refused`` and ``not_modelled`` are
+    not usable: the first two mean nothing was recovered, and the third means the marker
+    was never offered to the model.
+    """
+    ok_src = np.isin(src, [SAMPLE_SOURCE["observed"], SAMPLE_SOURCE["disk"],
+                           SAMPLE_SOURCE["interpolated"], SAMPLE_SOURCE["dlc_low_kept"]])
+    return ok_src & np.isfinite(xy).all(axis=2)
+
+
+def _topcam_yield(usable, contract, quantity):
+    """Frames that yield one consumer quantity, given a usable-sample mask."""
+    idx = {m: i for i, m in enumerate(contract)}
+    needed = TOPCAM_QUANTITY_MARKERS[quantity]
+    missing_from_contract = [m for m in needed if m not in idx]
+    if missing_from_contract:
+        raise ValueError(
+            f"{quantity} needs {missing_from_contract}, which are not in this model's "
+            f"keypoint contract {contract}. The counter would silently be zero.")
+    cols = [idx[m] for m in needed]
+    return usable[:, cols].all(axis=1)
+
+
+def _apply_topcam_crossover(xy, src, gaps_by_marker, contract, markers, crossover_frames):
+    """Turn the stored all-DISK arrays into the policy the benchmark actually measured.
+
+    The deployed rule has THREE branches, not two, and the third is easy to forget:
+
+    1. **At or below the crossover** -- interpolate. Over a short dropout the animal has
+       barely moved, so a straight line between the two observed positions is very nearly
+       exact and the model is reconstructing from dynamics it does not need.
+    2. **Above the crossover** -- keep DISK's fill. There is no straight line to draw.
+    3. **Wherever DISK DECLINED an in-window gap** -- interpolate, whatever the length.
+       DISK answers only about five gaps in six even well inside its window, and the
+       measured hybrid falls back to interpolation there and is charged interpolation's
+       error for it. Leaving those frames empty would deliver less than the policy that
+       was scored, which is what the benchmark's own hybrid implementation does not do.
+
+    A ``too_long`` gap is NOT branch 3 and is deliberately left alone. It was never
+    offered to the model rather than declined by it, and in production such a gap can run
+    to thousands of frames -- the longest the benchmark ever scored was 240. Drawing a
+    straight line across a minute of missing tracking fabricates a trajectory rather than
+    recovering one, so those frames stay ``unfilled`` and a consumer sees that they are.
+
+    The threshold is compared against ``origin_length`` -- the extent of the original
+    dropout -- and NOT against the row's own ``gap_length``. See
+    :class:`TopcamImputation.Gap`: a 40-frame dropout of which DISK answered five frames
+    produces a five-frame ``filled`` row, and judging that row on its own length would
+    overwrite the model's fill with interpolation in exactly the case the model was
+    chosen for.
+
+    Module-level rather than a method so that :meth:`TopcamImputation.make` can apply it
+    to arrays in memory and :meth:`TopcamImputation.markers_for` to arrays fetched back,
+    WITHOUT a second implementation that could disagree with the first.
+
+    Interpolation runs between the bracketing ``observed`` samples, not the nearest
+    non-missing ones: the anchors must be real DeepLabCut observations, or a fill would be
+    anchored on another fill. At the very start or end of a recording there is only one
+    bracket and ``np.interp`` holds the nearest observed value constant, which is what a
+    straight line degenerates to with one anchor. That case is outside what the benchmark
+    measured -- injected gaps were always placed inside clean stretches -- so it is
+    documented rather than silently assumed to be fine.
+
+    ``gaps_by_marker`` maps a marker to ``(start, length, status, origin_length)`` tuples.
+    Returns copies; the inputs are untouched.
+    """
+    xy, src = xy.copy(), src.copy()
+    for m in markers:
+        j = contract.index(m)
+        anchors = np.flatnonzero(src[:, j] == SAMPLE_SOURCE["observed"])
+        if anchors.size == 0:
+            # No observation anywhere for this marker: there is nothing to interpolate
+            # between, so DISK's fill stands. Leaving it as `disk` is the honest record.
+            continue
+        for start, length, status, origin_length in gaps_by_marker.get(m, ()):
+            if status == "filled":
+                if origin_length > crossover_frames:
+                    continue                       # branch 2: the model keeps this one
+            elif status == "unfilled":
+                pass                               # branch 3: DISK declined; interpolate
+            else:
+                continue                           # too_long: never offered, leave it
+            sl = slice(start, start + length)
+            tgt = np.arange(start, start + length)
+            xy[sl, j, 0] = np.interp(tgt, anchors, xy[anchors, j, 0])
+            xy[sl, j, 1] = np.interp(tgt, anchors, xy[anchors, j, 1])
+            src[sl, j] = SAMPLE_SOURCE["interpolated"]
+    return xy, src
+
+
+def topcam_crossover_hash(imputation_paramset_id: int, disk_model_name: str) -> str:
+    """SHA-256 of the whole effective policy: the paramset master AND its crossover rows.
+
+    Takes the job ``production_fit_hash`` does in the eye chains -- a policy change makes
+    existing rows visibly stale rather than quietly wrong.
+
+    The master row is in the digest because it can be edited in place, and changing
+    ``max_gap_frames`` alters which gaps were submitted at all, so rows computed before and
+    after are not comparable. A hash over the child rows alone would leave them looking
+    current.
+
+    Read-only.
+    """
+    import hashlib
+    import json
+
+    master = (ImputationParamSet & {
+        "imputation_paramset_id": imputation_paramset_id}).fetch1()
+    rows = (ImputationParamSet.Crossover & {
+        "imputation_paramset_id": imputation_paramset_id,
+        "disk_model_name": disk_model_name}).fetch(
+            "consumer_quantity", "crossover_frames", "use_model",
+            as_dict=True, order_by="consumer_quantity")
+
+    payload = {
+        # `default=str` in the dump below renders anything json cannot take -- notably
+        # MySQL decimals -- deterministically, so no type special-casing is needed here.
+        "master": {k: v for k, v in sorted(master.items())
+                   if k != "imputation_paramset_desc"},
+        "disk_model_name": disk_model_name,
+        "crossover": [
+            {"consumer_quantity": r["consumer_quantity"],
+             "crossover_frames": int(r["crossover_frames"]),
+             "use_model": int(r["use_model"])}
+            for r in rows],
+    }
+    blob = json.dumps(payload, sort_keys=True, default=str).encode()
+    return hashlib.sha256(blob).hexdigest()
+
+
+
+
+@schema
+class TopcamImputationTask(dj.Manual):
+    """One topcam imputation to perform: a recording, a model, a policy.
+
+    Three foreign keys where the two eye chains have four. There is no "what counts as
+    missing" parameter table for a body camera: the threshold that defines a missing
+    marker is ``DISKModel.likelihood_threshold``, which the model row already carries, so
+    the model IS the missing-ness definition here.
+    """
+
+    definition = """
+    -> model.PoseEstimationNew                            # the DLC run being repaired
+    -> DISKModel                                          # which trained network
+    -> ImputationParamSet                                 # gap ceiling, and the crossovers
+    ---
+    task_mode='trigger'  : enum('load','trigger')  # 'load': read prepared output; 'trigger': run inference
+    output_dir=''        : varchar(512)
+    task_description=''  : varchar(255)
+    """
+
+
+@schema
+class TopcamImputation(dj.Computed):
+    """Imputed topcam body markers, with per-sample provenance and per-gap uncertainty.
+
+    The twin of :class:`DLCImputation` in shape and its opposite in what it is scored on.
+    Counters here are the four consumer quantities the benchmark measured, before and
+    after, because "how many frames yield a usable body heading" is the question this
+    project exists to improve and "how many markers were filled" is not.
+
+    NO LITERAL ``%`` IN ANY COMMENT IN THIS DEFINITION. DataJoint hands the assembled
+    ``CREATE TABLE`` to pymysql, which treats it as a format string, so a percent sign in
+    a column comment raises ``TypeError: not enough arguments for format string`` and the
+    table simply cannot be declared. This class carried "15.6% missing today" from the day
+    it was written, which is why it never existed in the database despite being on ``main``
+    since PR #110. ``validate_disk_schema.py`` did not catch it either, because it compiles
+    attributes one at a time rather than executing the statement. ``test_no_percent_in_
+    definitions`` now does. Write "15.6 of every 100 frames" instead.
+
+    ``crossover_hash`` is the SHA-256 of the whole effective policy when this row was
+    computed: the :class:`ImputationParamSet` master attributes AND its
+    :class:`~ImputationParamSet.Crossover` rows for this model, ordered by
+    ``consumer_quantity``. It takes the job ``production_fit_hash`` does in the eye chain --
+    a policy change makes existing rows visibly stale rather than quietly wrong.
+
+    The master is in the digest because it can be edited in place. Changing
+    ``max_gap_frames`` alters which gaps were submitted at all, so rows computed before and
+    after are not comparable; a hash over the child rows alone would leave them looking
+    current.
+
+    **The stored arrays are the un-crossed-over DISK output.** Read them through
+    :meth:`markers_for`, never directly -- see the section comment above this class.
+    """
+
+    definition = """
+    -> TopcamImputationTask
+    ---
+    imputation_time        : datetime
+    recording_fps          : decimal(7,3)   # validated against DISKModel.training_fps
+    crossover_hash         : char(64)       # SHA-256 of the policy: master row + Crossover rows
+    n_frames_total         : int unsigned
+    n_frames_observed      : int unsigned   # every modelled marker above threshold
+    n_frames_imputed       : int unsigned   # at least one marker filled by DISK
+    n_frames_unfilled      : int unsigned   # at least one marker left: declined or too long
+    n_gaps_attempted       : int unsigned
+    n_gaps_too_long        : int unsigned   # exceeded seq_length: the untested regime
+    n_gaps_declined        : int unsigned   # inside the window, DISK declined anyway (~1 in 6)
+    max_gap_filled         : smallint unsigned
+    n_centroid_before      : int unsigned   # frames yielding a body centroid from the originals
+    n_centroid_after       : int unsigned   # ... and after imputation. The yield.
+    n_heading_ir_before    : int unsigned
+    n_heading_ir_after     : int unsigned
+    n_heading_ear_before   : int unsigned   # the biggest headroom: 15.6 of every 100 frames lack it
+    n_heading_ear_after    : int unsigned
+    disk_runtime_s=null    : float
+    """
+
+    class BodyPart(dj.Part):
+        """Per-marker arrays, un-crossed-over. See :class:`DLCImputation.BodyPart`.
+
+        ``likelihood`` is the EFFECTIVE likelihood, which is what a downstream threshold
+        sees. ``sample_source`` distinguishes ``observed``, ``disk``, ``interpolated`` and
+        ``unfilled``; ``refused`` and ``dlc_low_kept`` are unreachable on a body camera.
+        """
+
+        definition = """
+        -> master
+        -> model.Model.BodyPart
+        ---
+        x_pos         : blob@external-raw   # effective coordinates: observed or filled
+        y_pos         : blob@external-raw
+        likelihood    : blob@external-raw   # EFFECTIVE likelihood -- what downstream thresholds on
+        sample_source : blob@external-raw   # uint8 per frame, see SAMPLE_SOURCE
+        """
+
+    class Gap(dj.Part):
+        """One row per contiguous missing segment, per marker.
+
+        All-scalar and therefore in MySQL rather than on the store, so "every gap longer
+        than the crossover whose uncertainty is in the top quintile" is answered in SQL
+        without opening a blob. That query is the deployment gate the benchmark
+        recommended, and this is the table it runs against.
+
+        ``gap_status`` drops ``refused`` -- unreachable here -- and the three that remain
+        mean what they do in :class:`DLCImputation.Gap`. Note that a gap at or below a
+        quantity's crossover is NOT a separate status: whether it should have been
+        interpolated instead depends on which quantity is asking, and the status is a
+        property of the gap, not of the reader. ``gap_length`` plus
+        :func:`topcam_crossover` answer that at read time.
+
+        ``origin_length`` is NOT redundant with ``gap_length``, and the crossover is
+        fitted on the former. A submitted gap is split into contiguous runs of equal
+        outcome, so a 40-frame dropout of which DISK answered five frames yields a
+        ``filled`` row with ``gap_length = 5`` and ``origin_length = 40``. Judged on
+        ``gap_length`` a 20-frame crossover would call that a short gap and overwrite the
+        model's fill with interpolation -- inverting the policy in exactly the case it was
+        measured for, because the benchmark chose the model on the strength of the
+        dropout being 40 frames long. Rows belonging to one original dropout share an
+        ``origin_length`` and are contiguous.
+
+        ``uncertainty`` predicts the model's own error at Spearman 0.823 over 5,594
+        segments on the topcam cohort, with median error rising 0.83 -> 4.40 px across
+        sigma quintiles. Use it to gate the top quintile back to interpolation; do not
+        use it to discard data.
+        """
+
+        definition = """
+        -> master
+        -> model.Model.BodyPart
+        gap_start        : int unsigned      # first missing frame of the segment
+        ---
+        gap_length       : int unsigned      # this row's own extent
+        origin_length    : int unsigned      # extent of the ORIGINAL dropout it came from
+        uncertainty=null : float             # DISK's per-segment sigma; null if not filled
+        gap_status       : enum('filled','unfilled','too_long')
+                                             # 'unfilled': submitted and within the
+                                             # window, but DISK declined it
+        """
+
+    @property
+    def key_source(self):
+        """The task table, unrestricted.
+
+        No frame-quality gate stands in front of this chain, because the two classes
+        `PupilFrameQuality` exists to catch -- `no_reflection` and `tracking_lost` -- are
+        corneal-reflection concepts that a body camera cannot produce.
+        """
+        return TopcamImputationTask()
+
+    def markers_for(self, consumer_quantity: str):
+        """The marker arrays for one quantity, with that quantity's crossover applied.
+
+        THIS IS THE ONLY SAFE READ. The stored arrays are the all-DISK configuration;
+        applying the crossover is what makes them better than plain interpolation instead
+        of worse. Reading ``BodyPart.x_pos`` directly gives the configuration measured to
+        make centroid speed 43% worse than doing nothing clever at all.
+
+        Raises if no crossover has been measured for ``consumer_quantity``, and raises if
+        the measured policy is ``use_model = 0`` -- as it is for ``centroid_speed``. A
+        refusal is the finding, not a failure.
+
+        Returns
+        -------
+        dict
+            ``markers`` (the ordered marker names), ``x``, ``y`` and ``sample_source``
+            (each ``n_frames x n_markers``), ``crossover_frames``, and ``usable`` -- a
+            boolean mask of the samples a consumer may read. The arrays are never returned
+            without ``sample_source``: a coordinate whose provenance you cannot see is a
+            coordinate you cannot judge.
+        """
+        row = self.fetch1("KEY")
+
+        # The policy this row was COMPUTED under must still be the policy in force, or the
+        # arrays describe a configuration nobody chose. `ImputationParamSet` can be edited
+        # in place, and some of its attributes cannot be re-applied at read time:
+        # lowering `max_gap_frames` leaves DISK fills sitting beyond the new ceiling, and
+        # raising it cannot conjure up gaps the old run never submitted. Only a re-run
+        # fixes either, so the honest response to a mismatch is to refuse.
+        stored_hash = self.fetch1("crossover_hash")
+        current_hash = topcam_crossover_hash(row["imputation_paramset_id"],
+                                             row["disk_model_name"])
+        if stored_hash != current_hash:
+            raise RuntimeError(
+                "this imputation was computed under a different policy: stored "
+                "crossover_hash %s, current %s. The parameter set or its crossover rows "
+                "have been edited since. Some of that cannot be applied at read time -- "
+                "a changed max_gap_frames alters which gaps were SUBMITTED -- so these "
+                "arrays cannot be reinterpreted under the new policy. Delete and "
+                "recompute this imputation, or restore the parameters it was computed "
+                "with." % (stored_hash[:12], current_hash[:12]))
+
+        rule = topcam_crossover(row["imputation_paramset_id"], row["disk_model_name"],
+                                consumer_quantity)
+        if not rule["use_model"]:
+            raise RuntimeError(
+                f"{consumer_quantity} has use_model = 0 for model "
+                f"{row['disk_model_name']!r}: the measured policy is never to call the "
+                f"model for this quantity. On the topcam benchmark DISK made centroid "
+                f"speed 43% worse than linear interpolation and the best hybrid bought "
+                f"1%, which is noise. Read this quantity from the production pose "
+                f"estimation instead. Evidence: {rule['evidence']!r}")
+
+        markers = list(TOPCAM_QUANTITY_MARKERS[consumer_quantity])
+        parts = (self.BodyPart & row & [{"body_part": m} for m in markers]).fetch(
+            "body_part", "x_pos", "y_pos", "sample_source", as_dict=True,
+            order_by="body_part")
+        by_name = {r["body_part"]: r for r in parts}
+        absent = [m for m in markers if m not in by_name]
+        if absent:
+            raise RuntimeError(
+                f"{consumer_quantity} needs {absent}, which this imputation has no "
+                f"BodyPart row for. It has {sorted(by_name)}.")
+
+        xy = np.stack([np.c_[np.asarray(by_name[m]["x_pos"], float),
+                             np.asarray(by_name[m]["y_pos"], float)] for m in markers],
+                      axis=1)
+        src = np.stack([np.asarray(by_name[m]["sample_source"], np.uint8)
+                        for m in markers], axis=1)
+
+        gap_rows = (self.Gap & row & [{"body_part": m} for m in markers]).fetch(
+            "body_part", "gap_start", "gap_length", "gap_status", "origin_length",
+            as_dict=True)
+        gaps_by_marker = {}
+        for g in gap_rows:
+            gaps_by_marker.setdefault(g["body_part"], []).append(
+                (int(g["gap_start"]), int(g["gap_length"]), g["gap_status"],
+                 int(g["origin_length"])))
+
+        xy, src = _apply_topcam_crossover(
+            xy, src, gaps_by_marker, markers, markers, rule["crossover_frames"])
+
+        return {
+            "markers": markers,
+            "x": xy[:, :, 0], "y": xy[:, :, 1],
+            "sample_source": src,
+            "usable": _usable_mask(xy, src),
+            "crossover_frames": rule["crossover_frames"],
+        }
+
+    def make(self, key):
+        """Impute one topcam recording.
+
+        The seven steps, each with a reason recorded in the benchmark:
+
+        1. Read the recording's markers and threshold at ``DISKModel.likelihood_threshold``
+           to define missing-ness.
+        2. Assert the recording's marker set is a superset of ``DISKModel.Keypoint``, and
+           store any marker outside the contract as ``not_modelled`` rather than imputing
+           it.
+        3. Validate ``recording_fps`` against ``DISKModel.training_fps``. The topcam runs at
+           120 fps and a mismatch silently changes what a gap length means.
+        4. Run DISK, with gaps longer than ``max_gap_frames`` never submitted and counted
+           as ``too_long``.
+        5. Verify the alignment gate before inserting anything.
+        6. Compute the before/after consumer counters.
+        7. Hash the policy into ``crossover_hash`` and insert master then parts.
+
+        Steps 1-5 are :func:`_impute_markers`, shared with the eye chains so that the
+        alignment gate and the gap bookkeeping cannot drift between them.
+
+        Two things differ from what the declaration's docstring promised, and both are
+        recorded here rather than quietly done:
+
+        * It said "the four before/after consumer counters". There are **three** pairs in
+          the table definition -- centroid, IR heading and ear heading -- and that is
+          correct. Centroid speed has no counter because the measured policy is never to
+          call the model for it, so an "after" count would describe a configuration that
+          must not be deployed.
+        * The counters are computed by applying each quantity's OWN policy in memory,
+          not from the raw arrays. An earlier version used the raw arrays on the grounds
+          that a crossover only swaps which method filled a sample. That was wrong once
+          the policy gained its third branch: where DISK declined an in-window gap the
+          rule now interpolates, which turns unusable frames into usable ones, so the
+          yield genuinely depends on the policy. Each counted quantity therefore needs a
+          measured crossover, and ``make()`` refuses without one rather than reporting a
+          number for a configuration nobody chose.
+        """
+        model = _linking_module.model
+
+        task = (TopcamImputationTask & key).fetch1()
+        mdl = (DISKModel & key).fetch1()
+        pset = (ImputationParamSet & key).fetch1()
+
+        if task["task_mode"] != "trigger":
+            raise NotImplementedError("only task_mode='trigger' is implemented")
+
+        # Refuse to compute a row nobody is permitted to read. A topcam imputation costs
+        # minutes of GPU per recording, and with no measured crossover for this checkpoint
+        # every call to markers_for() would raise -- so the row would be unreadable by the
+        # only safe accessor. Failing here says so at the cheap end.
+        measured = (ImputationParamSet.Crossover
+                    & {"imputation_paramset_id": key["imputation_paramset_id"],
+                       "disk_model_name": key["disk_model_name"]})
+        if not measured:
+            raise RuntimeError(
+                f"no ImputationParamSet.Crossover rows for paramset "
+                f"{key['imputation_paramset_id']} and model {key['disk_model_name']!r}, "
+                f"so nothing computed here could be read: markers_for() refuses every "
+                f"quantity without a measured crossover. Measure them with "
+                f"bench_topcam.py and insert them before populating.")
+
+        pose_key = {k: key[k] for k in model.PoseEstimationNew.primary_key}
+
+        # No refusal concept and no kept low-confidence points on a body camera: the two
+        # classes PupilFrameQuality exists to catch are corneal-reflection concepts, and
+        # `dlc_low_kept` is documented unreachable here. Passing the parameter set's flag
+        # through would have quietly made it reachable.
+        r = _impute_markers(key, mdl=mdl, pset=pset, pose_key=pose_key,
+                            refused_frame=None, allow_dlc_low_kept=False)
+
+        contract, src, gaps = r["contract"], r["src"], r["gaps"]
+        filled_lengths = [g[2] for g in gaps if g[3] == "filled"]
+
+        # -- 6. the consumer counters -------------------------------------------------
+        # `before` is what the ORIGINAL DeepLabCut output yields, with no imputation at
+        # all; `after` is what a consumer reading through markers_for() would get. The
+        # difference is the whole point of the project, which is why these are counters on
+        # the master row rather than something to be recomputed by whoever asks.
+        #
+        # `after` applies each quantity's own policy, because the policy's third branch --
+        # interpolate where DISK declined -- changes which frames are usable, not merely
+        # which method filled them.
+        before_usable = (r["lik"] > r["thres"]) & np.isfinite(r["xy"]).all(axis=2)
+        gaps_by_marker = {}
+        for j, start, length, status, unc, origin in gaps:
+            gaps_by_marker.setdefault(contract[j], []).append(
+                (start, length, status, origin))
+        counts = {}
+        for quantity, prefix in (("body_centroid", "n_centroid"),
+                                 ("heading_ir", "n_heading_ir"),
+                                 ("heading_ear", "n_heading_ear")):
+            rule = topcam_crossover(key["imputation_paramset_id"],
+                                    key["disk_model_name"], quantity)
+            markers = list(TOPCAM_QUANTITY_MARKERS[quantity])
+            xy_q, src_q = _apply_topcam_crossover(
+                r["xy_eff"], src, gaps_by_marker, contract, markers,
+                rule["crossover_frames"] if rule["use_model"] else 10 ** 9)
+            counts[prefix + "_before"] = int(
+                _topcam_yield(before_usable, contract, quantity).sum())
+            counts[prefix + "_after"] = int(
+                _topcam_yield(_usable_mask(xy_q, src_q), contract, quantity).sum())
+
+        self.insert1({
+            **key,
+            "imputation_time": datetime.datetime.now(),
+            "recording_fps": r["fps"],
+            "crossover_hash": topcam_crossover_hash(
+                key["imputation_paramset_id"], key["disk_model_name"]),
+            # Counted over the CONTRACT markers only, as in the eye chains: folding in a
+            # marker the model never touched would distort every counter here while saying
+            # nothing about how well the imputation worked.
+            "n_frames_total": r["n_frames"],
+            "n_frames_observed": int((src == SAMPLE_SOURCE["observed"]).all(axis=1).sum()),
+            "n_frames_imputed": int((src == SAMPLE_SOURCE["disk"]).any(axis=1).sum()),
+            "n_frames_unfilled": int((src == SAMPLE_SOURCE["unfilled"]).any(axis=1).sum()),
+            "n_gaps_attempted": int(sum(1 for g in gaps if g[3] in ("filled", "unfilled"))),
+            "n_gaps_too_long": int(sum(1 for g in gaps if g[3] == "too_long")),
+            "n_gaps_declined": int(sum(1 for g in gaps if g[3] == "unfilled")),
+            "max_gap_filled": int(max(filled_lengths)) if filled_lengths else 0,
+            **counts,
+            "disk_runtime_s": round(r["runtime"], 1),
+        })
+        self.BodyPart.insert(_body_part_rows(key, r))
+        self.Gap.insert([
+            {**key, "body_part": contract[j], "gap_start": start,
+             "gap_length": length, "origin_length": origin,
+             "uncertainty": unc, "gap_status": status}
+            for j, start, length, status, unc, origin in gaps])
+
+        import shutil
+        shutil.rmtree(r["jobdir"], ignore_errors=True)
+
+
 
 
 def missing_summary(pose_key: dict, likelihood_threshold: float = 0.5):
