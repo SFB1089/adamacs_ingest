@@ -1235,17 +1235,19 @@ class DirectionTuning(dj.Computed):
         ori_vec_perm_p=null     : float           # label-shuffle p of ori_vec
         dir_vec_perm_p=null     : float           # label-shuffle p of dir_vec
         pref_ori_ci=null        : float           # [deg] width of the 95-percent bootstrap interval of pref_ori_vec
-        r_pref=null             : float           # measured mean at the best direction
+        r_pref=null             : float           # mean at the best direction (after TuningParamSet.rectify)
         r_null=null             : float           # ... at best + 180
         r_orth=null             : float           # ... mean of best +/- 90
         oi=null                 : float           # (Rp - Ro)/Rp      (biased at low selectivity; for comparison)
         di=null                 : float           # (Rp - Rn)/Rp
-        osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve)
+        osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve; condition
+                                                  # means rectified as TuningParamSet.rectify, like r_pref / r_null / r_orth)
         dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
         osi_cv=null             : float           # cross-validated |F2|/F0: odd/even split product, no small-sample bias (as the
                                                   # v1-drift-audit's osi_cv); can be negative (no reliable tuning)
         dsi_cv=null             : float           # the same for |F1|/F0
-        fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction (report only if hotelling_p small)
+        fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction = the larger peak (fit_rp >= fit_rn);
+                                                  # use with hotelling_p and the goodness of fit below
         fit_sigma=null          : float           # [deg]
         fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
         fit_rp=null             : float           # response above offset at preferred
@@ -1254,6 +1256,14 @@ class DirectionTuning(dj.Computed):
         fit_r2=null             : float
         fit_osi=null            : float           # OSI from the fitted curve
         fit_dsi=null            : float           # DSI from the fitted curve
+        fit_r2_cv=null          : float           # GOF  cross-validated R2: fit on the odd trials' means, R2 on the even trials'
+                                                  #      means, and reverse; mean. ~0 or below = the fit predicts nothing
+                                                  #      (in-sample fit_r2 is 0.41-0.44 median on random onsets: not a criterion)
+        fit_chi2_red=null       : float           # GOF  reduced chi2 of the fit vs the condition means, SEM from the pooled
+                                                  #      within-direction variance; n_directions - 5 degrees of freedom
+        fit_chi2_p=null         : float           # GOF  chi2 upper tail: small = the double Gaussian does not describe the curve
+        fit_at_bound=null       : bool            # GOF  1: width at step/2 or 180 deg, an amplitude or the offset at its bound, or
+                                                  #      no convergence. All fit columns NULL for a flat curve
         """
 
     @property
@@ -1279,7 +1289,7 @@ class DirectionTuning(dj.Computed):
 _DT_COLS = {c: c for c in ("ori_kw_p", "dir_kw_p", "ori_vec", "dir_vec", "pref_ori_vec", "pref_dir_vec", "hotelling_p", "dir_dot_p",
                            "pref_dir_dot", "ori_vec_perm_p", "dir_vec_perm_p", "pref_ori_ci", "r_pref", "r_null",
                            "r_orth", "oi", "di", "osi", "dsi", "osi_cv", "dsi_cv", "fit_pref_dir", "fit_sigma", "fit_hwhh", "fit_rp",
-                           "fit_rn", "fit_c", "fit_r2")}
+                           "fit_rn", "fit_c", "fit_r2", "fit_r2_cv", "fit_chi2_red", "fit_chi2_p", "fit_at_bound")}
 _DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit")
 
 
