@@ -108,3 +108,22 @@ def test_preferred_angles_in_range():
 def test_complete_circle():
     assert T.complete_circle(np.arange(12) * 30.0) and T.complete_circle(np.arange(24) * 15.0)
     assert not T.complete_circle(np.array([0, 45, 90, 180, 225, 270, 315.0]))
+
+
+def test_at_bound_flags_missing_peak_not_missing_null():
+    ang = np.arange(12) * 30.0
+    # perfectly direction-selective: no null response (rn = 0) is a valid fit, not at a bound
+    ds = T.fit_double_gaussian(ang, dg(ang, 0.5, 4.0, 0.0, 90.0, 30.0))
+    assert ds["rn"] < 1e-3 and ds["at_bound"] == 0
+    # no preferred peak (rp at 0, everything else inside its bounds) must be flagged
+    class Res:
+        status, cost = 1, 0.1
+    m = np.linspace(1.0, 2.0, 12)
+    orig = T._fit_curve
+    try:
+        T._fit_curve = lambda a, mm: (np.array([1.5, 0.0, 0.0, 90.0, 40.0]), Res(), 30.0, 2.0)
+        assert T.fit_double_gaussian(ang, m)["at_bound"] == 1
+        T._fit_curve = lambda a, mm: (np.array([1.5, 1.0, 0.0, 90.0, 40.0]), Res(), 30.0, 2.0)
+        assert T.fit_double_gaussian(ang, m)["at_bound"] == 0
+    finally:
+        T._fit_curve = orig
