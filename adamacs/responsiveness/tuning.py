@@ -205,8 +205,10 @@ def fit_double_gaussian(angles, means, trials=None):
       chi2_red  sum((mean - fit)^2 / sem^2) / (D - 5), sem_d = sqrt(pooled within-direction variance / n_d)
                 (pooled: a direction without trial variance, e.g. CASCADE zeros, does not make it infinite)
       chi2_p    upper tail of chi2(D - 5); small = the double Gaussian does not describe the curve within noise
-      at_bound  1 when the width sits at a bound (step/2 or 180 deg), an amplitude or the offset at a bound,
-                or least_squares did not converge; else 0
+      at_bound  1 when the width sits at a bound (step/2 or 180 deg), the offset at +-M, an amplitude at its upper
+                bound 3M, the preferred peak rp at 0 (no peak: the fit is only the offset), or least_squares did not
+                converge; else 0. rn = 0 is NOT flagged: no response to the null direction is a valid, strongly
+                direction-selective fit (Codex review of PR #36)
     All NaN for a flat curve (nothing to fit); chi2 / r2_cv NaN without trials or with D <= 5."""
     a = np.asarray(angles, float); m = np.asarray(means, float)
     out = dict.fromkeys(FIT_KEYS, np.nan)
@@ -219,7 +221,7 @@ def fit_double_gaussian(angles, means, trials=None):
     fp = _double_gauss(p, np.array([tp, tp + 90, tp + 180]))
     tol = 1e-3
     at_bound = (res.status <= 0 or s <= step / 2 * (1 + tol) or s >= 180.0 * (1 - tol) or abs(c) >= M * (1 - tol)
-                or max(rp, rn) >= 3 * M * (1 - tol))
+                or max(rp, rn) >= 3 * M * (1 - tol) or rp <= tol * M)
     with np.errstate(divide="ignore", invalid="ignore"):
         out.update(c=float(c), rp=float(rp), rn=float(rn), pref_dir=float(tp), sigma=float(s),
                    hwhh=float(s * np.sqrt(2 * np.log(2))), r2=float(1 - 2 * res.cost / ss),

@@ -839,8 +839,9 @@ class DirectionTuning(dj.Computed):
         fit_chi2_red=null       : float           # GOF  reduced chi2 of the fit vs the condition means, SEM from the pooled
                                                   #      within-direction variance; n_directions - 5 degrees of freedom
         fit_chi2_p=null         : float           # GOF  chi2 upper tail: small = the double Gaussian does not describe the curve
-        fit_at_bound=null       : bool            # GOF  1: width at step/2 or 180 deg, an amplitude or the offset at its bound, or
-                                                  #      no convergence. All fit columns NULL for a flat curve
+        fit_at_bound=null       : bool            # GOF  1: width at step/2 or 180 deg, offset at +-M, an amplitude at 3M, fit_rp
+                                                  #      at 0, or no convergence (fit_rn = 0 is a valid fit, not flagged).
+                                                  #      All fit columns NULL for a flat curve
         """
 ```
 
