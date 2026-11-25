@@ -1207,15 +1207,17 @@ class Zeta(dj.Computed):
 
 @schema
 class DirectionTuning(dj.Computed):
+    # Column comments: formula and source key; the full references and the notation (R_k condition mean of
+    # direction theta_k, R_jk repeat j, F_n = sum_k R_k exp(i n theta_k)) are in adamacs/responsiveness/tuning.py.
+    # DataJoint stores only the first line of a column comment, so each comment is one self-contained line.
     definition = """
-    # Orientation / direction tuning from one Readout of a direction stimulus (moving gratings, moving bars).
-    # Mazurek, Kager & Van Hooser 2014 (doi:10.3389/fncir.2014.00092); classic indices for comparison.
+    # Orientation / direction tuning of one Readout of a direction stimulus (moving gratings, bars). Mazurek, Kager & Van Hooser 2014 doi:10.3389/fncir.2014.00092
     -> Readout
     -> TuningParamSet
     ---
-    n_directions            : smallint
-    n_repeats               : smallint            # repeats per direction after balancing (Hotelling / dot-product tests)
-    software                : varchar(64)
+    n_directions            : smallint            # D: directions in the protocol
+    n_repeats               : smallint            # K: repeats per direction after balancing (largest over cells), for Hotelling / dot-product tests
+    software                : varchar(64)         # adamacs_ingest commit
     """
 
     class Cell(dj.Part):
@@ -1223,48 +1225,40 @@ class DirectionTuning(dj.Computed):
         -> master
         -> Readout.Cell
         ---
-        ori_kw_p=null           : float           # TUNED  Kruskal-Wallis across orientations, opposite directions pooled (audit p_tuned)
-        dir_kw_p=null           : float           # Kruskal-Wallis across directions (audit p_dir)
-        ori_vec=null            : float           # 1-CirVar = |sum R e^(2i theta)| / sum R   (recommended orientation selectivity)
-        dir_vec=null            : float           # 1-DirCirVar = |sum R e^(i theta)| / sum R (recommended direction selectivity)
-        pref_ori_vec=null       : float           # [deg, 0-180) angle of the orientation vector (TuningParamSet.angle_convention)
-        pref_dir_vec=null       : float           # [deg, 0-360) angle of the direction vector
-        hotelling_p=null        : float           # orientation tuning significant? Hotelling T2, per-repeat orientation vectors vs 0
-        dir_dot_p=null          : float           # direction tuning significant? t-test of per-repeat direction vectors on the orientation axis
-        pref_dir_dot=null       : float           # [deg] preferred direction from the dot-product sign (pref_ori_vec or +180)
-        ori_vec_perm_p=null     : float           # label-shuffle p of ori_vec
-        dir_vec_perm_p=null     : float           # label-shuffle p of dir_vec
-        pref_ori_ci=null        : float           # [deg] width of the 95-percent bootstrap interval of pref_ori_vec
-        r_pref=null             : float           # mean at the best direction (after TuningParamSet.rectify)
-        r_null=null             : float           # ... at best + 180
-        r_orth=null             : float           # ... mean of best +/- 90
-        oi=null                 : float           # (Rp - Ro)/Rp      (biased at low selectivity; for comparison)
-        di=null                 : float           # (Rp - Rn)/Rp
-        osi=null                : float           # (Rp - Ro)/(Rp + Ro)  (Niell & Stryker 2008 form, measured curve; condition
-                                                  # means rectified as TuningParamSet.rectify, like r_pref / r_null / r_orth)
-        dsi=null                : float           # (Rp - Rn)/(Rp + Rn)
-        osi_cv=null             : float           # cross-validated |F2|/F0: odd/even split product, no small-sample bias (as the
-                                                  # v1-drift-audit's osi_cv); can be negative (no reliable tuning)
-        dsi_cv=null             : float           # the same for |F1|/F0
-        fit_pref_dir=null       : float           # [deg] double-Gaussian preferred direction = the larger peak (fit_rp >= fit_rn);
-                                                  # use with hotelling_p and the goodness of fit below
-        fit_sigma=null          : float           # [deg]
-        fit_hwhh=null           : float           # [deg] half-width at half-height = sigma*sqrt(2 ln 2)
-        fit_rp=null             : float           # response above offset at preferred
-        fit_rn=null             : float           # response above offset at null
-        fit_c=null              : float           # offset
-        fit_r2=null             : float
-        fit_osi=null            : float           # OSI from the fitted curve
-        fit_dsi=null            : float           # DSI from the fitted curve
-        fit_r2_cv=null          : float           # GOF  cross-validated R2: fit on the odd trials' means, R2 on the even trials'
-                                                  #      means, and reverse; mean. ~0 or below = the fit predicts nothing
-                                                  #      (in-sample fit_r2 is 0.41-0.44 median on random onsets: not a criterion)
-        fit_chi2_red=null       : float           # GOF  reduced chi2 of the fit vs the condition means, SEM from the pooled
-                                                  #      within-direction variance; n_directions - 5 degrees of freedom
-        fit_chi2_p=null         : float           # GOF  chi2 upper tail: small = the double Gaussian does not describe the curve
-        fit_at_bound=null       : bool            # GOF  1: width at step/2 or 180 deg, offset at +-M, an amplitude at 3M, fit_rp
-                                                  #      at 0, or no convergence (fit_rn = 0 is a valid fit, not flagged).
-                                                  #      All fit columns NULL for a flat curve
+        ori_kw_p=null           : float           # TUNED? Kruskal-Wallis across the D/2 orientations, opposite directions pooled [Kruskal & Wallis 1952]
+        dir_kw_p=null           : float           # TUNED? Kruskal-Wallis across the D directions [Kruskal & Wallis 1952]
+        ori_vec=null            : float           # 1-CirVar = |F_2| / F_0 = |sum_k R_k exp(2i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014; Ringach 2002]
+        dir_vec=null            : float           # 1-DirCirVar = |F_1| / F_0 = |sum_k R_k exp(i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014]
+        pref_ori_vec=null       : float           # [deg, 0-180) arg(F_2) / 2: preferred orientation, angle convention of TuningParamSet [Mazurek 2014]
+        pref_dir_vec=null       : float           # [deg, 0-360) arg(F_1): preferred direction [Mazurek 2014]
+        hotelling_p=null        : float           # ORI TUNED? Hotelling T2 of per-repeat vectors x_j = sum_k R_jk exp(2i theta_k) vs 0; F(2, K-2) [Mazurek 2014; Hotelling 1931]
+        dir_dot_p=null          : float           # DIR TUNED? one-sample t-test of d_j = projection of sum_k R_jk exp(i theta_k) on the pref_ori_vec axis [Mazurek 2014]
+        pref_dir_dot=null       : float           # [deg] pref_ori_vec if mean d_j > 0, else pref_ori_vec + 180 [Mazurek 2014]
+        ori_vec_perm_p=null     : float           # P(ori_vec >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
+        dir_vec_perm_p=null     : float           # P(dir_vec >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
+        pref_ori_ci=null        : float           # [deg] 2 x 95th percentile of |pref_ori_vec(bootstrap) - pref_ori_vec|, trials resampled per direction [Efron 1993]
+        r_pref=null             : float           # R_pref = largest condition mean R_k (after TuningParamSet.rectify), at direction p
+        r_null=null             : float           # R_null = condition mean at p + 180
+        r_orth=null             : float           # R_orth = mean of the condition means at p + 90 and p - 90
+        oi=null                 : float           # (R_pref - R_orth) / R_pref: orientation-space OI of Mazurek 2014 with the preferred direction (not their direction-space OI)
+        di=null                 : float           # (R_pref - R_null) / R_pref [Mazurek 2014]
+        osi=null                : float           # (R_pref - R_orth) / (R_pref + R_orth), measured curve [Niell & Stryker 2008 form; Mazurek 2014]
+        dsi=null                : float           # (R_pref - R_null) / (R_pref + R_null), measured curve [Niell & Stryker 2008 form; Mazurek 2014]
+        osi_cv=null             : float           # sign(c2) sqrt(|c2|) / F_0, c2 = Re(F_2(odd trials) conj F_2(even trials)): split-half 1-CirVar, can be < 0 [v1-drift-audit]
+        dsi_cv=null             : float           # sign(c1) sqrt(|c1|) / F_0, c1 = Re(F_1(odd trials) conj F_1(even trials)): split-half 1-DirCirVar, can be < 0 [v1-drift-audit]
+        fit_pref_dir=null       : float           # [deg] theta_p of R(t) = C + Rp G(t - theta_p) + Rn G(t - theta_p - 180), G(x) = exp(-x^2 / 2 sigma^2); Rp >= Rn [Mazurek 2014]
+        fit_sigma=null          : float           # [deg] sigma of the double Gaussian, >= step/2 [Mazurek 2014]
+        fit_hwhh=null           : float           # [deg] half-width at half-height = sqrt(2 ln 2) sigma [Mazurek 2014]
+        fit_rp=null             : float           # Rp: amplitude above the offset at theta_p, in [0, 3M], M = max |R_k| [Mazurek 2014]
+        fit_rn=null             : float           # Rn: amplitude above the offset at theta_p + 180, in [0, 3M], Rn <= Rp [Mazurek 2014]
+        fit_c=null              : float           # C: offset, in [-M, M] [Mazurek 2014]
+        fit_r2=null             : float           # in-sample R2 = 1 - SSE / sum_k (R_k - mean R)^2 of the fit; 0.41-0.44 median on random onsets: not a criterion
+        fit_osi=null            : float           # (R(theta_p) - R(theta_p + 90)) / (R(theta_p) + R(theta_p + 90)) on the fitted curve R
+        fit_dsi=null            : float           # (R(theta_p) - R(theta_p + 180)) / (R(theta_p) + R(theta_p + 180)) on the fitted curve R
+        fit_r2_cv=null          : float           # GOF: fit on odd trials' means, R2 on even trials' means, and reverse; mean. <= 0: no prediction of new trials
+        fit_chi2_red=null       : float           # GOF: chi2 / (D - 5), chi2 = sum_k (R_k - R(theta_k))^2 / sem_k^2, sem_k^2 = pooled trial variance / n_k [Bevington 2003]
+        fit_chi2_p=null         : float           # GOF: P(chi2(D - 5) >= chi2); small = the double Gaussian does not describe the curve [Bevington 2003]
+        fit_at_bound=null       : bool            # GOF: 1 = sigma at step/2 or 180, C at +-M, Rp or Rn at 3M, Rp at 0, or no convergence (Rn = 0 is valid)
         """
 
     @property
