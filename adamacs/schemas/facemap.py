@@ -319,6 +319,14 @@ class FacemapTask(dj.Manual):
         identity (the result file for 'load', the instance number for 'trigger'; a deliberate re-run = instance + 1)."""
         ident = file_identity(run_file) if task_mode == "load" else f"instance:{int(instance)}"
         tid = task_id(paramset, videos, ident)
+        with cls().connection.transaction:    # a task is visible to workers only together with its complete manifest
+            cls._insert_task(tid, paramset, task_mode, ident, run_dir, run_file, same_site_id, label, note, created_by,
+                             videos)
+        return tid
+
+    @classmethod
+    def _insert_task(cls, tid, paramset, task_mode, ident, run_dir, run_file, same_site_id, label, note, created_by,
+                     videos):
         cls.insert1(dict(facemap_task_id=tid, facemap_paramset=paramset, task_mode=task_mode, run_identity=ident,
                          run_dir=run_dir,
                          run_file=run_file, same_site_id=same_site_id, task_label=label,
@@ -326,7 +334,6 @@ class FacemapTask(dj.Manual):
                          task_note=note), skip_duplicates=True)
         cls.Video.insert([dict(facemap_task_id=tid, segment_index=i, session_id=v["session_id"], scan_id=v["scan_id"],
                                recording_id=v["recording_id"]) for i, v in enumerate(videos)], skip_duplicates=True)
-        return tid
 
 
 def _face_recording(scan_key):
@@ -460,7 +467,8 @@ class FacemapProcessing(dj.Imported):
 
     def make_fetch(self, key):
         model = _upstream("model")
-        task = (FacemapTask * FacemapParamSet & key).fetch1("facemap_task_id", "task_mode", "run_file", "video_assembly")
+        task = (FacemapTask * FacemapParamSet & key).fetch1("facemap_task_id", "task_mode", "run_file", "video_assembly",
+                                                            "run_identity")
         videos = []
         for v in (FacemapTask.Video & key).fetch(as_dict=True, order_by="segment_index"):
             rk = {k: v[k] for k in ("session_id", "scan_id", "recording_id")}
@@ -471,13 +479,19 @@ class FacemapProcessing(dj.Imported):
         return (tuple(task), videos)
 
     def make_compute(self, key, task, videos):
-        tid, mode, run_file, assembly = task
+        tid, mode, run_file, assembly, planned = task
         if mode != "load":
             raise NotImplementedError("task_mode 'trigger' (running facemap) is not implemented yet")
         if not run_file or not os.path.exists(run_file):
             raise FileNotFoundError(f"run file missing: {run_file!r}")
+        if not videos:
+            raise ValueError("task has no manifest (FacemapTask.Video)")
+        if file_identity(run_file) != planned:    # the file was replaced after planning: plan it as a new run
+            raise ValueError(f"{run_file} is not the planned file ({planned!r} vs {file_identity(run_file)!r})")
         st = os.stat(run_file)
         sha = sha256_file(run_file)
+        if file_identity(run_file) != planned:
+            raise ValueError(f"{run_file} changed while it was read")
         proc = np.load(run_file, allow_pickle=True).item()
         mot, mov = _first(proc["motSVD"]), _first(proc["movSVD"])
         motion = np.asarray(_first(proc["motion"]))
