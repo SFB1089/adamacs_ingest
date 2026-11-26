@@ -459,7 +459,7 @@ Module: `adamacs/schemas/responsiveness.py` (deferred `activate()`, upstream mod
 * **More measures per cell (2026-11-20):** unpaired ANOVA and Kruskal–Wallis of all response vs all baseline values
   (Leon's test), per-condition tests with Holm correction, selectivity ANOVA / KW on raw and baseline-corrected
   trials (Nataliya's test), AUROC effect size, lifetime sparseness, explainable variance (`signal_var`, `fev`,
-  `cc_max`) and cross-validated `osi_cv` / `dsi_cv`. Rank-based columns (KW, AUROC) are NULL unless response and
+  `cc_max`) and cross-validated `gosi_cv` / `gdsi_cv` (global OSI / DSI = 1-CirVar / 1-DirCirVar; names in the design doc §2.7). Rank-based columns (KW, AUROC) are NULL unless response and
   baseline windows are equally long; on unequal windows they are not calibrated. Design doc section 2.5.
 * **Thresholds are rows** (`CellRule`) applied by query (`cells(rule)`). Standard rules: `gratings_cascade25`,
   `gratings_oasis` (read-out 16 p < 0.05, oracle >= 0.18) and `images_cascade25`, `images_oasis` (ZETA p < 0.05,

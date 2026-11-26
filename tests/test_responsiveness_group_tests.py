@@ -77,7 +77,7 @@ def test_cv_selectivity_unbiased_on_noise():
     from adamacs.responsiveness import tuning as T
     rng = np.random.default_rng(4)
     ang = np.arange(0, 360, 30.0); c = np.repeat(ang, 16)
-    noise = [T.cv_selectivity(rng.normal(5, 1, c.size), np.array([f"{x:g}" for x in c]), ang, "clip")["osi_cv"] for _ in range(200)]
+    noise = [T.cv_selectivity(rng.normal(5, 1, c.size), np.array([f"{x:g}" for x in c]), ang, "clip")["gosi_cv"] for _ in range(200)]
     assert abs(np.mean(noise)) < 0.01                                 # 1 - CirVar would be biased upward here
     tuned = 5 + 4 * np.cos(np.deg2rad(2 * c)) + rng.normal(0, 1, c.size)
-    assert T.cv_selectivity(tuned, np.array([f"{x:g}" for x in c]), ang, "clip")["osi_cv"] > 0.3
+    assert T.cv_selectivity(tuned, np.array([f"{x:g}" for x in c]), ang, "clip")["gosi_cv"] > 0.3

@@ -687,7 +687,7 @@ class TuningParamSet(dj.Lookup):
     tuning_desc             : varchar(255)
     tuning_hash             : uuid
     unique index (tuning_hash)
-    angle_convention='90_minus_label' : enum('90_minus_label','minus_label','label')   # stimulus label -> angle (all output angles)
+    angle_convention='90_minus_label' : enum('90_minus_label','minus_label','label')   # label L (clockwise motion direction) -> theta: 90_minus_label = 90 - L (agreed; pref_ori = bar orientation), minus_label = -L (motion direction CCW), label = L; https://troselab.slack.com/archives/C08ALHT5PMZ/p1787206655842939?thread_ts=1787206224.422849&cid=C08ALHT5PMZ
     rectify='clip'          : enum('clip','none')   # condition means < 0 set to 0 before vector / point indices
     fit=1                   : bool                  # double-Gaussian fit (Mazurek et al. 2014 constraints)
     n_perm=1000             : smallint              # label shuffles for the vector-length p (0 = skip)
@@ -1210,6 +1210,9 @@ class DirectionTuning(dj.Computed):
     # Column comments: formula and source key; the full references and the notation (R_k condition mean of
     # direction theta_k, R_jk repeat j, F_n = sum_k R_k exp(i n theta_k)) are in adamacs/responsiveness/tuning.py.
     # DataJoint stores only the first line of a column comment, so each comment is one self-contained line.
+    # Names (agreed 2026-11-25): gosi / gdsi = global (vector) OSI / DSI = 1-CirVar / 1-DirCirVar, the recommended measures;
+    # osi / dsi / oi / di = classic point indices. Leon's code and the v1-drift-audit call gosi / gdsi 'osi' / 'dsi',
+    # and the audit's 'osi_cv' is gosi_cv here (translation table: design doc section 2.7).
     definition = """
     # Orientation / direction tuning of one Readout of a direction stimulus (moving gratings, bars). Mazurek, Kager & Van Hooser 2014 doi:10.3389/fncir.2014.00092
     -> Readout
@@ -1227,16 +1230,16 @@ class DirectionTuning(dj.Computed):
         ---
         ori_kw_p=null           : float           # TUNED? Kruskal-Wallis across the D/2 orientations, opposite directions pooled [Kruskal & Wallis 1952]
         dir_kw_p=null           : float           # TUNED? Kruskal-Wallis across the D directions [Kruskal & Wallis 1952]
-        ori_vec=null            : float           # 1-CirVar = |F_2| / F_0 = |sum_k R_k exp(2i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014; Ringach 2002]
-        dir_vec=null            : float           # 1-DirCirVar = |F_1| / F_0 = |sum_k R_k exp(i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014]
-        pref_ori_vec=null       : float           # [deg, 0-180) arg(F_2) / 2: preferred orientation, angle convention of TuningParamSet [Mazurek 2014]
-        pref_dir_vec=null       : float           # [deg, 0-360) arg(F_1): preferred direction [Mazurek 2014]
+        gosi=null               : float           # gOSI = 1-CirVar = |F_2| / F_0 = |sum_k R_k exp(2i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014; Ringach 2002]
+        gdsi=null               : float           # gDSI = 1-DirCirVar = |F_1| / F_0 = |sum_k R_k exp(i theta_k)| / sum_k R_k, 0-1 [Mazurek 2014]
+        pref_ori=null           : float           # [deg, 0-180) arg(F_2) / 2. Tuning 1 (theta = 90 - L, L = clockwise motion label): BAR orientation, 0 = horizontal, 90 = vertical bars; agreed with Sinz lab, see https://troselab.slack.com/archives/C08ALHT5PMZ/p1787206655842939?thread_ts=1787206224.422849&cid=C08ALHT5PMZ
+        pref_dir=null           : float           # [deg, 0-360) arg(F_1). Tuning 1: export direction (90 - L) = physical motion direction + 90; tuning 3 (theta = -L): motion direction CCW from rightward; see https://troselab.slack.com/archives/C08ALHT5PMZ/p1787206655842939?thread_ts=1787206224.422849&cid=C08ALHT5PMZ
         hotelling_p=null        : float           # ORI TUNED? Hotelling T2 of per-repeat vectors x_j = sum_k R_jk exp(2i theta_k) vs 0; F(2, K-2) [Mazurek 2014; Hotelling 1931]
-        dir_dot_p=null          : float           # DIR TUNED? one-sample t-test of d_j = projection of sum_k R_jk exp(i theta_k) on the pref_ori_vec axis [Mazurek 2014]
-        pref_dir_dot=null       : float           # [deg] pref_ori_vec if mean d_j > 0, else pref_ori_vec + 180 [Mazurek 2014]
-        ori_vec_perm_p=null     : float           # P(ori_vec >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
-        dir_vec_perm_p=null     : float           # P(dir_vec >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
-        pref_ori_ci=null        : float           # [deg] 2 x 95th percentile of |pref_ori_vec(bootstrap) - pref_ori_vec|, trials resampled per direction [Efron 1993]
+        dir_dot_p=null          : float           # DIR TUNED? one-sample t-test of d_j = projection of sum_k R_jk exp(i theta_k) on the pref_ori axis [Mazurek 2014]
+        pref_dir_dot=null       : float           # [deg] pref_ori if mean d_j > 0, else pref_ori + 180 [Mazurek 2014]
+        gosi_perm_p=null        : float           # P(gosi >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
+        gdsi_perm_p=null        : float           # P(gdsi >= observed) over direction-label shuffles, (b + 1) / (n + 1) [Ernst 2004; Phipson & Smyth 2010]
+        pref_ori_ci=null        : float           # [deg] 2 x 95th percentile of |pref_ori(bootstrap) - pref_ori|, trials resampled per direction [Efron 1993]
         r_pref=null             : float           # R_pref = largest condition mean R_k (after TuningParamSet.rectify), at direction p
         r_null=null             : float           # R_null = condition mean at p + 180
         r_orth=null             : float           # R_orth = mean of the condition means at p + 90 and p - 90
@@ -1244,8 +1247,8 @@ class DirectionTuning(dj.Computed):
         di=null                 : float           # (R_pref - R_null) / R_pref [Mazurek 2014]
         osi=null                : float           # (R_pref - R_orth) / (R_pref + R_orth), measured curve [Niell & Stryker 2008 form; Mazurek 2014]
         dsi=null                : float           # (R_pref - R_null) / (R_pref + R_null), measured curve [Niell & Stryker 2008 form; Mazurek 2014]
-        osi_cv=null             : float           # sign(c2) sqrt(|c2|) / F_0, c2 = Re(F_2(odd trials) conj F_2(even trials)): split-half 1-CirVar, can be < 0 [v1-drift-audit]
-        dsi_cv=null             : float           # sign(c1) sqrt(|c1|) / F_0, c1 = Re(F_1(odd trials) conj F_1(even trials)): split-half 1-DirCirVar, can be < 0 [v1-drift-audit]
+        gosi_cv=null            : float           # sign(c2) sqrt(|c2|) / F_0, c2 = Re(F_2(odd trials) conj F_2(even trials)): split-half gOSI, can be < 0 [v1-drift-audit]
+        gdsi_cv=null            : float           # sign(c1) sqrt(|c1|) / F_0, c1 = Re(F_1(odd trials) conj F_1(even trials)): split-half gDSI, can be < 0 [v1-drift-audit]
         fit_pref_dir=null       : float           # [deg] theta_p of R(t) = C + Rp G(t - theta_p) + Rn G(t - theta_p - 180), G(x) = exp(-x^2 / 2 sigma^2); Rp >= Rn [Mazurek 2014]
         fit_sigma=null          : float           # [deg] sigma of the double Gaussian, >= step/2 [Mazurek 2014]
         fit_hwhh=null           : float           # [deg] half-width at half-height = sqrt(2 ln 2) sigma [Mazurek 2014]
@@ -1255,6 +1258,8 @@ class DirectionTuning(dj.Computed):
         fit_r2=null             : float           # in-sample R2 = 1 - SSE / sum_k (R_k - mean R)^2 of the fit; 0.41-0.44 median on random onsets: not a criterion
         fit_osi=null            : float           # (R(theta_p) - R(theta_p + 90)) / (R(theta_p) + R(theta_p + 90)) on the fitted curve R
         fit_dsi=null            : float           # (R(theta_p) - R(theta_p + 180)) / (R(theta_p) + R(theta_p + 180)) on the fitted curve R
+        fit_oi=null             : float           # (R(theta_p) - R(theta_p + 90)) / R(theta_p) on the fitted curve: fit-based OSI of the VH-lab wiki, OI of Mazurek 2014
+        fit_di=null             : float           # (R(theta_p) - R(theta_p + 180)) / R(theta_p) on the fitted curve: DI [Mazurek 2014]
         fit_r2_cv=null          : float           # GOF: fit on odd trials' means, R2 on even trials' means, and reverse; mean. <= 0: no prediction of new trials
         fit_chi2_red=null       : float           # GOF: chi2 / (D - 5), chi2 = sum_k (R_k - R(theta_k))^2 / sem_k^2, sem_k^2 = pooled trial variance / n_k [Bevington 2003]
         fit_chi2_p=null         : float           # GOF: P(chi2(D - 5) >= chi2); small = the double Gaussian does not describe the curve [Bevington 2003]
@@ -1281,11 +1286,11 @@ class DirectionTuning(dj.Computed):
         self.Cell.insert(out)
 
 
-_DT_COLS = {c: c for c in ("ori_kw_p", "dir_kw_p", "ori_vec", "dir_vec", "pref_ori_vec", "pref_dir_vec", "hotelling_p", "dir_dot_p",
-                           "pref_dir_dot", "ori_vec_perm_p", "dir_vec_perm_p", "pref_ori_ci", "r_pref", "r_null",
-                           "r_orth", "oi", "di", "osi", "dsi", "osi_cv", "dsi_cv", "fit_pref_dir", "fit_sigma", "fit_hwhh", "fit_rp",
+_DT_COLS = {c: c for c in ("ori_kw_p", "dir_kw_p", "gosi", "gdsi", "pref_ori", "pref_dir", "hotelling_p", "dir_dot_p",
+                           "pref_dir_dot", "gosi_perm_p", "gdsi_perm_p", "pref_ori_ci", "r_pref", "r_null",
+                           "r_orth", "oi", "di", "osi", "dsi", "gosi_cv", "gdsi_cv", "fit_pref_dir", "fit_sigma", "fit_hwhh", "fit_rp",
                            "fit_rn", "fit_c", "fit_r2", "fit_r2_cv", "fit_chi2_red", "fit_chi2_p", "fit_at_bound")}
-_DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit")
+_DT_COLS.update(fit_osi="fit_osi_fit", fit_dsi="fit_dsi_fit", fit_oi="fit_oi_fit", fit_di="fit_di_fit")
 
 
 # ======================================================================================
