@@ -112,3 +112,46 @@ def test_definitions_parse():
                     compile_attribute(s, in_key=False, foreign_key_sql=[], context={})
                     n += 1
     assert n > 80
+
+
+def _fake_proc(path, n=40, k=6, ly=5, lx=4, movie=True):
+    rng = np.random.default_rng(0)
+    proc = {"motSVD": [rng.normal(size=(n, k)).astype(np.float32)],
+            "movSVD": [rng.normal(size=(n, k)).astype(np.float32)] if movie else [],
+            "motion": [rng.random(n).astype(np.float32)],
+            "motSv": np.arange(k, dtype=np.float32), "movSv": np.arange(k, dtype=np.float32),
+            "motMask_reshape": [np.ones((ly, lx, k), np.float32)],
+            "movMask_reshape": [np.ones((ly, lx, k), np.float32)] if movie else [],
+            "avgframe_reshape": np.zeros((ly, lx), np.float32), "avgmotion_reshape": np.zeros((ly, lx), np.float32),
+            "sbin": 1, "filenames": [["video.mp4"]]}
+    np.save(path, proc, allow_pickle=True)
+    return proc
+
+
+@pytest.mark.parametrize("movie", [True, False])
+def test_compute_with_and_without_movie_svd(tmp_path, movie):
+    import datetime as dt, os
+    f = str(tmp_path / "run_proc.npy")
+    _fake_proc(f, movie=movie)
+    key = {"facemap_task_id": "t" * 12}
+    videos = [dict(segment_index=0, session_id="s", scan_id="c", recording_id="r", video_path=str(tmp_path / "v.mp4"),
+                   n_frames_video=40)]
+    run_row, seg_rows = F.FacemapProcessing.make_compute(None, key, ("t" * 12, "load", f, "per_video", F.file_identity(f)), videos)
+    assert run_row["n_frames_total"] == 40 and seg_rows[0]["n_frames"] == 40 and seg_rows[0]["frames_match"]
+    st = os.stat(f)
+    run = (f, str(st.st_size), str(dt.datetime.fromtimestamp(st.st_mtime).replace(microsecond=0)), "40")
+    out = F.FacialSignal.make_compute(None, key, run, [dict(segment_index=0, frame_offset=0, n_frames=40)])
+    master, summary, regions, basis, traces, positions = out
+    assert [b["svd"] for b in basis] == (["motion", "movie"] if movie else ["motion"])
+    assert traces[0]["mot_svd"].shape == (40, 6)
+    assert (traces[0]["mov_svd"] is None) == (not movie)
+    assert (positions[0]["mov_median"] is None) == (not movie) and positions[0]["mot_median"].shape == (6,)
+
+
+def test_replaced_file_is_refused(tmp_path):
+    f = str(tmp_path / "run_proc.npy")
+    _fake_proc(f)
+    stale = "file:" + f + "|1|1"
+    videos = [dict(segment_index=0, session_id="s", scan_id="c", recording_id="r", video_path="", n_frames_video=40)]
+    with pytest.raises(ValueError, match="not the planned file"):
+        F.FacemapProcessing.make_compute(None, {}, ("t" * 12, "load", f, "per_video", stale), videos)

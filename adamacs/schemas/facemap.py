@@ -196,6 +196,15 @@ def _first(x):
     return x[0] if isinstance(x, (list, tuple)) else x
 
 
+def _svd(proc: dict, name: str):
+    """Temporal components 'motSVD' or 'movSVD' [frames, components], or None when the run did not compute them
+    (facemap stores an empty list; e.g. scan9FUEM78C's per-video run has the motion SVD only)."""
+    x = proc.get(name)
+    if isinstance(x, (list, tuple)):
+        return x[0] if len(x) else None
+    return x
+
+
 def _masks(proc: dict, kind: str, k: int) -> np.ndarray:
     """[ly, lx, k] float32 spatial components of 'mot' or 'mov' (the *_reshape key, else the flat key reshaped)."""
     if f"{kind}Mask_reshape" in proc:
@@ -493,7 +502,9 @@ class FacemapProcessing(dj.Imported):
         if file_identity(run_file) != planned:
             raise ValueError(f"{run_file} changed while it was read")
         proc = np.load(run_file, allow_pickle=True).item()
-        mot, mov = _first(proc["motSVD"]), _first(proc["movSVD"])
+        mot, mov = _svd(proc, "motSVD"), _svd(proc, "movSVD")      # mov is None for a motion-SVD-only run
+        if mot is None:
+            raise ValueError(f"{run_file} has no motion SVD")
         motion = np.asarray(_first(proc["motion"]))
         n_total, n_comp = int(mot.shape[0]), int(mot.shape[1])
         filenames = np.ravel(np.asarray(proc.get("filenames", []), dtype=object)).tolist()
@@ -514,12 +525,13 @@ class FacemapProcessing(dj.Imported):
                 n = n_total
             elif os.path.exists(f):            # Leon's split copy gives the segment length and is checked against the run
                 sp = np.load(f, allow_pickle=True).item()
-                smot, smov = _first(sp["motSVD"]), _first(sp["movSVD"])
+                smot, smov = _svd(sp, "motSVD"), _svd(sp, "movSVD")
                 smotion = np.asarray(_first(sp["motion"]))
                 n = int(smot.shape[0])
                 kind = classify_split_motion(smotion.size, n, n_total)
-                ok = bool(off + n <= n_total and np.array_equal(smot, mot[off:off + n])
-                          and np.array_equal(smov, mov[off:off + n]))
+                same_mov = (smov is None and mov is None) or (smov is not None and mov is not None
+                                                              and np.array_equal(smov, mov[off:off + n]))
+                ok = bool(off + n <= n_total and np.array_equal(smot, mot[off:off + n]) and same_mov)
                 if kind == "split":
                     ok = ok and bool(np.array_equal(smotion, motion[off:off + n]))
                 elif kind == "full_concat":
@@ -591,7 +603,7 @@ class FacialSignal(dj.Imported):
         motion_energy           : blob@external-raw        # [n_frames] float32, facemap 'motion'
         n_stored                : smallint                 # temporal components stored (first k)
         mot_svd                 : blob@external-raw        # [n_frames, n_stored] float32, motSVD (unscaled; Sv in Basis)
-        mov_svd                 : blob@external-raw        # [n_frames, n_stored] float32, movSVD
+        mov_svd=null            : blob@external-raw        # [n_frames, n_stored] float32, movSVD; NULL: run without movie SVD
         """
 
     class Position(dj.Part):
@@ -603,13 +615,13 @@ class FacialSignal(dj.Imported):
         ---
         k_position              : smallint                 # components used (all of the run)
         mot_median              : blob@external-raw        # [k] float64 median over frames of motSVD
-        mov_median              : blob@external-raw        # [k]
+        mov_median=null         : blob@external-raw        # [k]; NULL: run without movie SVD
         mot_sd                  : blob@external-raw        # [k] SD over frames
-        mov_sd                  : blob@external-raw
+        mov_sd=null             : blob@external-raw
         mot_within_temporal     : float                    # distance between the medians of the two temporal halves
         mot_within_random       : float                    # mean over 20 random half-splits (seed = segment_index)
-        mov_within_temporal     : float
-        mov_within_random       : float
+        mov_within_temporal=null : float
+        mov_within_random=null  : float
         motion_median           : float                    # median face motion energy
         motion_within_temporal  : float
         motion_within_random    : float
@@ -628,7 +640,7 @@ class FacialSignal(dj.Imported):
                 _dt.datetime.fromisoformat(mtime):
             raise ValueError(f"{run_file} changed since FacemapProcessing recorded it")
         proc = np.load(run_file, allow_pickle=True).item()
-        mot, mov = _first(proc["motSVD"]), _first(proc["movSVD"])
+        mot, mov = _svd(proc, "motSVD"), _svd(proc, "movSVD")      # mov is None for a motion-SVD-only run
         motion = np.asarray(_first(proc["motion"]), np.float32)
         k = min(N_STORED, mot.shape[1])
         avg_f = np.asarray(proc["avgframe_reshape"], np.float32)
@@ -639,26 +651,30 @@ class FacialSignal(dj.Imported):
                        avg_frame=avg_f, avg_motion=avg_m)
         regions = [dict(region, roi_name="full_frame", roi_mask=None, exclusion_mask=None)]
         basis = [dict(region, svd="motion", singular_values=np.asarray(proc["motSv"], np.float32), n_stored=k,
-                      masks=_masks(proc, "mot", k)),
-                 dict(region, svd="movie", singular_values=np.asarray(proc["movSv"], np.float32), n_stored=k,
-                      masks=_masks(proc, "mov", k))]
+                      masks=_masks(proc, "mot", k))]
+        if mov is not None:                            # no movie basis row when the run has no movie SVD
+            basis.append(dict(region, svd="movie", singular_values=np.asarray(proc["movSv"], np.float32), n_stored=k,
+                              masks=_masks(proc, "mov", k)))
         traces, positions = [], []
         for s in segs:
             off, n = int(s["frame_offset"]), int(s["n_frames"])
             seg_key = dict(region, segment_index=int(s["segment_index"]))
-            a, b = np.asarray(mot[off:off + n], np.float32), np.asarray(mov[off:off + n], np.float32)
+            a = np.asarray(mot[off:off + n], np.float32)
+            b = None if mov is None else np.asarray(mov[off:off + n], np.float32)
             e = motion[off:off + n] if motion.size == int(n_total) else motion
             if e.size != n:
                 raise ValueError(f"motion has {motion.size} rows; cannot take segment {s['segment_index']}")
             traces.append(dict(seg_key, motion_energy=e, n_stored=k, mot_svd=np.ascontiguousarray(a[:, :k]),
-                               mov_svd=np.ascontiguousarray(b[:, :k])))
+                               mov_svd=None if b is None else np.ascontiguousarray(b[:, :k])))
             i = int(s["segment_index"])
-            af, bf = a.astype(float), b.astype(float)      # float64, as roselab_leondrift.SessionFacemap
+            af = a.astype(float)                           # float64, as roselab_leondrift.SessionFacemap
+            bf = None if b is None else b.astype(float)
             mt, mr = dist_refs(af, i)
-            vt, vr = dist_refs(bf, i + 1)
+            vt, vr = dist_refs(bf, i + 1) if bf is not None else (None, None)
             m_med, m_t, m_r = motion_refs(e, i + 2)
-            positions.append(dict(seg_key, k_position=int(a.shape[1]), mot_median=np.median(af, 0), mov_median=np.median(bf, 0),
-                                  mot_sd=af.std(0), mov_sd=bf.std(0), mot_within_temporal=mt, mot_within_random=mr,
+            positions.append(dict(seg_key, k_position=int(a.shape[1]), mot_median=np.median(af, 0),
+                                  mov_median=None if bf is None else np.median(bf, 0),
+                                  mot_sd=af.std(0), mov_sd=None if bf is None else bf.std(0), mot_within_temporal=mt, mot_within_random=mr,
                                   mov_within_temporal=vt, mov_within_random=vr, motion_median=m_med,
                                   motion_within_temporal=m_t, motion_within_random=m_r))
         return master, summary, regions, basis, traces, positions
@@ -765,7 +781,7 @@ class SegmentDistance(dj.Computed):
         segment_b               : smallint
         ---
         mot_distance            : float                    # Euclidean distance between mot_median of a and b
-        mov_distance            : float
+        mov_distance=null       : float                    # NULL when a segment has no movie SVD
         """
 
     def make(self, key):
@@ -777,7 +793,8 @@ class SegmentDistance(dj.Computed):
             for j in range(i + 1, len(idx)):
                 pairs.append(dict(key, segment_a=int(idx[i]), segment_b=int(idx[j]),
                                   mot_distance=float(np.linalg.norm(np.asarray(mot[i]) - np.asarray(mot[j]))),
-                                  mov_distance=float(np.linalg.norm(np.asarray(mov[i]) - np.asarray(mov[j])))))
+                                  mov_distance=None if mov[i] is None or mov[j] is None else
+                                  float(np.linalg.norm(np.asarray(mov[i]) - np.asarray(mov[j])))))
         self.Pair.insert(pairs)
 
 
