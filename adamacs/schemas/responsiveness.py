@@ -1132,6 +1132,7 @@ class Zeta(dj.Computed):
         """
 
     N_PROCS = int(_os.environ.get("RESPONSIVENESS_ZETA_PROCS", "24"))
+    TIMEOUT_S = float(_os.environ.get("RESPONSIVENESS_ZETA_TIMEOUT_S", str(4 * 3600)))   # per job; a hung pool fails the job
 
     @property
     def key_source(self):
@@ -1177,12 +1178,7 @@ class Zeta(dj.Computed):
         todo = [i for i, h in enumerate(hk) if h not in known]
         jobs = [(ft, X[i], t, cond, w, zp, _zt.seed_for(key["scan_id"], tk[i]["mask"])) for i in todo]
         procs = max(1, min(self.N_PROCS, (_os.cpu_count() or 2) - 8, len(jobs)))
-        if procs > 1:
-            import multiprocessing as mp
-            with mp.get_context("fork").Pool(procs) as pool:
-                out = pool.map(_zt.zeta_cell, jobs, chunksize=max(1, len(jobs) // (4 * procs)))
-        else:
-            out = [_zt.zeta_cell(j) for j in jobs]
+        out = _zt.map_cells(_zt.zeta_cell, jobs, procs, self.TIMEOUT_S)     # forkserver pool with a time limit
         computed = dict(zip(todo, out))
         res, srcc = [], []
         for i, h in enumerate(hk):
