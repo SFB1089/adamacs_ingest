@@ -1277,7 +1277,10 @@ class DirectionTuning(dj.Computed):
                                          int(tp["n_perm"]), int(tp["n_boot"]), seed=_zt.seed_for(key["scan_id"], k["mask"]),
                                          angle_convention=tp["angle_convention"])
             nrep = max(nrep, r["n_repeats"])
-            out.append({**key, **k, **{c: _none(r.get(src)) for c, src in _DT_COLS.items()}})
+            row = {c: _none(r.get(src)) for c, src in _DT_COLS.items()}
+            for c, period in _tuning.ANGLE_PERIODS.items():        # float32 storage must not round 179.99999 to 180
+                row[c] = _tuning.stored_angle(row[c], period)
+            out.append({**key, **k, **row})
         self.insert1({**key, "n_directions": len(set(cond)), "n_repeats": nrep, "software": code_version()})
         self.Cell.insert(out)
 

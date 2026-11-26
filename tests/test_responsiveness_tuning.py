@@ -136,3 +136,13 @@ def test_fit_oi_di_on_the_fitted_curve():
     r_p, r_o, r_n = dg(np.array([p, p + 90, p + 180]), f["c"], f["rp"], f["rn"], p, f["sigma"])
     assert f["oi_fit"] == pytest.approx((r_p - r_o) / r_p) and f["di_fit"] == pytest.approx((r_p - r_n) / r_p)
     assert f["osi_fit"] == pytest.approx((r_p - r_o) / (r_p + r_o))
+
+
+def test_stored_angle_never_reaches_the_period_in_float32():
+    assert float(np.float32(179.999995)) == 180.0                   # the production case: float32 rounds up
+    assert T.stored_angle(179.999995, 180.0) == 0.0
+    assert T.stored_angle(359.99999, 360.0) == 0.0
+    assert T.stored_angle(90.0, 180.0) == 90.0
+    assert T.stored_angle(-30.0, 360.0) == pytest.approx(330.0)
+    assert T.stored_angle(None, 180.0) is None
+    assert set(T.ANGLE_PERIODS) == {"pref_ori", "pref_dir", "pref_dir_dot", "fit_pref_dir"}
