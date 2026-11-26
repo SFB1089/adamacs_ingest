@@ -3,6 +3,15 @@
 One function per measure. Each docstring gives the formula and its source; the short source keys
 ([Mazurek 2014] etc.) are listed in full under References at the end of this docstring.
 
+Names (agreed 2026-11-25)
+-------------------------
+gosi, gdsi        global (vector) OSI / DSI = 1-CirVar / 1-DirCirVar = |F_2| / F_0, |F_1| / F_0 (recommended)
+gosi_cv, gdsi_cv  their split-half cross-validated versions
+pref_ori, pref_dir  angles of F_2 / 2 and F_1
+osi, dsi, oi, di  classic point indices from R_pref, R_orth, R_null
+Leon's code and the v1-drift-audit call gosi / gdsi 'osi' / 'dsi' (and gosi_cv 'osi_cv'); bare osi / dsi here
+are always the point indices.
+
 Notation
 --------
 theta_k   stimulus direction k = 1..D in degrees, evenly spaced around the circle
@@ -266,10 +275,10 @@ def cv_selectivity(values, labels, angles, rectify_mode):
 
         odd / even:  condition means of the odd and of the even presentations of each direction (rectified)
         c_n      = Re( F_n(odd) * conj(F_n(even)) )          n = 2 (orientation), n = 1 (direction)
-        osi_cv   = sign(c_2) sqrt(|c_2|) / F_0               F_0 = sum of the rectified means of all trials
-        dsi_cv   = sign(c_1) sqrt(|c_1|) / F_0
+        gosi_cv  = sign(c_2) sqrt(|c_2|) / F_0               F_0 = sum of the rectified means of all trials
+        gdsi_cv  = sign(c_1) sqrt(|c_1|) / F_0
 
-    Same scale as 1-CirVar / 1-DirCirVar. The halves are independent, so E[c_n] = |F_n|^2 without the
+    Same scale as gOSI = 1-CirVar / gDSI = 1-DirCirVar. The halves are independent, so E[c_n] = |F_n|^2 without the
     noise bias of |F_n|^2 from one curve [Mazurek 2014 discuss that bias]. After the square root it is
     slightly low for weak tuning (simulated: true 0.105 -> mean 0.078); centred on 0 without tuning and not
     clipped (negative = no reliable tuning). Source: [v1-drift-audit] osi_cv / dsi_cv, here with one fixed
@@ -286,15 +295,15 @@ def cv_selectivity(values, labels, angles, rectify_mode):
     all_means = rectify(np.array([values[label_angles == a].mean() for a in angles]), rectify_mode)
     f0 = np.nansum(all_means)
     if not np.all(np.isfinite(half_means[0])) or not np.all(np.isfinite(half_means[1])) or not f0 > 0:
-        return dict(osi_cv=np.nan, dsi_cv=np.nan)
+        return dict(gosi_cv=np.nan, gdsi_cv=np.nan)
 
     def fourier(means, n):
         return np.sum(means * np.exp(1j * n * theta))
 
     c2 = np.real(fourier(half_means[0], 2) * np.conj(fourier(half_means[1], 2)))
     c1 = np.real(fourier(half_means[0], 1) * np.conj(fourier(half_means[1], 1)))
-    return dict(osi_cv=float(np.sign(c2) * np.sqrt(abs(c2)) / f0),
-                dsi_cv=float(np.sign(c1) * np.sqrt(abs(c1)) / f0))
+    return dict(gosi_cv=float(np.sign(c2) * np.sqrt(abs(c2)) / f0),
+                gdsi_cv=float(np.sign(c1) * np.sqrt(abs(c1)) / f0))
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -363,8 +372,8 @@ def bootstrap_pref_ori_ci(values, conditions, n_boot, mode, seed=0):
 # Double-Gaussian fit [Mazurek 2014] and its goodness of fit [Bevington 2003]
 # ----------------------------------------------------------------------------------------------------------
 
-FIT_KEYS = ("c", "rp", "rn", "pref_dir", "sigma", "hwhh", "r2", "osi_fit", "dsi_fit", "r2_cv", "chi2_red", "chi2_p",
-            "at_bound")
+FIT_KEYS = ("c", "rp", "rn", "pref_dir", "sigma", "hwhh", "r2", "osi_fit", "dsi_fit", "oi_fit", "di_fit", "r2_cv",
+            "chi2_red", "chi2_p", "at_bound")
 N_FIT_PARAMS = 5                   # c, rp, rn, pref_dir, sigma
 AMPLITUDE_BOUND = 3.0              # rp, rn in [0, 3 M]           [Mazurek 2014]
 SIGMA_MAX = 180.0                  # [deg] upper bound of sigma (not in [Mazurek 2014]; keeps the fit finite)
@@ -428,6 +437,8 @@ def fit_double_gaussian(angles, means, trials=None):
       r2        in-sample R2 = 1 - SSE / sum_k (R_k - mean R)^2 (5 parameters on D points: high on noise)
       osi_fit   (R(p) - R(p + 90)) / (R(p) + R(p + 90)) on the fitted curve R, p = pref_dir
       dsi_fit   (R(p) - R(p + 180)) / (R(p) + R(p + 180))
+      oi_fit    (R(p) - R(p + 90)) / R(p)        (the fit-based "OSI" of the VH-lab wiki; Mazurek 2014 OI)
+      di_fit    (R(p) - R(p + 180)) / R(p)       (Mazurek 2014 DI); both NaN when R(p) <= 0
       r2_cv     fit on the odd trials' means, R2 of that curve on the even trials' means, and the reverse;
                 the mean of the two. Near or below 0 = the fit does not predict new trials
       chi2_red  chi2 / (D - 5),  chi2 = sum_k (R_k - R(theta_k))^2 / sem_k^2,
@@ -462,6 +473,8 @@ def fit_double_gaussian(angles, means, trials=None):
                    r2=float(1 - 2 * result.cost / total_ss),          # least_squares cost = SSE / 2
                    osi_fit=float((at_pref - at_orth) / (at_pref + at_orth)) if at_pref + at_orth != 0 else np.nan,
                    dsi_fit=float((at_pref - at_null) / (at_pref + at_null)) if at_pref + at_null != 0 else np.nan,
+                   oi_fit=float((at_pref - at_orth) / at_pref) if at_pref > 0 else np.nan,
+                   di_fit=float((at_pref - at_null) / at_pref) if at_pref > 0 else np.nan,
                    at_bound=float(at_bound))
     if trials is None or len(trials) != angles.size:
         return out
@@ -519,7 +532,7 @@ def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1
     label_angles = labels.astype(float)
     raw_means = np.array([values[label_angles == a].mean() for a in angles])
     means = rectify(raw_means, rectify_mode)
-    ori_vec, dir_vec, pref_ori, pref_dir = vector_measures(angles, means)
+    gosi, gdsi, pref_ori, pref_dir = vector_measures(angles, means)
     _, repeats = condition_matrix(values, labels)
     hotelling_p = hotelling_orientation_p(angles, repeats) if repeats.size else np.nan
     dir_dot_p, dot_mean = direction_dot_test(angles, repeats, pref_ori) if repeats.size else (np.nan, np.nan)
@@ -528,12 +541,12 @@ def direction_tuning(values, conditions, rectify_mode="clip", fit=True, n_perm=1
     else:
         pref_dir_dot = np.nan
     out.update(n_repeats=int(repeats.shape[1]) if repeats.size else 0,
-               ori_vec=ori_vec, dir_vec=dir_vec, pref_ori_vec=pref_ori, pref_dir_vec=pref_dir,
+               gosi=gosi, gdsi=gdsi, pref_ori=pref_ori, pref_dir=pref_dir,
                hotelling_p=hotelling_p, dir_dot_p=dir_dot_p, pref_dir_dot=pref_dir_dot)
     out.update(point_indices(angles, means))
     out.update(cv_selectivity(values, labels, angles, rectify_mode))
     ori_perm_p, dir_perm_p = permutation_p(values, labels, n_perm, rectify_mode, seed) if n_perm else (np.nan, np.nan)
-    out.update(ori_vec_perm_p=ori_perm_p, dir_vec_perm_p=dir_perm_p,
+    out.update(gosi_perm_p=ori_perm_p, gdsi_perm_p=dir_perm_p,
                pref_ori_ci=bootstrap_pref_ori_ci(values, labels, n_boot, rectify_mode, seed) if n_boot else np.nan)
     if fit:
         trials = [values[label_angles == a] for a in angles]

@@ -97,7 +97,7 @@ def test_missing_direction_nulls_geometry_measures():
     v[lab == "90"] = np.nan                          # one direction lost entirely
     out = T.direction_tuning(v, lab, angle_convention="label", n_perm=50, n_boot=20)
     assert out["n_directions"] == 8 and np.isfinite(out["dir_kw_p"])
-    assert "hotelling_p" not in out and "ori_vec" not in out and "fit_pref_dir" not in out
+    assert "hotelling_p" not in out and "gosi" not in out and "fit_pref_dir" not in out
 
 
 def test_preferred_angles_in_range():
@@ -127,3 +127,12 @@ def test_at_bound_flags_missing_peak_not_missing_null():
         assert T.fit_double_gaussian(ang, m)["at_bound"] == 0
     finally:
         T._fit_curve = orig
+
+
+def test_fit_oi_di_on_the_fitted_curve():
+    ang = np.arange(12) * 30.0
+    f = T.fit_double_gaussian(ang, dg(ang, 0.5, 4.0, 1.0, 120.0, 25.0))
+    p = f["pref_dir"]
+    r_p, r_o, r_n = dg(np.array([p, p + 90, p + 180]), f["c"], f["rp"], f["rn"], p, f["sigma"])
+    assert f["oi_fit"] == pytest.approx((r_p - r_o) / r_p) and f["di_fit"] == pytest.approx((r_p - r_n) / r_p)
+    assert f["osi_fit"] == pytest.approx((r_p - r_o) / (r_p + r_o))

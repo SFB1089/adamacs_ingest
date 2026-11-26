@@ -257,21 +257,21 @@ Expected:
 
 code(r"""
 DT = ((r.DirectionTuning.Cell * SOMA - REJ) & {"readout_idx": 16, "tuning_idx": 1}).proj(
-    "ori_vec", "dir_vec", "hotelling_p", "pref_dir_vec", "osi", "dsi").fetch(format="frame").reset_index()
+    "gosi", "gdsi", "hotelling_p", "pref_dir", "osi", "dsi").fetch(format="frame").reset_index()
 if len(DT):
     fig, ax = plt.subplots(1, 4, figsize=(16, 3.2))
     for src in ("cascade25", "oasis", "dff0_r2"):
         d = DT[DT.trace_source == src]
-        ax[0].hist(d.ori_vec.dropna(), bins=50, histtype="step", color=COL[src], label=src, density=True)
-        ax[1].hist(d.dir_vec.dropna(), bins=50, histtype="step", color=COL[src], density=True)
-        ax[2].hist(d.pref_dir_vec.dropna(), bins=np.arange(0, 361, 15), histtype="step", color=COL[src], density=True)
-    ax[0].set(title="1 − CirVar (orientation)"); ax[0].legend(); ax[1].set(title="1 − DirCirVar (direction)"); ax[2].set(title="preferred direction [deg]")
+        ax[0].hist(d.gosi.dropna(), bins=50, histtype="step", color=COL[src], label=src, density=True)
+        ax[1].hist(d.gdsi.dropna(), bins=50, histtype="step", color=COL[src], density=True)
+        ax[2].hist(d.pref_dir.dropna(), bins=np.arange(0, 361, 15), histtype="step", color=COL[src], density=True)
+    ax[0].set(title="gOSI = 1 − CirVar"); ax[0].legend(); ax[1].set(title="gDSI = 1 − DirCirVar"); ax[2].set(title="preferred direction [deg]")
     ax[3].bar(range(3), [100 * np.mean(DT[DT.trace_source == s].hotelling_p.astype(float) < .05) for s in ("cascade25", "oasis", "dff0_r2")],
               color=[COL[s] for s in ("cascade25", "oasis", "dff0_r2")]); ax[3].set_xticks(range(3)); ax[3].set_xticklabels(["CASCADE", "OASIS", "dF/F0"])
     ax[3].set(title="% Hotelling p < 0.05")
     plt.tight_layout(); plt.show()
     c = DT[DT.trace_source == "cascade25"]
-    h, _ = np.histogram(c.pref_dir_vec.dropna(), bins=np.arange(0, 361, 30))
+    h, _ = np.histogram(c.pref_dir.dropna(), bins=np.arange(0, 361, 30))
     verdict("preferred directions spread (CASCADE)", "no 30° bin > 25 % of cells", f"max bin {100 * h.max() / max(h.sum(), 1):.0f} %", h.max() / max(h.sum(), 1) < .25)
     verdict("orientation-tuned cells (CASCADE, Hotelling p < 0.05)", "10–80 %", f"{100 * np.mean(c.hotelling_p.astype(float) < .05):.0f} %",
             10 <= 100 * np.mean(c.hotelling_p.astype(float) < .05) <= 80)
@@ -335,7 +335,7 @@ Calibrated the same way as section 3, on the recordings that have a random-onset
 * **Reliability:** on random onsets, `signal_var` should be ≤ 0 for about half the cells, and `fev` > 0.15 (Cadena's
   cut) should be rare.
 * **Ranges:** AUROC and sparseness lie in [0, 1], FEV ≤ 1, and `cc_max` lies in [0, 1].
-* **Tuning:** the cross-validated `osi_cv` should be near 0 on random onsets, and should rise with the plain OSI on
+* **Tuning:** the cross-validated `gosi_cv` should be near 0 on random onsets, and should rise with `gosi` on
   real gratings.
 """)
 
@@ -386,16 +386,16 @@ if len(NM):
     fv = rnd.dropna(subset=["fev15"])
     if len(fv): verdict("FEV > 0.15 on random onsets", "≤ 5 % of cells", f"max {100 * fv.fev15.max():.1f} %", fv.fev15.max() <= .05)
     verdict("new values in their ranges", "0 cells out of range", f"{int(NM.bad_range.sum())}", NM.bad_range.sum() == 0)
-TCV = ((r.DirectionTuning.Cell * SOMA - REJ) & {"readout_idx": 16, "tuning_idx": 1}).proj("osi", "osi_cv", "dsi_cv").fetch(format="frame").reset_index()
+TCV = ((r.DirectionTuning.Cell * SOMA - REJ) & {"readout_idx": 16, "tuning_idx": 1}).proj("gosi", "gosi_cv", "gdsi_cv").fetch(format="frame").reset_index()
 if len(TCV):
     TCV["random"] = TCV.event_selector.str.endswith("_random")
-    display(TCV.groupby(["trace_source", "random"])[["osi", "osi_cv", "dsi_cv"]].median().round(3))
-    c = TCV[(TCV.trace_source == "cascade25") & ~TCV.random].dropna(subset=["osi", "osi_cv"])
+    display(TCV.groupby(["trace_source", "random"])[["gosi", "gosi_cv", "gdsi_cv"]].median().round(3))
+    c = TCV[(TCV.trace_source == "cascade25") & ~TCV.random].dropna(subset=["gosi", "gosi_cv"])
     if len(c) > 10:
-        rho = c[["osi", "osi_cv"]].corr(method="spearman").iloc[0, 1]
-        verdict("osi_cv follows OSI (CASCADE gratings)", "Spearman ρ > 0.5", f"ρ = {rho:.2f}", rho > .5)
-    cr = TCV[(TCV.trace_source == "cascade25") & TCV.random].osi_cv.dropna()
-    if len(cr): verdict("osi_cv on random onsets", "median |osi_cv| < 0.05", f"{cr.median():.3f}", abs(cr.median()) < .05)
+        rho = c[["gosi", "gosi_cv"]].corr(method="spearman").iloc[0, 1]
+        verdict("gosi_cv follows gosi (CASCADE gratings)", "Spearman ρ > 0.5", f"ρ = {rho:.2f}", rho > .5)
+    cr = TCV[(TCV.trace_source == "cascade25") & TCV.random].gosi_cv.dropna()
+    if len(cr): verdict("gosi_cv on random onsets", "median |gosi_cv| < 0.05", f"{cr.median():.3f}", abs(cr.median()) < .05)
 """)
 
 md(r"""
