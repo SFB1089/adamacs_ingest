@@ -100,6 +100,20 @@ def _wrap(x, period):
     return 0.0 if wrapped >= period else wrapped
 
 
+ANGLE_PERIODS = {"pref_ori": 180.0, "pref_dir": 360.0, "pref_dir_dot": 360.0, "fit_pref_dir": 360.0}   # [deg] table columns
+
+
+def stored_angle(x, period):
+    """``x`` as the table stores it (MySQL float = float32), still in [0, period).
+
+    A value just below the period, e.g. 179.999995, is fine in float64 but rounds to 180.0 in float32 (seen in
+    production on 2026-11-26: 2 of 53,024 cells). Rounded up to the period, it is mapped to 0. None / NaN stay as they are."""
+    if x is None or not np.isfinite(x):
+        return x
+    x32 = float(np.float32(_wrap(x, period)))
+    return 0.0 if x32 >= period else x32
+
+
 def complete_circle(angles):
     """True when the directions are evenly spaced around the full circle.
 
