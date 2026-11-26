@@ -27,6 +27,12 @@ schema **`tobiasr_responsiveness_v8`**: 10 recordings drawn at random (seed 2026
 cohort — 4 moving-grating, 4 natural-image and 2 checkerboard receptive-field recordings — each on three trace types
 (dF/F0, CASCADE 25 ms, OASIS). Everything is read-only.
 
+> **Column names.** This pilot schema keeps the tuning names from before 2026-11-26. In production
+> (`roselab_responsiveness`) they are: `ori_vec` → `gosi`, `dir_vec` → `gdsi`, `osi_cv` → `gosi_cv`,
+> `dsi_cv` → `gdsi_cv`, `pref_ori_vec` → `pref_ori`, `pref_dir_vec` → `pref_dir`, `ori_vec_perm_p` → `gosi_perm_p`,
+> `dir_vec_perm_p` → `gdsi_perm_p`. The values are the same. See the design doc
+> (`docs/RESPONSIVENESS_SCHEMA_PROPOSAL.md`, section 2.7) for the names and the angle convention.
+
 ### How to read every figure
 
 | mark | meaning |
