@@ -25,6 +25,27 @@ def window_and_onsets(onsets, frame_times):
     return w, keep
 
 
+def map_cells(func, jobs, procs, timeout_s):
+    """``[func(j) for j in jobs]`` in a process pool of ``procs`` workers, with a time limit.
+
+    The pool uses the 'forkserver' start method: its children are forked from a fresh, single-threaded server
+    process. With 'fork' they were forked from the populate worker itself, which runs many threads (DataJoint,
+    BLAS); a child could inherit a lock held by another thread and wait on it forever. That hung two production
+    workers for 16 h (2026-11-25/26, 2 of ~1,100 Zeta jobs). ``timeout_s``: the whole map raises
+    ``multiprocessing.TimeoutError`` instead of hanging, the pool's children are terminated when the ``with``
+    block exits, and DataJoint records the job as an error.
+
+    Like 'spawn', 'forkserver' children import the calling script as ``__mp_main__``: a script that populates Zeta
+    must keep its work under ``if __name__ == "__main__":`` (the responsiveness worker does). Without the guard every
+    child starts the work again (seen 2026-11-26 in a test script)."""
+    import multiprocessing as mp
+    if procs <= 1:
+        return [func(j) for j in jobs]
+    ctx = mp.get_context("forkserver")
+    with ctx.Pool(procs) as pool:
+        return pool.map_async(func, jobs, chunksize=max(1, len(jobs) // (4 * procs))).get(timeout=timeout_s)
+
+
 def seed_for(scan_id: str, mask: int) -> int:
     return (zlib.crc32(scan_id.encode()) + int(mask)) % (2 ** 32)
 
