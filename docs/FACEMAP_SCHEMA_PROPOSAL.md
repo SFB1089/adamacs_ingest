@@ -1,6 +1,6 @@
 # Facemap schema: proposal
 
-**Status:** draft for review, 2026-11-26; decisions of 2026-11-26 included (section 7). Nothing is declared. The table definitions are in
+**Status:** implemented 2026-11-26 (`adamacs/schemas/facemap.py`, worker `adamacs/workers/facemap_worker.py`, tests `tests/test_facemap.py`); decisions in section 7; section 9 has the implementation notes. The table definitions are in
 `adamacs/schemas/facemap.py`; the ingest code (`make()`) follows after the design is approved.
 
 **Goal:**
@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | per video | 231 `<scan>_bonsai_face_video_<ts>_proc.npy` | 2025-10 to 2026-04 | one per video | 10.8 GB |
 | site concatenation | 294 `<scan>_face_cam_concatenate_proc.npy` | 2026-05 to 2026-11 | shared per site and stimulus type | 5.0 GB |
-| site run itself | 34 `analysis/facemap_registered_videos/<sess>_<stim>/unified_registered_video_proc.npy` | | the basis | 11 GB |
+| site run itself | 32 (16 sites × 2 stimulus types) `analysis/facemap_registered_videos/<sess>_<stim>/unified_registered_video_proc.npy` | | the basis | 11 GB |
 
 **How Leon's site runs were made** (`LeonKremers-adamacs/notebooks/54_Leon_Behavior_runAnalysis.ipynb`)
 1. Scans of a site and stimulus type are listed with `define_scans` (primary-key order).
@@ -82,18 +82,18 @@ FacialSignal (Imported)         the results, per region
   .Basis                        per region and SVD: all singular values, first 100 spatial masks
   .Trace                        per region and segment: motion energy, first 100 motSVD and movSVD components
 FrameSync (Computed)            DAQ time of every facemap row, per SyncMethod, with count checks
-SegmentSummary (Computed)       a segment's position in its run's basis (Leon's SessionFacemap measures)
+  .Position                     a segment's position in its run's basis, from ALL components (Leon's SessionFacemap measures)
 SegmentDistance (Computed)      pairwise segment distances within one run and region (Leon's svd_distances)
 ```
 
 **Every run is addressable on its own.**
-- Each of the 34 site runs and the 231 per-video runs is a separate `FacemapTask` / `FacemapProcessing` row.
+- Each of the 32 site runs and the 231 per-video runs is a separate `FacemapTask` / `FacemapProcessing` row.
 - A scan that is in both generations has two runs. They differ in `facemap_task_id` and in the paramset's
   `video_assembly`, and they are never merged.
 - `runs_of(video, assembly=...)` lists the runs containing a video, optionally of one generation.
 
 **Cross-session comparisons stay within one run.** Temporal components are comparable only between segments
-of the same run, because only they share a basis. `SegmentSummary` and `SegmentDistance` are keyed by the run,
+of the same run, because only they share a basis. `FacialSignal.Position` and `SegmentDistance` are keyed by the run,
 so a query cannot mix bases by accident. Per-video runs have one segment each, so they give no cross-session
 distances. Leon's `SessionFacemap` can be rebuilt from the site runs and checked against his values.
 
@@ -155,7 +155,7 @@ counts that decide between them. Nothing re-derives times from frame rates.
 ## 6. Ingest plan for the existing data
 
 1. Seed the two paramsets.
-2. **34 site runs**: one `load` task each, with the site-level
+2. **32 site runs**: one `load` task each, with the site-level
    `analysis/facemap_registered_videos/<sess>_<stim>/unified_registered_video_proc.npy` as the run file. The
    manifest comes from `define_scans` (primary-key order) and is checked against
    `roselab_leondrift.SessionFacemap.concat_index` where it exists (84 scans).
@@ -163,19 +163,20 @@ counts that decide between them. Nothing re-derives times from frame rates.
    slice, and slices the May-2026 files that still hold the whole `motion` trace.
 4. **231 per-video runs**: one `load` task each, with the `leon_per_video_2026` paramset and the per-scan
    `<scan>_bonsai_face_video_<ts>_proc.npy` as the run file.
-5. `FrameSync` for every applicable method; `SegmentSummary` and `SegmentDistance`; compare with
+5. `FrameSync` for every applicable method; `FacialSignal.Position` and `SegmentDistance`; compare with
    `roselab_leondrift.SessionFacemap` (all 168 rows should match).
 6. Set `Segment.video_frame_offset` from motion energy against face-marker speed, where facemap and video
    frame counts differ (11 scans of ROS-1912 and ROS-2356, about 4 frames).
 
-**Storage** with 100 components (295,000 frames per scan): about 0.24 GB of traces per segment, so about
-70 GB for the 294 site-run segments and about 55 GB for the 231 per-video runs. Masks: about 0.35 GB per run
-and SVD at float16. The full files stay on disk, referenced with their sha256.
+**Storage** with 100 components: traces 2 × 4 bytes × 100 per frame (about 0.24 GB per 295,000-frame scan);
+masks about 0.4 GB per run and SVD (904 × 1148 × 100 float32; DataJoint blobs have no float16), so about 0.8 GB
+per run. In total roughly 300 GB for the 32 site runs and 231 per-video runs; the blob store has 3.7 TB free.
+The full files stay on disk, referenced with their sha256.
 
 ## 7. Decisions (2026-11-26)
 
 1. **100 components** are stored per SVD (temporal and spatial). All singular values are stored.
-2. **Both generations are ingested**: the 34 site runs and the 231 per-video runs, each addressable on its own.
+2. **Both generations are ingested**: the 32 site runs and the 231 per-video runs, each addressable on its own.
 3. **Schema name `roselab_facemap`.** element-facemap would be activated under a different name, so nothing
    clashes if it is ever used for other rigs.
 4. **The start-anchored rule** is a `SyncMethod` row next to the stored events and the gate rule.
@@ -189,3 +190,25 @@ Still open:
 
 - `model.VideoRecordingNew.File` for `scan9FOWAIBH_bench2p_back` points to the **face** video file. The back
   camera's recording has the wrong file at least for this scan; to be checked across recordings.
+
+## 9. Implementation notes (2026-11-26)
+
+- **Run identity in the task id** (Codex review of PR #43): `facemap_task_id` hashes the paramset, the ordered
+  manifest and `run_identity`. For `load` tasks that is the result file (`file:<path>|<bytes>|<mtime>`), so a
+  regenerated file is a new run; for `trigger` tasks an explicit `instance:<n>`, so a deliberate re-run is a new
+  row. Planning the same run twice still gives the same id.
+- **Every array is in the external store** (`blob@external-raw`): masks, singular values, traces, positions, frame
+  times, average frames. Only the small parameter dictionary of `FacemapParamSet` is inline.
+- **Positions use all components**, computed during the import from the full arrays, so Leon's 500-component
+  medians and distances can be reproduced; only the first 100 components of traces and masks are stored.
+- **Three-part make** (`make_fetch` / `make_compute` / `make_insert`) for `FacemapProcessing` and `FacialSignal`:
+  file reads and hashing run outside the insert transaction.
+- **Leon's split files** are checked one at a time in manifest order (each segment's offset is known when its
+  file is read), so memory stays at one run plus one split file.
+- **Where it runs**: TATCHU3, env `datajoint_analysis` (numpy 2: Leon's files are numpy-2 pickles), from a
+  directory holding `dj_local_conf.json`, with `--no-tls` (that env's OpenSSL fails the server's TLS handshake).
+  ```
+  cd <dir with dj_local_conf.json>
+  PYTHONPATH=<adamacs_ingest checkout> python -m adamacs.workers.facemap_worker --schema roselab_facemap --no-tls plan --insert
+  PYTHONPATH=<adamacs_ingest checkout> python -m adamacs.workers.facemap_worker --schema roselab_facemap --no-tls populate --once
+  ```
