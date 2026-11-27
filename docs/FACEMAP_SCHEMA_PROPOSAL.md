@@ -165,8 +165,7 @@ counts that decide between them. Nothing re-derives times from frame rates.
    `<scan>_bonsai_face_video_<ts>_proc.npy` as the run file.
 5. `FrameSync` for every applicable method; `FacialSignal.Position` and `SegmentDistance`; compare with
    `roselab_leondrift.SessionFacemap` (all 168 rows should match).
-6. Set `Segment.video_frame_offset` from motion energy against face-marker speed, where facemap and video
-   frame counts differ (11 scans of ROS-1912 and ROS-2356, about 4 frames).
+6. Set `Segment.video_frame_offset` from motion energy against face-marker speed (done 2026-11-27, section 10).
 
 **Storage** with 100 components: traces 2 × 4 bytes × 100 per frame (about 0.24 GB per 295,000-frame scan);
 masks about 0.4 GB per run and SVD (904 × 1148 × 100 float32; DataJoint blobs have no float16), so about 0.8 GB
@@ -212,3 +211,40 @@ Still open:
   PYTHONPATH=<adamacs_ingest checkout> python -m adamacs.workers.facemap_worker --schema roselab_facemap --no-tls plan --insert
   PYTHONPATH=<adamacs_ingest checkout> python -m adamacs.workers.facemap_worker --schema roselab_facemap --no-tls populate --once
   ```
+
+## 10. Facemap rows vs video frames: 15 segments shifted by 4 frames (2026-11-27)
+
+**Ingest status.** All 263 runs are in `roselab_facemap` (2026-11-27): 32 site runs, 231 per-video runs, 2,100
+`FrameSync` rows, no errors. Against `roselab_leondrift.SessionFacemap` (168 scans): medians within 0.001, temporal
+references and motion medians identical. All 294 per-scan split files equal their slice of the site run.
+
+**Method.** For every site segment, the lag L that maximises the correlation between log(1 + facemap motion energy)
+at row r and log(1 + DLC face-marker speed) at video frame r + L, for L in −15…+15. Marker speed is the median over
+the face markers of the frame-to-frame displacement, frames with likelihood < 0.9 excluded. Both signals come from
+the same face video, so the lag measures the facemap split, not camera timing. When a scan has several face DLC
+models, the one with the best median likelihood is used (some scans also carry an untrained model with likelihood ≈ 0,
+which first produced spurious lags of −2 and +2).
+
+**Result** (294 site segments): 278 at lag 0; 15 at +4, each improving the correlation by 0.04–0.08; one at +1 with
+no improvement (noise, left at 0). Only lags that improve the correlation by ≥ 0.02 are stored.
+
+| site run | segments at +4 | last segment (4 rows short) |
+|---|---|---|
+| ROS-1912 | scan9FQBJFU7 … scan9FQIOMIX (7) | scan9FQIOMIX |
+| ROS-2356 | scan9G2ISHXX … scan9G2OQSVH (6) | scan9G2OQSVH |
+| run with scan9FVRV8VM | scan9FVMJBHH, scan9FVRV8VM (2) | scan9FVRV8VM |
+
+**Explanation.** In each run the segments are at lag 0 up to one boundary and at +4 from there on, and only the last
+segment has 4 rows fewer than its video. Leon's concatenated (registered) video lost 4 frames at that boundary, and
+the split by the original per-video frame counts carried the shift into every later segment. In ROS-1912 and
+ROS-2356 the boundary follows scan9FQACAG8 and scan9G2HLHF1, two of the four recordings with an unusual count of
+unsaved camera triggers. Leon's per-video runs of the same scans are not shifted.
+
+**Stored.** `FacemapProcessing.Segment.video_frame_offset = 4`, `offset_source = 'motion_vs_dlc'` for the 15
+segments; their `FrameSync` rows were recomputed. In segments shifted mid-run, the last 4 rows belong to the next
+video and get no time; in the last segment of a run, row 0 gets the time of video frame 4. `FacialSignal.Position`
+of these segments is unchanged: it is computed over Leon's split, which includes 4 rows of the neighbouring video
+(as his own `SessionFacemap` values), a negligible effect on medians.
+
+**Consequence.** Leon's split traces of these 15 scans are 4 frames (67 ms) off their videos: negligible per trial,
+not frame by frame. Use `FrameSync`, which applies the offset.
