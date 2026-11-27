@@ -2,6 +2,9 @@
 import numpy as np
 import pytest
 
+dj = pytest.importorskip("datajoint")
+if not hasattr(dj, "Schema"):     # CI installs only pytest + numpy; conftest then puts a stub in its place
+    pytest.skip("needs the real datajoint package", allow_module_level=True)
 F = pytest.importorskip("adamacs.schemas.facemap")
 
 V = [{"session_id": "sessA", "scan_id": "scanA", "recording_id": "scanA_bench2p_face"},
