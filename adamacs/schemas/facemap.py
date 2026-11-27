@@ -798,6 +798,33 @@ class SegmentDistance(dj.Computed):
         self.Pair.insert(pairs)
 
 
+UNSAVED_TOLERANCE = 5        # in-gate triggers without a frame: UNSAVED_TRIGGERS +- this counts as normal
+
+
+def choose_sync_method(camera_frames_status: str, n_unsaved) -> str:
+    """The frame-timing method to use for one segment, from its FrameSync rows:
+
+    1. 'camera_frames' when the stored per-frame events match the video (count_status 'exact');
+    2. 'start_anchored' when the count of unsaved in-gate triggers is not UNSAVED_TRIGGERS +- UNSAVED_TOLERANCE:
+       there the gate rule is off by (121 - unsaved) / 60 s. Checked 2026-11-27 on all 15 such recordings with
+       body-camera paw markers (paw speed vs treadmill: start-anchored lag -0.03 to +0.04 s, gate rule up to
+       +0.73 s, and no match at all for the three with thousands of unsaved triggers);
+    3. 'gate_rule' otherwise."""
+    if camera_frames_status == "exact":
+        return "camera_frames"
+    if n_unsaved is None or abs(int(n_unsaved) - UNSAVED_TRIGGERS) > UNSAVED_TOLERANCE:
+        return "start_anchored"
+    return "gate_rule"
+
+
+def frame_times(segment_key):
+    """(times, sync_method) of one segment's facemap rows, by choose_sync_method. NaN = row without a time."""
+    rows = {r["sync_method"]: r for r in (FrameSync & segment_key).fetch(
+        "sync_method", "count_status", "n_unsaved", as_dict=True)}
+    method = choose_sync_method(rows["camera_frames"]["count_status"], rows["gate_rule"]["n_unsaved"])
+    return (FrameSync & segment_key & {"sync_method": method}).fetch1("frame_times"), method
+
+
 # ------------------------------------------------------------------------------------------------------
 # Addressing runs
 # ------------------------------------------------------------------------------------------------------

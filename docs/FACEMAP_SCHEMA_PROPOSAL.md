@@ -248,3 +248,20 @@ of these segments is unchanged: it is computed over Leon's split, which includes
 
 **Consequence.** Leon's split traces of these 15 scans are 4 frames (67 ms) off their videos: negligible per trial,
 not frame by frame. Use `FrameSync`, which applies the offset.
+
+## 11. Choosing the frame-timing method (2026-11-27)
+
+`FrameSync` stores four methods per segment; `choose_sync_method` / `frame_times(segment_key)` in
+`adamacs/schemas/facemap.py` pick one:
+
+1. `camera_frames` when the stored per-frame events match the video (440 of 525 segments);
+2. `start_anchored` when the count of unsaved in-gate triggers is outside 121 ± 5;
+3. `gate_rule` otherwise.
+
+**Why the count decides.** The gate rule assumes the video ends at the gate end. Where the unsaved count is off, it
+does not, and the gate rule is off by (121 − unsaved) / 60 s. 16 recordings in this schema have such a count (82–165,
+and three with thousands of unsaved triggers); none has stored events. They were checked with body-camera paw speed
+(DLC) against treadmill speed, which is independent of the face camera: the start anchor puts the peak at −0.03 to
++0.04 s in all 15 testable recordings (scan9FVK3VDN has no body paw model); the gate rule is up to +0.73 s off and finds
+no match at all for scan9FW07FNQ, scan9FXTKOX2 and scan9FXTNTHG. The full table is in v1-drift-audit
+`docs/camera_timing_offcount_sessions.md`; notebook `notebooks/22_facemap_tour.ipynb`, section 8b, recomputes it.
