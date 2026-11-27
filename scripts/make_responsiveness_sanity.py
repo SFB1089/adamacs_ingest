@@ -49,6 +49,7 @@ logging.getLogger("datajoint").setLevel(logging.WARNING)      # keeps the server
 import numpy as np, pandas as pd
 import matplotlib as mpl, matplotlib.pyplot as plt
 import datajoint as dj
+dj.logger.setLevel(logging.WARNING)                                   # after the import: keeps the server address out of the outputs
 from IPython.display import display, Markdown
 
 for _c in ("../dj_local_conf.json", "dj_local_conf.json", os.path.expanduser("~/adamacs/dj_local_conf.json")):
