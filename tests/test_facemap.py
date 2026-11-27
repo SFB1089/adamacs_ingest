@@ -2,6 +2,9 @@
 import numpy as np
 import pytest
 
+dj = pytest.importorskip("datajoint")
+if not hasattr(dj, "Schema"):     # CI installs only pytest + numpy; conftest then puts a stub in its place
+    pytest.skip("needs the real datajoint package", allow_module_level=True)
 F = pytest.importorskip("adamacs.schemas.facemap")
 
 V = [{"session_id": "sessA", "scan_id": "scanA", "recording_id": "scanA_bench2p_face"},
@@ -155,3 +158,13 @@ def test_replaced_file_is_refused(tmp_path):
     videos = [dict(segment_index=0, session_id="s", scan_id="c", recording_id="r", video_path="", n_frames_video=40)]
     with pytest.raises(ValueError, match="not the planned file"):
         F.FacemapProcessing.make_compute(None, {}, ("t" * 12, "load", f, "per_video", stale), videos)
+
+
+def test_choose_sync_method():
+    assert F.choose_sync_method("exact", 123) == "camera_frames"
+    assert F.choose_sync_method("no_events", 121) == "gate_rule"
+    assert F.choose_sync_method("no_events", 126) == "gate_rule"
+    assert F.choose_sync_method("no_events", 127) == "start_anchored"
+    assert F.choose_sync_method("no_events", 78) == "start_anchored"
+    assert F.choose_sync_method("no_events", 27726) == "start_anchored"
+    assert F.choose_sync_method("no_events", None) == "start_anchored"
