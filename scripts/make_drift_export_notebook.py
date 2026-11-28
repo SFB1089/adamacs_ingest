@@ -1117,9 +1117,10 @@ md(r"""
 Everything the export reads comes from the database, except these:
 
 1. **Stimulus images.** 49,870 JPEG files (section 9); no table holds them or the id → file mapping.
-2. **Glint for one recording.** `CorrectedGlint` set 3 was never computed for ROS-2328 scan9G1OFAV9. Its
-   `pupil_center` (gaze) is NaN and flagged; pupil size, angles and everything else are exported. Populating set 3
-   for this recording (about 20 minutes on the GPU worker) fills it.
+2. **Glint for one recording.** `CorrectedGlint` set 3 has no row for ROS-2328 scan9G1OFAV9: its quality check
+   rejected the recording ("implausible glint": the glint is found in the image in only 36 % of frames, and 32 % of
+   frames are in failing blocks, limit 30 %). Its `pupil_center` (gaze) is NaN and flagged; pupil size, eye angles and
+   everything else are exported. Decided 2026-11-28: keep it so rather than relax the glint check.
 3. **CellReg columns not tied to a curation** (`CellRegRun.UnresolvedColumn`):
    * ROS-1841 scan9FP5TKME: no curation matches the file's 1,280 centroids;
    * ROS-1985 scan9FS7YFS0 and scan9FS9553U: 9 curations match, holding 2 different mask sets; scan9FS3754E
